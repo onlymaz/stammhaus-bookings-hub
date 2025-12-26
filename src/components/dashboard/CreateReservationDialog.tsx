@@ -17,13 +17,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, Users, Phone, Mail, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,13 +31,18 @@ interface TimeSlot {
   available: boolean;
 }
 
+// Common guest options for quick selection
+const QUICK_GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200];
+
 export const CreateReservationDialog = ({
   open,
   onOpenChange,
 }: CreateReservationDialogProps) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [time, setTime] = useState<string>("");
-  const [guests, setGuests] = useState<string>("2");
+  const [guests, setGuests] = useState<number>(2);
+  const [customGuests, setCustomGuests] = useState<string>("");
+  const [showCustomGuests, setShowCustomGuests] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -53,6 +51,20 @@ export const CreateReservationDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const { toast } = useToast();
+
+  const handleGuestSelect = (num: number) => {
+    setGuests(num);
+    setShowCustomGuests(false);
+    setCustomGuests("");
+  };
+
+  const handleCustomGuestsChange = (value: string) => {
+    setCustomGuests(value);
+    const num = parseInt(value);
+    if (!isNaN(num) && num >= 1 && num <= 200) {
+      setGuests(num);
+    }
+  };
 
   useEffect(() => {
     if (date) {
@@ -137,7 +149,7 @@ export const CreateReservationDialog = ({
         .from("customers")
         .select("id")
         .eq("phone", customerPhone)
-        .single();
+        .maybeSingle();
 
       let customerId = existingCustomer?.id;
 
@@ -163,7 +175,7 @@ export const CreateReservationDialog = ({
           customer_id: customerId,
           reservation_date: format(date, "yyyy-MM-dd"),
           reservation_time: time + ":00",
-          guests: parseInt(guests),
+          guests: guests,
           source: "phone",
           special_requests: specialRequests || null,
         });
@@ -181,7 +193,9 @@ export const CreateReservationDialog = ({
       setCustomerEmail("");
       setSpecialRequests("");
       setTime("");
-      setGuests("2");
+      setGuests(2);
+      setCustomGuests("");
+      setShowCustomGuests(false);
       onOpenChange(false);
     } catch (error: any) {
       toast({
@@ -234,23 +248,61 @@ export const CreateReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Guests *</Label>
-              <Select value={guests} onValueChange={setGuests}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                    <SelectItem key={n} value={n.toString()}>
-                      <span className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        {n} {n === 1 ? "guest" : "guests"}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Selected</Label>
+              <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{guests}</span>
+                <span className="text-muted-foreground text-sm">
+                  {guests === 1 ? "guest" : "guests"}
+                </span>
+              </div>
             </div>
+          </div>
+
+          {/* Guest Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Number of Guests *</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs"
+                onClick={() => setShowCustomGuests(!showCustomGuests)}
+              >
+                {showCustomGuests ? "Quick select" : "Custom number"}
+              </Button>
+            </div>
+            
+            {showCustomGuests ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={200}
+                  placeholder="Enter number (1-200)"
+                  value={customGuests}
+                  onChange={(e) => handleCustomGuestsChange(e.target.value)}
+                  className="max-w-[200px]"
+                />
+                <span className="text-sm text-muted-foreground">guests</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 max-h-[120px] overflow-y-auto p-1">
+                {QUICK_GUEST_OPTIONS.map((num) => (
+                  <Button
+                    key={num}
+                    type="button"
+                    variant={guests === num ? "default" : "outline"}
+                    size="sm"
+                    className="text-xs h-9"
+                    onClick={() => handleGuestSelect(num)}
+                  >
+                    {num}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Time Slots */}
