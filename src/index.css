@@ -134,7 +134,7 @@
 
 @layer components {
   .btn-gold {
-    @apply bg-accent text-accent-foreground hover:bg-[hsl(var(--gold-dark))] transition-colors;
+    @apply bg-accent text-accent-foreground hover:bg-[hsl(var(--gold-dark))] transition-all duration-300 shadow-lg hover:shadow-xl;
   }
 
   .gradient-gold {
@@ -145,21 +145,25 @@
     background: linear-gradient(135deg, hsl(var(--crimson-light)) 0%, hsl(var(--crimson)) 50%, hsl(var(--crimson-dark)) 100%);
   }
 
+  .gradient-premium {
+    background: linear-gradient(135deg, hsl(var(--crimson-dark)) 0%, hsl(var(--crimson)) 50%, hsl(var(--gold)) 100%);
+  }
+
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(var(--gold-light)) 0%, hsl(var(--gold)) 100%);
   }
 
   .card-elevated {
-    @apply bg-card shadow-lg border border-border/50 rounded-xl;
+    @apply bg-card shadow-xl border border-border/30 rounded-2xl overflow-hidden;
   }
 
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-xl hover:border-primary/30 hover:-translate-y-0.5;
+    @apply transition-all duration-300 hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1;
   }
 
   .glass-effect {
-    @apply bg-card/80 backdrop-blur-sm;
+    @apply bg-card/80 backdrop-blur-md border border-border/20;
   }
 
   .header-gradient {
@@ -167,51 +171,85 @@
   }
 
   .calendar-cell {
-    @apply p-2 rounded-xl text-left transition-all duration-200 min-h-[90px] border bg-card border-border/50 hover:border-primary/40 hover:shadow-md;
+    @apply p-2.5 rounded-xl text-left transition-all duration-300 min-h-[100px] border-2 bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer relative overflow-hidden;
+  }
+
+  .calendar-cell::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 transition-all duration-300;
+  }
+
+  .calendar-cell:hover::before {
+    @apply from-primary/5 to-primary/10;
   }
 
   .calendar-cell-selected {
-    @apply bg-primary/10 border-primary shadow-md;
+    @apply bg-gradient-to-br from-primary/10 to-primary/20 border-primary shadow-lg shadow-primary/10;
   }
 
   .calendar-cell-today {
-    @apply ring-2 ring-accent ring-offset-2 ring-offset-background;
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg shadow-accent/20;
   }
 
   .status-new {
-    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+    @apply bg-blue-500/15 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/30;
   }
 
   .status-confirmed {
-    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300;
+    @apply bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/30;
   }
 
   .status-completed {
-    @apply bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300;
+    @apply bg-slate-500/15 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400 border border-slate-500/30;
   }
 
   .status-cancelled {
-    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+    @apply bg-red-500/15 text-red-600 dark:bg-red-500/20 dark:text-red-400 border border-red-500/30;
   }
 
   .status-no_show {
-    @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300;
+    @apply bg-orange-500/15 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400 border border-orange-500/30;
   }
 
   .source-website {
-    @apply bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300;
+    @apply bg-purple-500/15 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400;
   }
 
   .source-phone {
-    @apply bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300;
+    @apply bg-cyan-500/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400;
   }
 
   .reservation-chip {
-    @apply text-[10px] bg-primary/15 text-primary rounded-md px-1.5 py-1 truncate font-medium;
+    @apply text-[10px] bg-gradient-to-r from-primary/15 to-primary/25 text-primary rounded-lg px-2 py-1.5 truncate font-semibold border border-primary/20 shadow-sm;
   }
 
   .day-panel-card {
-    @apply p-4 rounded-xl border border-border bg-card hover:border-primary/40 transition-all duration-200 cursor-pointer hover:shadow-md;
+    @apply p-4 rounded-xl border-2 border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50 transition-all duration-300 cursor-pointer hover:shadow-xl hover:-translate-y-0.5 relative overflow-hidden;
+  }
+
+  .day-panel-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-accent opacity-0 transition-opacity duration-300;
+  }
+
+  .day-panel-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .premium-header {
+    @apply bg-gradient-to-r from-card via-card to-secondary/50 border-b border-border/30;
+  }
+
+  .stat-card {
+    @apply p-4 rounded-xl bg-gradient-to-br from-card to-secondary/20 border border-border/30 shadow-lg;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--primary) / 0.1);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px hsl(var(--accent) / 0.4), 0 0 40px hsl(var(--accent) / 0.2);
   }
 }
 

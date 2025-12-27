@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ReservationDetail {
   id: string;
@@ -52,113 +53,122 @@ export const ReservationDetailDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Reservation Details</span>
-            <Badge className={getStatusBadgeClass(reservation.status)}>
-              {reservation.status}
-            </Badge>
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6 py-4">
-          {/* Customer Info */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Customer
-            </h4>
-            <div className="space-y-2">
-              <p className="text-lg font-medium">
-                {reservation.customer?.name || "Guest"}
-              </p>
-              {reservation.customer?.phone && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <a href={`tel:${reservation.customer.phone}`} className="hover:text-primary">
-                    {reservation.customer.phone}
-                  </a>
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-0 shadow-2xl">
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-r from-primary/15 via-card to-accent/15 px-6 py-5 border-b border-border/30">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+                  <Users className="h-6 w-6 text-primary-foreground" />
                 </div>
-              )}
-              {reservation.customer?.email && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <a href={`mailto:${reservation.customer.email}`} className="hover:text-primary">
-                    {reservation.customer.email}
-                  </a>
+                <div>
+                  <DialogTitle className="text-xl font-display font-bold">
+                    {reservation.customer?.name || "Guest"}
+                  </DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Reservation Details
+                  </p>
                 </div>
-              )}
+              </div>
+              <Badge className={cn(getStatusBadgeClass(reservation.status), "text-sm font-semibold px-3 py-1.5 rounded-lg")}>
+                {reservation.status}
+              </Badge>
             </div>
+          </DialogHeader>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Contact Info */}
+          <div className="grid grid-cols-2 gap-4">
+            {reservation.customer?.phone && (
+              <a 
+                href={`tel:${reservation.customer.phone}`} 
+                className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/30 hover:border-primary/30 transition-all duration-300 hover:shadow-md group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Phone className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="font-medium text-sm">{reservation.customer.phone}</p>
+                </div>
+              </a>
+            )}
+            {reservation.customer?.email && (
+              <a 
+                href={`mailto:${reservation.customer.email}`} 
+                className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/30 hover:border-primary/30 transition-all duration-300 hover:shadow-md group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                  <Mail className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="font-medium text-sm truncate">{reservation.customer.email}</p>
+                </div>
+              </a>
+            )}
           </div>
 
           {/* Reservation Info */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Reservation
-            </h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  {format(new Date(reservation.reservation_date), "MMM d, yyyy")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  {reservation.reservation_time.slice(0, 5)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{reservation.guests} guests</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
-                  {reservation.source}
-                </span>
-              </div>
+          <div className="grid grid-cols-4 gap-3">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-center">
+              <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Date</p>
+              <p className="font-bold text-sm">{format(new Date(reservation.reservation_date), "MMM d")}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 text-center">
+              <Clock className="h-5 w-5 text-accent mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Time</p>
+              <p className="font-bold text-sm">{reservation.reservation_time.slice(0, 5)}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 text-center">
+              <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Guests</p>
+              <p className="font-bold text-sm">{reservation.guests}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 text-center">
+              <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Source</p>
+              <p className="font-bold text-sm capitalize">{reservation.source}</p>
             </div>
           </div>
 
           {/* Notes */}
           {reservation.notes && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Notes
-              </h4>
-              <p className="text-sm bg-muted/50 p-3 rounded-lg">
-                {reservation.notes}
-              </p>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/30">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-sm font-semibold text-muted-foreground">Notes</h4>
+              </div>
+              <p className="text-sm text-foreground">{reservation.notes}</p>
             </div>
           )}
 
           {/* Special Requests */}
           {reservation.special_requests && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Special Requests
-              </h4>
-              <p className="text-sm bg-muted/50 p-3 rounded-lg">
-                {reservation.special_requests}
-              </p>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageSquare className="h-4 w-4 text-accent" />
+                <h4 className="text-sm font-semibold text-accent">Special Requests</h4>
+              </div>
+              <p className="text-sm text-foreground">{reservation.special_requests}</p>
             </div>
           )}
 
-          {/* Created At */}
-          <div className="pt-2 border-t">
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-4 border-t border-border/30">
             <p className="text-xs text-muted-foreground">
-              Created: {format(new Date(reservation.created_at), "MMM d, yyyy 'at' h:mm a")}
+              Created {format(new Date(reservation.created_at), "MMM d, yyyy 'at' h:mm a")}
             </p>
+            <Button 
+              onClick={() => onOpenChange(false)}
+              className="px-6 shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              Close
+            </Button>
           </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
