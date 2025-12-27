@@ -70,18 +70,18 @@ serve(async (req) => {
       );
     }
 
-    // Validate email format if provided
-    if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  // Validate email (required)
+  if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+    return new Response(
+      JSON.stringify({ error: "Valid email is required" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 
     // Sanitize inputs
     const sanitizedName = body.name.trim().slice(0, 100);
     const sanitizedPhone = body.phone.trim().slice(0, 30);
-    const sanitizedEmail = body.email?.trim().slice(0, 255) || null;
+  const sanitizedEmail = body.email.trim().slice(0, 255);
     const sanitizedRequests = body.special_requests?.trim().slice(0, 500) || null;
 
     // Create Supabase client with service role for database operations
