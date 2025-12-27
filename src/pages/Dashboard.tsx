@@ -50,47 +50,49 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg gradient-crimson flex items-center justify-center shadow-md">
-              <span className="text-primary-foreground font-display text-lg font-bold">S</span>
+      <header className="premium-header backdrop-blur-md sticky top-0 z-50 shadow-xl">
+        <div className="container mx-auto px-4 lg:px-6 h-18 flex items-center justify-between py-3">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl gradient-premium flex items-center justify-center shadow-lg glow-primary">
+              <span className="text-primary-foreground font-display text-xl font-bold">S</span>
             </div>
             <div className="flex flex-col">
-              <h1 className="font-display text-lg font-bold text-foreground leading-tight">
+              <h1 className="font-display text-xl font-bold text-foreground leading-tight tracking-tight">
                 Stammhaus
               </h1>
-              <span className="text-xs text-muted-foreground hidden sm:inline">
-                Reservation System
+              <span className="text-xs text-muted-foreground hidden sm:inline font-medium">
+                Restaurant Reservations
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               onClick={() => setShowCreateDialog(true)}
-              className="gap-2 shadow-md hover:shadow-lg transition-all"
+              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary px-5"
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New Reservation</span>
+              <span className="hidden sm:inline font-medium">New Reservation</span>
             </Button>
 
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-accent rounded-full" />
-            </Button>
+            <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
+              <Button variant="ghost" size="icon" className="relative rounded-lg hover:bg-secondary">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full animate-pulse glow-accent" />
+              </Button>
 
-            <Button variant="ghost" size="icon">
-              <Settings className="h-4 w-4" />
-            </Button>
+              <Button variant="ghost" size="icon" className="rounded-lg hover:bg-secondary">
+                <Settings className="h-4 w-4" />
+              </Button>
 
-            <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+              <div className="w-px h-6 bg-border/50 mx-1 hidden sm:block" />
 
-            <Button variant="ghost" size="icon" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-lg hover:bg-destructive/10 hover:text-destructive">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>

@@ -145,79 +145,102 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
   const monthDays = getMonthDays();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Calendar View */}
       <div className="lg:col-span-2">
-        <Card className="card-elevated overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-4 bg-gradient-to-r from-card to-secondary/30">
-            <CardTitle className="font-display text-xl font-semibold">
-              {viewMode === "month" 
-                ? format(currentMonth, "MMMM yyyy")
-                : format(weekStart, "MMMM yyyy")
-              }
-            </CardTitle>
-            <div className="flex items-center gap-2">
+        <Card className="card-elevated border-0 shadow-2xl">
+          <CardHeader className="flex flex-row items-center justify-between pb-6 pt-6 px-6 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <CalendarDays className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="font-display text-2xl font-bold tracking-tight">
+                  {viewMode === "month" 
+                    ? format(currentMonth, "MMMM yyyy")
+                    : format(weekStart, "MMMM yyyy")
+                  }
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {reservations.length} reservations this {viewMode}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
               {/* View Toggle */}
-              <div className="flex items-center bg-secondary/50 rounded-lg p-1 mr-2">
+              <div className="flex items-center bg-secondary/60 rounded-xl p-1.5 shadow-inner">
                 <Button
                   variant={viewMode === "week" ? "default" : "ghost"}
                   size="sm"
-                  className="h-8 px-3 transition-all"
+                  className={cn(
+                    "h-9 px-4 rounded-lg transition-all duration-300",
+                    viewMode === "week" && "shadow-md"
+                  )}
                   onClick={() => setViewMode("week")}
                 >
-                  <CalendarDays className="h-4 w-4" />
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  Week
                 </Button>
                 <Button
                   variant={viewMode === "month" ? "default" : "ghost"}
                   size="sm"
-                  className="h-8 px-3 transition-all"
+                  className={cn(
+                    "h-9 px-4 rounded-lg transition-all duration-300",
+                    viewMode === "month" && "shadow-md"
+                  )}
                   onClick={() => setViewMode("month")}
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="h-4 w-4 mr-2" />
+                  Month
                 </Button>
               </div>
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {
-                  if (viewMode === "week") {
-                    setWeekStart(addDays(weekStart, -7));
-                  } else {
-                    setCurrentMonth(addMonths(currentMonth, -1));
-                  }
-                }}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const today = new Date();
-                  if (viewMode === "week") {
-                    setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
-                  } else {
-                    setCurrentMonth(today);
-                  }
-                  setSelectedDate(today);
-                }}
-              >
-                Today
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {
-                  if (viewMode === "week") {
-                    setWeekStart(addDays(weekStart, 7));
-                  } else {
-                    setCurrentMonth(addMonths(currentMonth, 1));
-                  }
-                }}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center bg-secondary/40 rounded-xl p-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-lg h-9 w-9 hover:bg-secondary"
+                  onClick={() => {
+                    if (viewMode === "week") {
+                      setWeekStart(addDays(weekStart, -7));
+                    } else {
+                      setCurrentMonth(addMonths(currentMonth, -1));
+                    }
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-lg px-4 h-9 hover:bg-secondary font-medium"
+                  onClick={() => {
+                    const today = new Date();
+                    if (viewMode === "week") {
+                      setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
+                    } else {
+                      setCurrentMonth(today);
+                    }
+                    setSelectedDate(today);
+                  }}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-lg h-9 w-9 hover:bg-secondary"
+                  onClick={() => {
+                    if (viewMode === "week") {
+                      setWeekStart(addDays(weekStart, 7));
+                    } else {
+                      setCurrentMonth(addMonths(currentMonth, 1));
+                    }
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -365,46 +388,75 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
 
       {/* Day Detail */}
       <div>
-        <Card className="card-elevated sticky top-24">
-          <CardHeader className="flex flex-row items-center justify-between pb-4 bg-gradient-to-r from-card to-secondary/30 rounded-t-xl">
-            <div>
-              <CardTitle className="font-display text-xl font-semibold">
-                {format(selectedDate, "EEEE")}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {format(selectedDate, "MMMM d, yyyy")}
-              </p>
-              {todayReservations.length > 0 && (
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-sm font-medium text-primary flex items-center gap-1.5 bg-primary/10 px-2 py-1 rounded-md">
-                    <Users className="h-3.5 w-3.5" />
-                    {todayReservations.reduce((sum, r) => sum + r.guests, 0)} guests
-                  </span>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {todayReservations.length} reservations
-                  </span>
+        <Card className="card-elevated sticky top-24 border-0 shadow-2xl">
+          <CardHeader className="pb-4 pt-6 px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+                    <span className="text-primary-foreground font-bold text-lg">
+                      {format(selectedDate, "d")}
+                    </span>
+                  </div>
+                  <div>
+                    <CardTitle className="font-display text-xl font-bold tracking-tight">
+                      {format(selectedDate, "EEEE")}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {format(selectedDate, "MMMM yyyy")}
+                    </p>
+                  </div>
                 </div>
-              )}
+                {todayReservations.length > 0 && (
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="stat-card flex items-center gap-2 py-2 px-3">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-bold text-foreground">
+                        {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">guests</span>
+                    </div>
+                    <div className="stat-card flex items-center gap-2 py-2 px-3">
+                      <Clock className="h-4 w-4 text-accent" />
+                      <span className="text-sm font-bold text-foreground">
+                        {todayReservations.length}
+                      </span>
+                      <span className="text-xs text-muted-foreground">bookings</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <Button 
+                size="sm" 
+                onClick={onCreateReservation} 
+                className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </Button>
             </div>
-            <Button size="sm" onClick={onCreateReservation} className="gap-1.5 shadow-md">
-              <Plus className="h-3.5 w-3.5" />
-              Add
-            </Button>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="pt-5 pb-6 px-5">
             {loading ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <div className="animate-pulse">Loading...</div>
+              <div className="py-12 text-center">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-muted-foreground">Loading reservations...</p>
               </div>
             ) : todayReservations.length === 0 ? (
               <div className="py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                  <CalendarDays className="h-8 w-8 text-muted-foreground" />
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-5 shadow-inner">
+                  <CalendarDays className="h-10 w-10 text-muted-foreground/60" />
                 </div>
-                <p className="text-muted-foreground mb-4">No reservations for this day</p>
-                <Button variant="outline" onClick={onCreateReservation} className="gap-2">
+                <p className="text-muted-foreground mb-5 font-medium">No reservations yet</p>
+                <Button 
+                  variant="outline" 
+                  onClick={onCreateReservation} 
+                  className="gap-2 px-6 shadow-md hover:shadow-lg transition-all duration-300 border-2"
+                >
                   <Plus className="h-4 w-4" />
-                  Create Reservation
+                  Create First Reservation
                 </Button>
               </div>
             ) : (
