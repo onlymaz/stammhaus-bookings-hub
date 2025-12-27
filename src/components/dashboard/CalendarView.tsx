@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
 
@@ -412,9 +412,17 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                     className="p-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">
-                        {res.customer?.name || "Guest"}
-                      </span>
+                      <div>
+                        <span className="font-medium block">
+                          {res.customer?.name || "Guest"}
+                        </span>
+                        {res.customer?.phone && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Phone className="h-3 w-3" />
+                            {res.customer.phone}
+                          </span>
+                        )}
+                      </div>
                       <Badge className={getStatusBadgeClass(res.status)}>
                         {res.status}
                       </Badge>
@@ -429,6 +437,11 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                         {res.guests} guests
                       </span>
                     </div>
+                    {res.special_requests && (
+                      <div className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                        {res.special_requests}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
