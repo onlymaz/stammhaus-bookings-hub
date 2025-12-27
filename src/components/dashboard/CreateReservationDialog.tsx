@@ -82,9 +82,20 @@ export const CreateReservationDialog = ({
       .from("operating_hours")
       .select("*")
       .eq("day_of_week", dayOfWeek)
-      .single();
+      .maybeSingle();
 
-    if (!hours || hours.is_closed) {
+    // If no operating hours set, use defaults (11:00 - 22:00)
+    const defaultHours = {
+      lunch_start: "11:00",
+      lunch_end: "15:00",
+      dinner_start: "17:00",
+      dinner_end: "22:00",
+      is_closed: false,
+    };
+
+    const operatingHours = hours || defaultHours;
+
+    if (operatingHours.is_closed) {
       setTimeSlots([]);
       setLoadingSlots(false);
       return;
@@ -93,14 +104,14 @@ export const CreateReservationDialog = ({
     const slots: TimeSlot[] = [];
     
     // Generate lunch slots
-    if (hours.lunch_start && hours.lunch_end) {
-      const lunchSlots = generateSlotsForPeriod(hours.lunch_start, hours.lunch_end);
+    if (operatingHours.lunch_start && operatingHours.lunch_end) {
+      const lunchSlots = generateSlotsForPeriod(operatingHours.lunch_start, operatingHours.lunch_end);
       slots.push(...lunchSlots);
     }
 
     // Generate dinner slots
-    if (hours.dinner_start && hours.dinner_end) {
-      const dinnerSlots = generateSlotsForPeriod(hours.dinner_start, hours.dinner_end);
+    if (operatingHours.dinner_start && operatingHours.dinner_end) {
+      const dinnerSlots = generateSlotsForPeriod(operatingHours.dinner_start, operatingHours.dinner_end);
       slots.push(...dinnerSlots);
     }
 
