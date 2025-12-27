@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Clock } from "lucide-react";
+import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Clock, Gauge } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
 import { TeamManagement } from "@/components/dashboard/TeamManagement";
 import { OperatingHoursSettings } from "@/components/dashboard/OperatingHoursSettings";
+import { CapacitySettings } from "@/components/dashboard/CapacitySettings";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Popover,
@@ -31,7 +32,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "hours">("preferences");
+  const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "hours" | "capacity">("preferences");
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -213,6 +214,15 @@ const Dashboard = () => {
                         <Clock className="h-4 w-4" />
                         Hours
                       </Button>
+                      <Button
+                        variant={settingsTab === "capacity" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSettingsTab("capacity")}
+                        className="gap-2"
+                      >
+                        <Gauge className="h-4 w-4" />
+                        Capacity
+                      </Button>
                     </div>
                   )}
 
@@ -270,12 +280,19 @@ const Dashboard = () => {
                       </h3>
                       <TeamManagement />
                     </div>
-                  ) : (
+                  ) : settingsTab === "hours" ? (
                     <div className="py-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                         Operating Hours
                       </h3>
                       <OperatingHoursSettings />
+                    </div>
+                  ) : (
+                    <div className="py-6">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                        Capacity Settings
+                      </h3>
+                      <CapacitySettings />
                     </div>
                   )}
                 </SheetContent>
