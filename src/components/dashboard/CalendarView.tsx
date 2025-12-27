@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ReservationDetailDialog } from "./ReservationDetailDialog";
 
 interface Reservation {
   id: string;
@@ -24,9 +25,14 @@ interface Reservation {
   reservation_time: string;
   guests: number;
   status: string;
+  notes: string | null;
+  special_requests: string | null;
+  source: string;
+  created_at: string;
   customer: {
     name: string;
     phone: string;
+    email: string | null;
   } | null;
 }
 
@@ -43,6 +49,8 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchReservations();
@@ -70,7 +78,11 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
         reservation_time,
         guests,
         status,
-        customer:customers(name, phone)
+        notes,
+        special_requests,
+        source,
+        created_at,
+        customer:customers(name, phone, email)
       `)
       .gte("reservation_date", format(startDate, "yyyy-MM-dd"))
       .lte("reservation_date", format(endDate, "yyyy-MM-dd"))
@@ -393,6 +405,10 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                 {todayReservations.map((res) => (
                   <div
                     key={res.id}
+                    onClick={() => {
+                      setSelectedReservation(res);
+                      setDetailDialogOpen(true);
+                    }}
                     className="p-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -420,6 +436,13 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Reservation Detail Dialog */}
+      <ReservationDetailDialog
+        reservation={selectedReservation}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
     </div>
   );
 };
