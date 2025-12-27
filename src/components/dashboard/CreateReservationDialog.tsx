@@ -31,8 +31,9 @@ interface TimeSlot {
   available: boolean;
 }
 
-// Common guest options for quick selection
-const QUICK_GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200];
+// Guest options - Row 1: individual numbers, Row 2: larger groups
+const GUEST_OPTIONS_ROW1 = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12];
+const GUEST_OPTIONS_ROW2 = [15, 20, 25, 30, 40, 50, 75, 100, 150, 200];
 
 export const CreateReservationDialog = ({
   open,
@@ -288,19 +289,41 @@ export const CreateReservationDialog = ({
                 <span className="text-sm text-muted-foreground">guests</span>
               </div>
             ) : (
-              <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 max-h-[120px] overflow-y-auto p-1">
-                {QUICK_GUEST_OPTIONS.map((num) => (
-                  <Button
-                    key={num}
-                    type="button"
-                    variant={guests === num ? "default" : "outline"}
-                    size="sm"
-                    className="text-xs h-9"
-                    onClick={() => handleGuestSelect(num)}
-                  >
-                    {num}
-                  </Button>
-                ))}
+              <div className="space-y-2">
+                <div className="grid grid-cols-10 gap-1.5">
+                  {GUEST_OPTIONS_ROW1.map((num) => (
+                    <Button
+                      key={num}
+                      type="button"
+                      variant={guests === num ? "default" : "outline"}
+                      size="sm"
+                      className={cn(
+                        "text-sm h-10 font-medium transition-all",
+                        guests === num && "shadow-md"
+                      )}
+                      onClick={() => handleGuestSelect(num)}
+                    >
+                      {num}
+                    </Button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-10 gap-1.5">
+                  {GUEST_OPTIONS_ROW2.map((num) => (
+                    <Button
+                      key={num}
+                      type="button"
+                      variant={guests === num ? "secondary" : "outline"}
+                      size="sm"
+                      className={cn(
+                        "text-sm h-10 font-medium transition-all",
+                        guests === num && "bg-accent text-accent-foreground shadow-md"
+                      )}
+                      onClick={() => handleGuestSelect(num)}
+                    >
+                      {num}
+                    </Button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
