@@ -148,9 +148,9 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Calendar View */}
       <div className="lg:col-span-2">
-        <Card className="card-elevated">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="font-display text-lg">
+        <Card className="card-elevated overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 bg-gradient-to-r from-card to-secondary/30">
+            <CardTitle className="font-display text-xl font-semibold">
               {viewMode === "month" 
                 ? format(currentMonth, "MMMM yyyy")
                 : format(weekStart, "MMMM yyyy")
@@ -158,11 +158,11 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
             </CardTitle>
             <div className="flex items-center gap-2">
               {/* View Toggle */}
-              <div className="flex items-center border rounded-lg p-1 mr-2">
+              <div className="flex items-center bg-secondary/50 rounded-lg p-1 mr-2">
                 <Button
                   variant={viewMode === "week" ? "default" : "ghost"}
                   size="sm"
-                  className="h-7 px-2"
+                  className="h-8 px-3 transition-all"
                   onClick={() => setViewMode("week")}
                 >
                   <CalendarDays className="h-4 w-4" />
@@ -170,7 +170,7 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                 <Button
                   variant={viewMode === "month" ? "default" : "ghost"}
                   size="sm"
-                  className="h-7 px-2"
+                  className="h-8 px-3 transition-all"
                   onClick={() => setViewMode("month")}
                 >
                   <LayoutGrid className="h-4 w-4" />
@@ -284,19 +284,19 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
               /* Month View */
               <div>
                 {/* Weekday headers */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
+                <div className="grid grid-cols-7 gap-2 mb-3">
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+                    <div key={day} className="text-center text-xs font-semibold text-muted-foreground py-2 uppercase tracking-wide">
                       {day}
                     </div>
                   ))}
                 </div>
                 
                 {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-2">
                   {monthDays.map((day, index) => {
                     if (!day) {
-                      return <div key={`empty-${index}`} className="min-h-[80px]" />;
+                      return <div key={`empty-${index}`} className="min-h-[90px]" />;
                     }
 
                     const dayReservations = getReservationsForDate(day);
@@ -310,46 +310,45 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
                         className={cn(
-                          "p-2 rounded-lg text-left transition-all min-h-[80px] border",
-                          isSelected
-                            ? "bg-primary/10 border-primary"
-                            : "bg-card border-border hover:border-primary/50",
-                          isToday && !isSelected && "ring-2 ring-accent ring-offset-1",
+                          "calendar-cell group",
+                          isSelected && "calendar-cell-selected",
+                          isToday && !isSelected && "calendar-cell-today",
                           !isCurrentMonth && "opacity-40"
                         )}
                       >
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center justify-between mb-1.5">
                           <span
                             className={cn(
-                              "text-sm font-medium",
-                              isToday && "text-accent"
+                              "text-sm font-semibold",
+                              isToday && "text-accent",
+                              isSelected && "text-primary"
                             )}
                           >
                             {format(day, "d")}
                           </span>
                           {dayReservations.length > 0 && (
-                            <Badge variant="secondary" className="text-[10px] h-5 px-1">
+                            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary">
                               {dayReservations.length}
                             </Badge>
                           )}
                         </div>
                         {dayReservations.length > 0 && (
-                          <div className="space-y-0.5">
-                            <div className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                          <div className="space-y-1">
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                               <Users className="h-2.5 w-2.5" />
-                              {totalGuests}
+                              {totalGuests} guests
                             </div>
                             {dayReservations.slice(0, 2).map((res) => (
                               <div
                                 key={res.id}
-                                className="text-[10px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate"
+                                className="reservation-chip"
                               >
                                 {res.reservation_time.slice(0, 5)} · {res.guests}p
                               </div>
                             ))}
                             {dayReservations.length > 2 && (
-                              <div className="text-[10px] text-muted-foreground">
-                                +{dayReservations.length - 2}
+                              <div className="text-[10px] text-muted-foreground font-medium">
+                                +{dayReservations.length - 2} more
                               </div>
                             )}
                           </div>
@@ -366,37 +365,45 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
 
       {/* Day Detail */}
       <div>
-        <Card className="card-elevated">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <Card className="card-elevated sticky top-24">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 bg-gradient-to-r from-card to-secondary/30 rounded-t-xl">
             <div>
-              <CardTitle className="font-display text-lg">
+              <CardTitle className="font-display text-xl font-semibold">
                 {format(selectedDate, "EEEE")}
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {format(selectedDate, "MMMM d, yyyy")}
               </p>
               {todayReservations.length > 0 && (
-                <p className="text-sm text-primary mt-1 flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {todayReservations.reduce((sum, r) => sum + r.guests, 0)} total guests
-                </p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-sm font-medium text-primary flex items-center gap-1.5 bg-primary/10 px-2 py-1 rounded-md">
+                    <Users className="h-3.5 w-3.5" />
+                    {todayReservations.reduce((sum, r) => sum + r.guests, 0)} guests
+                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {todayReservations.length} reservations
+                  </span>
+                </div>
               )}
             </div>
-            <Button size="sm" onClick={onCreateReservation} className="gap-1">
-              <Plus className="h-3 w-3" />
+            <Button size="sm" onClick={onCreateReservation} className="gap-1.5 shadow-md">
+              <Plus className="h-3.5 w-3.5" />
               Add
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             {loading ? (
               <div className="py-8 text-center text-muted-foreground">
-                Loading...
+                <div className="animate-pulse">Loading...</div>
               </div>
             ) : todayReservations.length === 0 ? (
-              <div className="py-8 text-center">
-                <p className="text-muted-foreground mb-4">No reservations</p>
-                <Button variant="outline" onClick={onCreateReservation}>
-                  <Plus className="h-4 w-4 mr-2" />
+              <div className="py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <CalendarDays className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground mb-4">No reservations for this day</p>
+                <Button variant="outline" onClick={onCreateReservation} className="gap-2">
+                  <Plus className="h-4 w-4" />
                   Create Reservation
                 </Button>
               </div>
@@ -409,11 +416,11 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                       setSelectedReservation(res);
                       setDetailDialogOpen(true);
                     }}
-                    className="p-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors cursor-pointer"
+                    className="day-panel-card group"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <span className="font-medium block">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold block text-foreground group-hover:text-primary transition-colors">
                           {res.customer?.name || "Guest"}
                         </span>
                         {res.customer?.phone && (
@@ -423,23 +430,23 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
                           </span>
                         )}
                       </div>
-                      <Badge className={getStatusBadgeClass(res.status)}>
+                      <Badge className={cn(getStatusBadgeClass(res.status), "text-xs font-medium")}>
                         {res.status}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
                         <Clock className="h-3 w-3" />
                         {res.reservation_time.slice(0, 5)}
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
                         <Users className="h-3 w-3" />
                         {res.guests} guests
                       </span>
                     </div>
                     {res.special_requests && (
-                      <div className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                        {res.special_requests}
+                      <div className="mt-3 text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2.5 rounded-lg">
+                        <span className="font-medium text-accent">Note:</span> {res.special_requests}
                       </div>
                     )}
                   </div>

@@ -151,7 +151,31 @@
   }
 
   .card-elevated {
-    @apply bg-card shadow-lg border border-border/50;
+    @apply bg-card shadow-lg border border-border/50 rounded-xl;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-xl hover:border-primary/30 hover:-translate-y-0.5;
+  }
+
+  .glass-effect {
+    @apply bg-card/80 backdrop-blur-sm;
+  }
+
+  .header-gradient {
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
+  }
+
+  .calendar-cell {
+    @apply p-2 rounded-xl text-left transition-all duration-200 min-h-[90px] border bg-card border-border/50 hover:border-primary/40 hover:shadow-md;
+  }
+
+  .calendar-cell-selected {
+    @apply bg-primary/10 border-primary shadow-md;
+  }
+
+  .calendar-cell-today {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-background;
   }
 
   .status-new {
@@ -180,6 +204,14 @@
 
   .source-phone {
     @apply bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300;
+  }
+
+  .reservation-chip {
+    @apply text-[10px] bg-primary/15 text-primary rounded-md px-1.5 py-1 truncate font-medium;
+  }
+
+  .day-panel-card {
+    @apply p-4 rounded-xl border border-border bg-card hover:border-primary/40 transition-all duration-200 cursor-pointer hover:shadow-md;
   }
 }
 
