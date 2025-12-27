@@ -77,19 +77,29 @@ export const CreateReservationDialog = ({
     setLoadingSlots(true);
     const dayOfWeek = selectedDate.getDay();
 
-    // Fetch operating hours
-    const { data: hours } = await supabase
-      .from("operating_hours")
-      .select("*")
-      .eq("day_of_week", dayOfWeek)
-      .maybeSingle();
+    // Fetch operating hours and capacity settings in parallel
+    const [hoursResult, capacityResult] = await Promise.all([
+      supabase
+        .from("operating_hours")
+        .select("*")
+        .eq("day_of_week", dayOfWeek)
+        .maybeSingle(),
+      supabase
+        .from("capacity_settings")
+        .select("slot_duration_minutes")
+        .limit(1)
+        .maybeSingle()
+    ]);
+
+    const hours = hoursResult.data;
+    const slotDuration = capacityResult.data?.slot_duration_minutes || 15;
 
     // If no operating hours set, use defaults (11:00 - 22:00)
     const defaultHours = {
       lunch_start: "11:00",
-      lunch_end: "15:00",
-      dinner_start: "17:00",
-      dinner_end: "22:00",
+      lunch_end: "22:00",
+      dinner_start: null,
+      dinner_end: null,
       is_closed: false,
     };
 
@@ -103,15 +113,15 @@ export const CreateReservationDialog = ({
 
     const slots: TimeSlot[] = [];
     
-    // Generate lunch slots
+    // Generate lunch slots (main period)
     if (operatingHours.lunch_start && operatingHours.lunch_end) {
-      const lunchSlots = generateSlotsForPeriod(operatingHours.lunch_start, operatingHours.lunch_end);
+      const lunchSlots = generateSlotsForPeriod(operatingHours.lunch_start, operatingHours.lunch_end, slotDuration);
       slots.push(...lunchSlots);
     }
 
-    // Generate dinner slots
+    // Generate dinner slots (if separate dinner period exists)
     if (operatingHours.dinner_start && operatingHours.dinner_end) {
-      const dinnerSlots = generateSlotsForPeriod(operatingHours.dinner_start, operatingHours.dinner_end);
+      const dinnerSlots = generateSlotsForPeriod(operatingHours.dinner_start, operatingHours.dinner_end, slotDuration);
       slots.push(...dinnerSlots);
     }
 
@@ -119,7 +129,7 @@ export const CreateReservationDialog = ({
     setLoadingSlots(false);
   };
 
-  const generateSlotsForPeriod = (start: string, end: string): TimeSlot[] => {
+  const generateSlotsForPeriod = (start: string, end: string, slotDuration: number): TimeSlot[] => {
     const slots: TimeSlot[] = [];
     const [startHour, startMin] = start.split(":").map(Number);
     const [endHour, endMin] = end.split(":").map(Number);
@@ -131,10 +141,10 @@ export const CreateReservationDialog = ({
       const timeStr = `${currentHour.toString().padStart(2, "0")}:${currentMin.toString().padStart(2, "0")}`;
       slots.push({ time: timeStr, available: true });
 
-      currentMin += 15;
+      currentMin += slotDuration;
       if (currentMin >= 60) {
-        currentMin = 0;
-        currentHour++;
+        currentHour += Math.floor(currentMin / 60);
+        currentMin = currentMin % 60;
       }
     }
 
