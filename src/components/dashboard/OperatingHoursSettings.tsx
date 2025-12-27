@@ -63,9 +63,9 @@ export function OperatingHoursSettings() {
         const existing = existingHours.find((h) => h.day_of_week === index);
         return existing || {
           day_of_week: index,
-          lunch_start: "11:30",
-          lunch_end: "14:30",
-          dinner_start: "17:30",
+          lunch_start: "11:00",
+          lunch_end: "15:00",
+          dinner_start: "17:00",
           dinner_end: "22:00",
           is_closed: false,
         };
