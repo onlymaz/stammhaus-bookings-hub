@@ -1,1 +1,7 @@
 project_id = "colaxdgbgaaoozmalrij"
+
+[functions.invite-user]
+verify_jwt = true
+
+[functions.create-booking]
+verify_jwt = false
