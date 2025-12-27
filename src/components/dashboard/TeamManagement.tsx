@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -21,7 +22,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Shield, User, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Trash2, Shield, User, Loader2, UserPlus } from "lucide-react";
 import type { AppRole } from "@/types/reservation";
 
 interface TeamMember {
@@ -35,6 +45,9 @@ export function TeamManagement() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [newUser, setNewUser] = useState({ email: "", password: "", displayName: "", role: "staff" });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -168,6 +181,39 @@ export function TeamManagement() {
     }
   };
 
+  const handleInviteUser = async () => {
+    if (!newUser.email || !newUser.password) {
+      toast({ title: "Error", description: "Email and password are required", variant: "destructive" });
+      return;
+    }
+    
+    setInviting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await supabase.functions.invoke("invite-user", {
+        body: {
+          email: newUser.email,
+          password: newUser.password,
+          displayName: newUser.displayName || newUser.email,
+          role: newUser.role,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+
+      toast({ title: "User invited", description: `${newUser.email} has been added` });
+      setNewUser({ email: "", password: "", displayName: "", role: "staff" });
+      setInviteOpen(false);
+      fetchTeamMembers();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to invite user", variant: "destructive" });
+    } finally {
+      setInviting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -178,8 +224,76 @@ export function TeamManagement() {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground mb-4">
-        Manage team members and their access levels
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Manage team members and their access levels
+        </div>
+        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Invite User
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite New User</DialogTitle>
+              <DialogDescription>
+                Create a new account for a team member
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="user@example.com"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Display Name (optional)</Label>
+                <Input
+                  id="displayName"
+                  placeholder="John Doe"
+                  value={newUser.displayName}
+                  onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
+              <Button onClick={handleInviteUser} disabled={inviting}>
+                {inviting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Create User
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {members.length === 0 ? (
