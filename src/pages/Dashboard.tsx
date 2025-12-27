@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, LogOut, Bell, Settings, X, Users } from "lucide-react";
+import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
 import { TeamManagement } from "@/components/dashboard/TeamManagement";
+import { OperatingHoursSettings } from "@/components/dashboard/OperatingHoursSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Popover,
@@ -30,7 +31,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [settingsTab, setSettingsTab] = useState<"preferences" | "team">("preferences");
+  const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "hours">("preferences");
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -184,7 +185,7 @@ const Dashboard = () => {
                   </SheetHeader>
                   
                   {isAdmin && (
-                    <div className="flex gap-2 mt-4 border-b border-border pb-4">
+                    <div className="flex gap-2 mt-4 border-b border-border pb-4 flex-wrap">
                       <Button
                         variant={settingsTab === "preferences" ? "default" : "ghost"}
                         size="sm"
@@ -202,6 +203,15 @@ const Dashboard = () => {
                       >
                         <Users className="h-4 w-4" />
                         Team
+                      </Button>
+                      <Button
+                        variant={settingsTab === "hours" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSettingsTab("hours")}
+                        className="gap-2"
+                      >
+                        <Clock className="h-4 w-4" />
+                        Hours
                       </Button>
                     </div>
                   )}
@@ -253,12 +263,19 @@ const Dashboard = () => {
                         Sign Out
                       </Button>
                     </div>
-                  ) : (
+                  ) : settingsTab === "team" ? (
                     <div className="py-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                         Team Management
                       </h3>
                       <TeamManagement />
+                    </div>
+                  ) : (
+                    <div className="py-6">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                        Operating Hours
+                      </h3>
+                      <OperatingHoursSettings />
                     </div>
                   )}
                 </SheetContent>
