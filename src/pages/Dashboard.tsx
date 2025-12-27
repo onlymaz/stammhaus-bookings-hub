@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, LogOut, Bell, Settings, X } from "lucide-react";
+import { Calendar, Plus, LogOut, Bell, Settings, X, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
+import { TeamManagement } from "@/components/dashboard/TeamManagement";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Popover,
   PopoverContent,
@@ -28,6 +30,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [settingsTab, setSettingsTab] = useState<"preferences" | "team">("preferences");
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -168,60 +172,95 @@ const Dashboard = () => {
               </Popover>
 
               {/* Settings */}
-              <Sheet>
+              <Sheet onOpenChange={() => setSettingsTab("preferences")}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-lg hover:bg-secondary">
                     <Settings className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent>
+                <SheetContent className="w-[400px] sm:w-[450px]">
                   <SheetHeader>
                     <SheetTitle className="font-display">Settings</SheetTitle>
                   </SheetHeader>
-                  <div className="py-6 space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                        Notifications
-                      </h3>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="email-notif" className="flex-1">
-                          Email notifications
-                          <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                            Receive email for new reservations
-                          </p>
-                        </Label>
-                        <Switch id="email-notif" defaultChecked />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="sound-notif" className="flex-1">
-                          Sound alerts
-                          <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                            Play sound for new bookings
-                          </p>
-                        </Label>
-                        <Switch id="sound-notif" />
-                      </div>
+                  
+                  {isAdmin && (
+                    <div className="flex gap-2 mt-4 border-b border-border pb-4">
+                      <Button
+                        variant={settingsTab === "preferences" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSettingsTab("preferences")}
+                        className="gap-2"
+                      >
+                        <Settings className="h-4 w-4" />
+                        Preferences
+                      </Button>
+                      <Button
+                        variant={settingsTab === "team" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSettingsTab("team")}
+                        className="gap-2"
+                      >
+                        <Users className="h-4 w-4" />
+                        Team
+                      </Button>
                     </div>
+                  )}
 
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                        Account
-                      </h3>
-                      <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                        <p className="text-sm font-medium">{user?.email}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Logged in as staff</p>
+                  {settingsTab === "preferences" ? (
+                    <div className="py-6 space-y-6">
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Notifications
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="email-notif" className="flex-1">
+                            Email notifications
+                            <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                              Receive email for new reservations
+                            </p>
+                          </Label>
+                          <Switch id="email-notif" defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="sound-notif" className="flex-1">
+                            Sound alerts
+                            <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                              Play sound for new bookings
+                            </p>
+                          </Label>
+                          <Switch id="sound-notif" />
+                        </div>
                       </div>
-                    </div>
 
-                    <Button 
-                      variant="destructive" 
-                      className="w-full gap-2"
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign Out
-                    </Button>
-                  </div>
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Account
+                        </h3>
+                        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                          <p className="text-sm font-medium">{user?.email}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Logged in as {isAdmin ? "admin" : "staff"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button 
+                        variant="destructive" 
+                        className="w-full gap-2"
+                        onClick={handleSignOut}
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="py-6">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                        Team Management
+                      </h3>
+                      <TeamManagement />
+                    </div>
+                  )}
                 </SheetContent>
               </Sheet>
 
