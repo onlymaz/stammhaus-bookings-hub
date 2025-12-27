@@ -1,18 +1,33 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, LogOut, Bell, Settings } from "lucide-react";
+import { Calendar, Plus, LogOut, Bell, Settings, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -36,6 +51,36 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_read", false)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    
+    if (data) {
+      setNotifications(data);
+    }
+  };
+
+  const markAsRead = async (id: string) => {
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", id);
+    
+    setNotifications(notifications.filter(n => n.id !== id));
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({ title: "Signed out successfully" });
@@ -54,7 +99,7 @@ const Dashboard = () => {
       {/* Header */}
       <header className="premium-header backdrop-blur-md sticky top-0 z-50 shadow-xl">
         <div className="container mx-auto px-4 lg:px-6 h-18 flex items-center justify-between py-3">
-          <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-12 h-12 rounded-xl gradient-premium flex items-center justify-center shadow-lg glow-primary">
               <span className="text-primary-foreground font-display text-xl font-bold">S</span>
             </div>
@@ -66,7 +111,7 @@ const Dashboard = () => {
                 Restaurant Reservations
               </span>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
@@ -78,14 +123,107 @@ const Dashboard = () => {
             </Button>
 
             <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
-              <Button variant="ghost" size="icon" className="relative rounded-lg hover:bg-secondary">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full animate-pulse glow-accent" />
-              </Button>
+              {/* Notifications */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative rounded-lg hover:bg-secondary">
+                    <Bell className="h-4 w-4" />
+                    {notifications.length > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full animate-pulse glow-accent" />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4 border-b border-border">
+                    <h4 className="font-semibold">Notifications</h4>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-muted-foreground">
+                        <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No new notifications</p>
+                      </div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <div key={notif.id} className="p-3 border-b border-border/50 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{notif.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              onClick={() => markAsRead(notif.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-              <Button variant="ghost" size="icon" className="rounded-lg hover:bg-secondary">
-                <Settings className="h-4 w-4" />
-              </Button>
+              {/* Settings */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-lg hover:bg-secondary">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle className="font-display">Settings</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-6 space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        Notifications
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="email-notif" className="flex-1">
+                          Email notifications
+                          <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                            Receive email for new reservations
+                          </p>
+                        </Label>
+                        <Switch id="email-notif" defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="sound-notif" className="flex-1">
+                          Sound alerts
+                          <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                            Play sound for new bookings
+                          </p>
+                        </Label>
+                        <Switch id="sound-notif" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        Account
+                      </h3>
+                      <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                        <p className="text-sm font-medium">{user?.email}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Logged in as staff</p>
+                      </div>
+                    </div>
+
+                    <Button 
+                      variant="destructive" 
+                      className="w-full gap-2"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
 
               <div className="w-px h-6 bg-border/50 mx-1 hidden sm:block" />
 
