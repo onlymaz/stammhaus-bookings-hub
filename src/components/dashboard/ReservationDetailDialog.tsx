@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar } from "lucide-react";
+import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReservationDetail {
   id: string;
@@ -31,6 +34,7 @@ interface ReservationDetailDialogProps {
   reservation: ReservationDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStatusChange?: () => void;
 }
 
 const getStatusBadgeClass = (status: string) => {
@@ -48,8 +52,30 @@ export const ReservationDetailDialog = ({
   reservation,
   open,
   onOpenChange,
+  onStatusChange,
 }: ReservationDetailDialogProps) => {
+  const [updating, setUpdating] = useState(false);
+  const { toast } = useToast();
+
   if (!reservation) return null;
+
+  const updateStatus = async (newStatus: string) => {
+    setUpdating(true);
+    const { error } = await supabase
+      .from("reservations")
+      .update({ status: newStatus })
+      .eq("id", reservation.id);
+
+    setUpdating(false);
+
+    if (error) {
+      toast({ title: "Error updating status", variant: "destructive" });
+    } else {
+      toast({ title: `Reservation ${newStatus}` });
+      onStatusChange?.();
+      onOpenChange(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -156,6 +182,57 @@ export const ReservationDetailDialog = ({
               <p className="text-sm text-foreground">{reservation.special_requests}</p>
             </div>
           )}
+
+          {/* Status Actions */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Change Status</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {reservation.status !== "confirmed" && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
+                  onClick={() => updateStatus("confirmed")}
+                  disabled={updating}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Confirm
+                </Button>
+              )}
+              {reservation.status !== "completed" && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-blue-500/30 text-blue-600 hover:bg-blue-500/10 hover:text-blue-700"
+                  onClick={() => updateStatus("completed")}
+                  disabled={updating}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Complete
+                </Button>
+              )}
+              {reservation.status !== "cancelled" && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+                  onClick={() => updateStatus("cancelled")}
+                  disabled={updating}
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
+              {reservation.status !== "no_show" && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-orange-500/30 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
+                  onClick={() => updateStatus("no_show")}
+                  disabled={updating}
+                >
+                  <UserX className="h-4 w-4" />
+                  No Show
+                </Button>
+              )}
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t border-border/30">
