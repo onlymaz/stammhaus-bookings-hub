@@ -151,7 +151,7 @@ const Dashboard = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 p-0" align="end">
+                <PopoverContent className="w-80 p-0 z-[100]" align="end" sideOffset={8}>
                   <div className="p-4 border-b border-border">
                     <h4 className="font-semibold">Notifications</h4>
                   </div>
