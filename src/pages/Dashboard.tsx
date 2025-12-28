@@ -33,6 +33,14 @@ const Dashboard = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity">("preferences");
+  const [emailNotifications, setEmailNotifications] = useState(() => {
+    const saved = localStorage.getItem("emailNotifications");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [soundAlerts, setSoundAlerts] = useState(() => {
+    const saved = localStorage.getItem("soundAlerts");
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -230,7 +238,14 @@ const Dashboard = () => {
                               Receive email for new reservations
                             </p>
                           </Label>
-                          <Switch id="email-notif" defaultChecked />
+                          <Switch 
+                            id="email-notif" 
+                            checked={emailNotifications}
+                            onCheckedChange={(checked) => {
+                              setEmailNotifications(checked);
+                              localStorage.setItem("emailNotifications", JSON.stringify(checked));
+                            }}
+                          />
                         </div>
                         <div className="flex items-center justify-between">
                           <Label htmlFor="sound-notif" className="flex-1">
@@ -239,7 +254,14 @@ const Dashboard = () => {
                               Play sound for new bookings
                             </p>
                           </Label>
-                          <Switch id="sound-notif" />
+                          <Switch 
+                            id="sound-notif" 
+                            checked={soundAlerts}
+                            onCheckedChange={(checked) => {
+                              setSoundAlerts(checked);
+                              localStorage.setItem("soundAlerts", JSON.stringify(checked));
+                            }}
+                          />
                         </div>
                       </div>
 
