@@ -525,6 +525,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday }: CalendarView
         reservation={selectedReservation}
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
+        onStatusChange={fetchReservations}
       />
     </div>
   );
