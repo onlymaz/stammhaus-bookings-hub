@@ -399,7 +399,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday }: CalendarView
 
       {/* Day Detail */}
       <div>
-        <Card className="card-elevated sticky top-24 border-0 shadow-2xl">
+        <Card className="card-elevated lg:sticky lg:top-24 border-0 shadow-2xl lg:flex lg:flex-col lg:max-h-[calc(100vh-7rem)]">
           <CardHeader className="pb-4 pt-6 px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30">
             <div className="flex items-start justify-between">
               <div>
@@ -447,7 +447,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday }: CalendarView
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-5 pb-6 px-5">
+          <CardContent className="pt-5 pb-6 px-5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
             {loading ? (
               <div className="py-12 text-center">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
