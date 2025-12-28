@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX } from "lucide-react";
+import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -55,7 +55,13 @@ export const ReservationDetailDialog = ({
   onStatusChange,
 }: ReservationDetailDialogProps) => {
   const [updating, setUpdating] = useState(false);
+  const [guestCount, setGuestCount] = useState(reservation?.guests || 1);
   const { toast } = useToast();
+
+  // Update local guest count when reservation changes
+  if (reservation && guestCount !== reservation.guests && !updating) {
+    setGuestCount(reservation.guests);
+  }
 
   if (!reservation) return null;
 
@@ -74,6 +80,28 @@ export const ReservationDetailDialog = ({
       toast({ title: `Reservation ${newStatus}` });
       onStatusChange?.();
       onOpenChange(false);
+    }
+  };
+
+  const updateGuestCount = async (newCount: number) => {
+    if (newCount < 1 || newCount > 50) return;
+    
+    setUpdating(true);
+    setGuestCount(newCount);
+    
+    const { error } = await supabase
+      .from("reservations")
+      .update({ guests: newCount })
+      .eq("id", reservation.id);
+
+    setUpdating(false);
+
+    if (error) {
+      toast({ title: "Error updating guests", variant: "destructive" });
+      setGuestCount(reservation.guests); // Revert on error
+    } else {
+      toast({ title: `Updated to ${newCount} guests` });
+      onStatusChange?.();
     }
   };
 
@@ -152,7 +180,27 @@ export const ReservationDetailDialog = ({
             <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 text-center">
               <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
               <p className="text-xs text-muted-foreground">Guests</p>
-              <p className="font-bold text-sm">{reservation.guests}</p>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-full hover:bg-emerald-500/20"
+                  onClick={() => updateGuestCount(guestCount - 1)}
+                  disabled={updating || guestCount <= 1}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="font-bold text-sm w-6 text-center">{guestCount}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-full hover:bg-emerald-500/20"
+                  onClick={() => updateGuestCount(guestCount + 1)}
+                  disabled={updating || guestCount >= 50}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
             <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 text-center">
               <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
