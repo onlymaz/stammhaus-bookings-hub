@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity">("preferences");
+  const [resetToToday, setResetToToday] = useState(0);
   const [emailNotifications, setEmailNotifications] = useState(() => {
     const saved = localStorage.getItem("emailNotifications");
     return saved !== null ? JSON.parse(saved) : true;
@@ -113,7 +114,10 @@ const Dashboard = () => {
       {/* Header */}
       <header className="premium-header backdrop-blur-md sticky top-0 z-50 shadow-xl">
         <div className="container mx-auto px-4 lg:px-6 h-18 flex items-center justify-between py-3">
-          <Link to="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer">
+          <div 
+            onClick={() => setResetToToday(prev => prev + 1)} 
+            className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer"
+          >
             <div className="w-12 h-12 rounded-xl gradient-premium flex items-center justify-center shadow-lg glow-primary">
               <span className="text-primary-foreground font-display text-xl font-bold">S</span>
             </div>
@@ -125,7 +129,7 @@ const Dashboard = () => {
                 Restaurant Reservations
               </span>
             </div>
-          </Link>
+          </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
@@ -325,7 +329,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="calendar" className="animate-fade-in">
-            <CalendarView onCreateReservation={() => setShowCreateDialog(true)} />
+            <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} />
           </TabsContent>
         </Tabs>
       </main>
