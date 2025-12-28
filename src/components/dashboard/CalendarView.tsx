@@ -38,11 +38,12 @@ interface Reservation {
 
 interface CalendarViewProps {
   onCreateReservation: () => void;
+  resetToToday?: number;
 }
 
 type ViewMode = "week" | "month";
 
-export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
+export const CalendarView = ({ onCreateReservation, resetToToday }: CalendarViewProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,16 @@ export const CalendarView = ({ onCreateReservation }: CalendarViewProps) => {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+
+  // Reset to today when logo is clicked
+  useEffect(() => {
+    if (resetToToday && resetToToday > 0) {
+      const today = new Date();
+      setSelectedDate(today);
+      setCurrentMonth(today);
+      setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
+    }
+  }, [resetToToday]);
 
   useEffect(() => {
     fetchReservations();
