@@ -34,17 +34,40 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity">("preferences");
   const [resetToToday, setResetToToday] = useState(0);
-  const [emailNotifications, setEmailNotifications] = useState(() => {
-    const saved = localStorage.getItem("emailNotifications");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [soundAlerts, setSoundAlerts] = useState(() => {
-    const saved = localStorage.getItem("soundAlerts");
-    return saved !== null ? JSON.parse(saved) : false;
-  });
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [soundAlerts, setSoundAlerts] = useState(false);
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch preferences from DB once user is available
+  const fetchPreferences = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_preferences")
+      .select("email_notifications, sound_alerts")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (data) {
+      setEmailNotifications(data.email_notifications);
+      setSoundAlerts(data.sound_alerts);
+    } else {
+      // Create default row if not exists
+      await supabase.from("user_preferences").insert({
+        user_id: userId,
+        email_notifications: true,
+        sound_alerts: false,
+      });
+    }
+  };
+
+  const updatePreference = async (field: "email_notifications" | "sound_alerts", value: boolean) => {
+    if (!user) return;
+    await supabase
+      .from("user_preferences")
+      .update({ [field]: value })
+      .eq("user_id", user.id);
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -65,6 +88,12 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchPreferences(user.id);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -247,7 +276,7 @@ const Dashboard = () => {
                             checked={emailNotifications}
                             onCheckedChange={(checked) => {
                               setEmailNotifications(checked);
-                              localStorage.setItem("emailNotifications", JSON.stringify(checked));
+                              updatePreference("email_notifications", checked);
                             }}
                           />
                         </div>
@@ -263,7 +292,7 @@ const Dashboard = () => {
                             checked={soundAlerts}
                             onCheckedChange={(checked) => {
                               setSoundAlerts(checked);
-                              localStorage.setItem("soundAlerts", JSON.stringify(checked));
+                              updatePreference("sound_alerts", checked);
                             }}
                           />
                         </div>
