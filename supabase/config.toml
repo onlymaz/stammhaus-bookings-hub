@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.create-booking]
 verify_jwt = false
+
+[functions.auto-complete-reservations]
+verify_jwt = false
