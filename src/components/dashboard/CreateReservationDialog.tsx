@@ -18,7 +18,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Users, Phone, Mail, User } from "lucide-react";
+import { CalendarIcon, Loader2, Users, Phone, Mail, User, Clock } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface CreateReservationDialogProps {
@@ -361,21 +368,19 @@ export const CreateReservationDialog = ({
                 No available times for this date
               </div>
             ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1">
-                {timeSlots.map((slot) => (
-                  <Button
-                    key={slot.time}
-                    type="button"
-                    variant={time === slot.time ? "default" : "outline"}
-                    size="sm"
-                    className="text-xs"
-                    disabled={!slot.available}
-                    onClick={() => setTime(slot.time)}
-                  >
-                    {slot.time}
-                  </Button>
-                ))}
-              </div>
+              <Select value={time} onValueChange={setTime}>
+                <SelectTrigger className="w-full">
+                  <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Select a time" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {timeSlots.filter(slot => slot.available).map((slot) => (
+                    <SelectItem key={slot.time} value={slot.time}>
+                      {slot.time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
 
