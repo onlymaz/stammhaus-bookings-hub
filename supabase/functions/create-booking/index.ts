@@ -7,7 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-interface BookingRequest {
+// Flat format (original)
+interface BookingRequestFlat {
   name: string;
   phone: string;
   email?: string;
@@ -15,6 +16,39 @@ interface BookingRequest {
   time: string; // HH:MM format
   guests: number;
   special_requests?: string;
+}
+
+// Nested format (from external website)
+interface BookingRequestNested {
+  type: "reservation";
+  reservation: {
+    name: string;
+    phone: string;
+    email?: string;
+    date: string;
+    time: string;
+    people: number; // maps to guests
+    notes?: string; // maps to special_requests
+  };
+}
+
+type BookingRequest = BookingRequestFlat | BookingRequestNested;
+
+// Normalize to flat format
+function normalizeRequest(body: BookingRequest): BookingRequestFlat {
+  if ("type" in body && body.type === "reservation" && "reservation" in body) {
+    const r = body.reservation;
+    return {
+      name: r.name,
+      phone: r.phone,
+      email: r.email,
+      date: r.date,
+      time: r.time,
+      guests: r.people,
+      special_requests: r.notes,
+    };
+  }
+  return body as BookingRequestFlat;
 }
 
 serve(async (req) => {
@@ -31,8 +65,12 @@ serve(async (req) => {
   }
 
   try {
-    const body: BookingRequest = await req.json();
-    console.log("Received booking request:", JSON.stringify(body));
+    const rawBody: BookingRequest = await req.json();
+    console.log("Received booking request:", JSON.stringify(rawBody));
+
+    // Normalize to flat format
+    const body = normalizeRequest(rawBody);
+    console.log("Normalized request:", JSON.stringify(body));
 
     // Validate required fields
     if (!body.name || typeof body.name !== "string" || body.name.trim().length === 0) {
@@ -70,18 +108,18 @@ serve(async (req) => {
       );
     }
 
-  // Validate email (required)
-  if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
-    return new Response(
-      JSON.stringify({ error: "Valid email is required" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
+    // Validate email (required)
+    if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+      return new Response(
+        JSON.stringify({ error: "Valid email is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Sanitize inputs
     const sanitizedName = body.name.trim().slice(0, 100);
     const sanitizedPhone = body.phone.trim().slice(0, 30);
-  const sanitizedEmail = body.email.trim().slice(0, 255);
+    const sanitizedEmail = body.email.trim().slice(0, 255);
     const sanitizedRequests = body.special_requests?.trim().slice(0, 500) || null;
 
     // Create Supabase client with service role for database operations
