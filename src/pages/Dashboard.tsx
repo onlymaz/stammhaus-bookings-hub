@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -26,16 +26,22 @@ import {
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [websiteNotifCount, setWebsiteNotifCount] = useState(0);
   const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity">("preferences");
   const [resetToToday, setResetToToday] = useState(0);
+  const [calendarRefresh, setCalendarRefresh] = useState(0);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [soundAlerts, setSoundAlerts] = useState(false);
+  const [notifPopoverOpen, setNotifPopoverOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastNotifiedIdsRef = useRef<Set<string>>(new Set());
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -89,15 +95,32 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Initialize notification sound
   useEffect(() => {
-    if (user) {
-      fetchPreferences(user.id);
+    audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+    audioRef.current.load();
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Play notification sound
+  const playNotificationSound = useCallback(() => {
+    if (soundAlerts && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => {
+        console.log("Audio play failed:", err);
+      });
     }
-  }, [user]);
+  }, [soundAlerts]);
 
   useEffect(() => {
     if (user) {
       fetchNotifications();
+      fetchPreferences(user.id);
     }
   }, [user]);
 
@@ -109,12 +132,73 @@ const Dashboard = () => {
       .eq("user_id", user.id)
       .eq("is_read", false)
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(10);
     
     if (data) {
       setNotifications(data);
+      // Count website notifications specifically
+      const websiteCount = data.filter(n => 
+        n.title?.toLowerCase().includes("website")
+      ).length;
+      setWebsiteNotifCount(websiteCount);
+      
+      // Track which notifications we've already seen
+      data.forEach(n => lastNotifiedIdsRef.current.add(n.id));
     }
   };
+
+  // Subscribe to realtime notifications for website reservations
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('website-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        },
+        (payload) => {
+          const newNotif = payload.new as any;
+          
+          // Only process if it's for this user and is unread
+          if (newNotif.user_id === user.id && !newNotif.is_read) {
+            // Check if it's a website notification
+            const isWebsite = newNotif.title?.toLowerCase().includes("website");
+            
+            // Avoid duplicate processing
+            if (!lastNotifiedIdsRef.current.has(newNotif.id)) {
+              lastNotifiedIdsRef.current.add(newNotif.id);
+              
+              setNotifications(prev => [newNotif, ...prev]);
+              
+              if (isWebsite) {
+                setWebsiteNotifCount(prev => prev + 1);
+                
+                // Play sound for website reservations
+                playNotificationSound();
+                
+                // Show toast
+                toast({
+                  title: "🔔 " + newNotif.title,
+                  description: newNotif.message,
+                });
+                
+                // Refresh calendar to show new reservation
+                setCalendarRefresh(prev => prev + 1);
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, playNotificationSound, toast]);
 
   const markAsRead = async (id: string) => {
     await supabase
@@ -122,7 +206,26 @@ const Dashboard = () => {
       .update({ is_read: true })
       .eq("id", id);
     
+    const notif = notifications.find(n => n.id === id);
+    if (notif?.title?.toLowerCase().includes("website")) {
+      setWebsiteNotifCount(prev => Math.max(0, prev - 1));
+    }
+    
     setNotifications(notifications.filter(n => n.id !== id));
+  };
+
+  const markAllAsRead = async () => {
+    if (!user || notifications.length === 0) return;
+    
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false);
+    
+    setNotifications([]);
+    setWebsiteNotifCount(0);
+    lastNotifiedIdsRef.current.clear();
   };
 
   const handleSignOut = async () => {
@@ -171,18 +274,42 @@ const Dashboard = () => {
 
             <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
               {/* Notifications */}
-              <Popover>
+              <Popover open={notifPopoverOpen} onOpenChange={(open) => {
+                setNotifPopoverOpen(open);
+                // Mark all as read when closing the popover
+                if (!open && websiteNotifCount > 0) {
+                  markAllAsRead();
+                }
+              }}>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative rounded-lg hover:bg-secondary">
                     <Bell className="h-4 w-4" />
-                    {notifications.length > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full animate-pulse glow-accent" />
+                    {websiteNotifCount > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1.5 text-xs font-bold flex items-center justify-center rounded-full animate-pulse"
+                      >
+                        {websiteNotifCount > 99 ? "99+" : websiteNotifCount}
+                      </Badge>
                     )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0 z-[100]" align="end" sideOffset={8}>
-                  <div className="p-4 border-b border-border">
+                  <div className="p-4 border-b border-border flex items-center justify-between">
                     <h4 className="font-semibold">Notifications</h4>
+                    {notifications.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => {
+                          markAllAsRead();
+                          setNotifPopoverOpen(false);
+                        }}
+                      >
+                        Mark all read
+                      </Button>
+                    )}
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
                     {notifications.length === 0 ? (
@@ -195,7 +322,12 @@ const Dashboard = () => {
                         <div key={notif.id} className="p-3 border-b border-border/50 hover:bg-muted/50 transition-colors">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm">{notif.title}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm">{notif.title}</p>
+                                {notif.title?.toLowerCase().includes("website") && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">Website</Badge>
+                                )}
+                              </div>
                               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
                             </div>
                             <Button
@@ -358,7 +490,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="calendar" className="animate-fade-in">
-            <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} />
+            <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} refreshTrigger={calendarRefresh} />
           </TabsContent>
         </Tabs>
       </main>

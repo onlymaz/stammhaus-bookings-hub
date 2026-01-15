@@ -39,11 +39,12 @@ interface Reservation {
 interface CalendarViewProps {
   onCreateReservation: () => void;
   resetToToday?: number;
+  refreshTrigger?: number;
 }
 
 type ViewMode = "week" | "month";
 
-export const CalendarView = ({ onCreateReservation, resetToToday }: CalendarViewProps) => {
+export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger }: CalendarViewProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +63,13 @@ export const CalendarView = ({ onCreateReservation, resetToToday }: CalendarView
       setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
     }
   }, [resetToToday]);
+
+  // Refresh when new reservation comes in
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      fetchReservations();
+    }
+  }, [refreshTrigger]);
 
   useEffect(() => {
     fetchReservations();
