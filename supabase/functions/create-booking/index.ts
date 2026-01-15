@@ -161,7 +161,7 @@ serve(async (req) => {
       console.log("Created new customer:", customerId);
     }
 
-    // Create the reservation
+    // Create the reservation with source explicitly set to 'website'
     const { data: reservation, error: reservationError } = await supabase
       .from("reservations")
       .insert({
@@ -185,6 +185,37 @@ serve(async (req) => {
     }
 
     console.log("Reservation created successfully:", reservation.id);
+
+    // Create notifications for all staff and admin users
+    try {
+      const { data: staffUsers } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["admin", "staff"]);
+
+      if (staffUsers && staffUsers.length > 0) {
+        const notifications = staffUsers.map(staff => ({
+          user_id: staff.user_id,
+          title: "New Website Reservation",
+          message: `${sanitizedName} (${sanitizedPhone}) booked for ${body.date} at ${body.time} - ${body.guests} guest${body.guests > 1 ? 's' : ''}`,
+          reservation_id: reservation.id,
+          is_read: false,
+        }));
+
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert(notifications);
+
+        if (notifError) {
+          console.error("Error creating notifications:", notifError);
+        } else {
+          console.log(`Created ${notifications.length} notifications for staff/admin users`);
+        }
+      }
+    } catch (notifErr) {
+      console.error("Error in notification creation:", notifErr);
+      // Don't fail the reservation if notifications fail
+    }
 
     return new Response(
       JSON.stringify({
