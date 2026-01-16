@@ -114,9 +114,9 @@ export const ReservationDetailDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-lg p-0 border-0 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-primary/15 via-card to-accent/15 px-6 py-5 border-b border-border/30">
+        <div className="bg-gradient-to-r from-primary/15 via-card to-accent/15 px-6 py-5 border-b border-border/30 flex-shrink-0">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -139,7 +139,7 @@ export const ReservationDetailDialog = ({
           </DialogHeader>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Contact Info */}
           <div className="grid grid-cols-2 gap-4">
             {reservation.customer?.phone && (
