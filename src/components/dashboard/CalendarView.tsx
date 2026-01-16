@@ -164,9 +164,9 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const monthDays = getMonthDays();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="flex gap-4 md:gap-8 min-w-[900px]">
       {/* Calendar View */}
-      <div className="lg:col-span-2">
+      <div className="flex-[2] min-w-0">
         <Card className="card-elevated border-0 shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-6 pt-6 px-6 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
             <div className="flex items-center gap-4">
@@ -406,8 +406,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
       </div>
 
       {/* Day Detail */}
-      <div>
-        <Card className="card-elevated lg:sticky lg:top-24 border-0 shadow-2xl lg:flex lg:flex-col lg:max-h-[calc(100vh-7rem)]">
+      <div className="flex-1 min-w-[280px]">
+        <Card className="card-elevated sticky top-24 border-0 shadow-2xl flex flex-col max-h-[calc(100vh-7rem)]">
           <CardHeader className="pb-4 pt-6 px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30">
             <div className="flex items-start justify-between">
               <div>
