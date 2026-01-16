@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus, Save, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -56,12 +57,18 @@ export const ReservationDetailDialog = ({
 }: ReservationDetailDialogProps) => {
   const [updating, setUpdating] = useState(false);
   const [guestCount, setGuestCount] = useState(reservation?.guests || 1);
+  const [staffNote, setStaffNote] = useState(reservation?.notes || "");
+  const [isEditingNote, setIsEditingNote] = useState(false);
   const { toast } = useToast();
 
-  // Update local guest count when reservation changes
-  if (reservation && guestCount !== reservation.guests && !updating) {
-    setGuestCount(reservation.guests);
-  }
+  // Update local state when reservation changes
+  useEffect(() => {
+    if (reservation) {
+      setGuestCount(reservation.guests);
+      setStaffNote(reservation.notes || "");
+      setIsEditingNote(false);
+    }
+  }, [reservation?.id, reservation?.guests, reservation?.notes]);
 
   if (!reservation) return null;
 
@@ -209,16 +216,63 @@ export const ReservationDetailDialog = ({
             </div>
           </div>
 
-          {/* Notes */}
-          {reservation.notes && (
-            <div className="p-4 rounded-xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/30">
-              <div className="flex items-center gap-2 mb-2">
+          {/* Staff Note - Editable */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-sm font-semibold text-muted-foreground">Notes</h4>
+                <h4 className="text-sm font-semibold text-muted-foreground">Staff Note</h4>
               </div>
-              <p className="text-sm text-foreground">{reservation.notes}</p>
+              {!isEditingNote ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1"
+                  onClick={() => setIsEditingNote(true)}
+                >
+                  <Edit2 className="h-3 w-3" />
+                  {staffNote ? "Edit" : "Add"}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1 text-primary"
+                  onClick={async () => {
+                    setUpdating(true);
+                    const { error } = await supabase
+                      .from("reservations")
+                      .update({ notes: staffNote || null })
+                      .eq("id", reservation.id);
+                    setUpdating(false);
+                    if (error) {
+                      toast({ title: "Error saving note", variant: "destructive" });
+                    } else {
+                      toast({ title: "Note saved" });
+                      setIsEditingNote(false);
+                      onStatusChange?.();
+                    }
+                  }}
+                  disabled={updating}
+                >
+                  <Save className="h-3 w-3" />
+                  Save
+                </Button>
+              )}
             </div>
-          )}
+            {isEditingNote ? (
+              <Textarea
+                value={staffNote}
+                onChange={(e) => setStaffNote(e.target.value)}
+                placeholder="Add a note for this reservation..."
+                className="min-h-[80px] text-sm resize-none"
+              />
+            ) : (
+              <p className="text-sm text-foreground">
+                {staffNote || <span className="text-muted-foreground italic">No note added</span>}
+              </p>
+            )}
+          </div>
 
           {/* Special Requests */}
           {reservation.special_requests && (
