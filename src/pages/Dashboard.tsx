@@ -490,7 +490,9 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="calendar" className="animate-fade-in">
-            <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} refreshTrigger={calendarRefresh} />
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} refreshTrigger={calendarRefresh} />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
