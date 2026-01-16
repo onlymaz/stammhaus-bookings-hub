@@ -15,7 +15,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
 
@@ -53,6 +64,39 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reservationToDelete, setReservationToDelete] = useState<Reservation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteReservation = async () => {
+    if (!reservationToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      // First delete from reservation_tables if any
+      await supabase
+        .from("reservation_tables")
+        .delete()
+        .eq("reservation_id", reservationToDelete.id);
+
+      // Then delete the reservation
+      const { error } = await supabase
+        .from("reservations")
+        .delete()
+        .eq("id", reservationToDelete.id);
+
+      if (error) throw error;
+
+      toast.success("Reservation deleted successfully");
+      setDeleteDialogOpen(false);
+      setReservationToDelete(null);
+      fetchReservations();
+    } catch (error: any) {
+      toast.error("Failed to delete reservation: " + error.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Reset to today when logo is clicked
   useEffect(() => {
@@ -483,14 +527,16 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 {todayReservations.map((res) => (
                   <div
                     key={res.id}
-                    onClick={() => {
-                      setSelectedReservation(res);
-                      setDetailDialogOpen(true);
-                    }}
                     className="day-panel-card group"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
+                      <div 
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => {
+                          setSelectedReservation(res);
+                          setDetailDialogOpen(true);
+                        }}
+                      >
                         <span className="font-semibold block text-foreground group-hover:text-primary transition-colors">
                           {res.customer?.name || "Guest"}
                         </span>
@@ -501,11 +547,31 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           </span>
                         )}
                       </div>
-                      <Badge className={cn(getStatusBadgeClass(res.status), "text-xs font-medium")}>
-                        {res.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={cn(getStatusBadgeClass(res.status), "text-xs font-medium")}>
+                          {res.status}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReservationToDelete(res);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div 
+                      className="flex items-center gap-4 text-sm text-muted-foreground cursor-pointer"
+                      onClick={() => {
+                        setSelectedReservation(res);
+                        setDetailDialogOpen(true);
+                      }}
+                    >
                       <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
                         <Clock className="h-3 w-3" />
                         {res.reservation_time.slice(0, 5)}
@@ -516,7 +582,13 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                       </span>
                     </div>
                     {res.special_requests && (
-                      <div className="mt-3 text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2.5 rounded-lg">
+                      <div 
+                        className="mt-3 text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2.5 rounded-lg cursor-pointer"
+                        onClick={() => {
+                          setSelectedReservation(res);
+                          setDetailDialogOpen(true);
+                        }}
+                      >
                         <span className="font-medium text-accent">Note:</span> {res.special_requests}
                       </div>
                     )}
@@ -535,6 +607,33 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
         onOpenChange={setDetailDialogOpen}
         onStatusChange={fetchReservations}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the reservation for{" "}
+              <strong>{reservationToDelete?.customer?.name || "Guest"}</strong> on{" "}
+              {reservationToDelete && format(parseISO(reservationToDelete.reservation_date), "MMMM d, yyyy")} at{" "}
+              {reservationToDelete?.reservation_time.slice(0, 5)}?
+              <br /><br />
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteReservation}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
