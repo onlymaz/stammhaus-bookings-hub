@@ -15,7 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +68,42 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reservationToDelete, setReservationToDelete] = useState<Reservation | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Staff note inline editing state
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
+  const handleSaveNote = async (reservationId: string) => {
+    setIsSavingNote(true);
+    try {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ notes: noteText.trim() || null })
+        .eq("id", reservationId);
+
+      if (error) throw error;
+
+      toast.success("Staff note saved");
+      setEditingNoteId(null);
+      setNoteText("");
+      fetchReservations();
+    } catch (error: any) {
+      toast.error("Failed to save note: " + error.message);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const startEditingNote = (reservation: Reservation) => {
+    setEditingNoteId(reservation.id);
+    setNoteText(reservation.notes || "");
+  };
+
+  const cancelEditingNote = () => {
+    setEditingNoteId(null);
+    setNoteText("");
+  };
 
   const handleDeleteReservation = async () => {
     if (!reservationToDelete) return;
@@ -581,6 +618,75 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         {res.guests} guests
                       </span>
                     </div>
+
+                    {/* Staff Note Section - Inline Editable */}
+                    {editingNoteId === res.id ? (
+                      <div className="mt-3 space-y-2">
+                        <Textarea
+                          value={noteText}
+                          onChange={(e) => setNoteText(e.target.value)}
+                          placeholder="Add staff note..."
+                          className="text-xs min-h-[60px] resize-none"
+                          autoFocus
+                        />
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={cancelEditingNote}
+                            disabled={isSavingNote}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => handleSaveNote(res.id)}
+                            disabled={isSavingNote}
+                          >
+                            <Save className="h-3 w-3 mr-1" />
+                            {isSavingNote ? "Saving..." : "Save"}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : res.notes ? (
+                      <div 
+                        className="mt-3 text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2.5 rounded-lg cursor-pointer group/note relative"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingNote(res);
+                        }}
+                      >
+                        <span className="font-medium text-amber-700 dark:text-amber-400">Staff Note:</span> {res.notes}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover/note:opacity-100 transition-opacity text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditingNote(res);
+                          }}
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 h-7 px-2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingNote(res);
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Staff Note
+                      </Button>
+                    )}
+
                     {res.special_requests && (
                       <div 
                         className="mt-3 text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2.5 rounded-lg cursor-pointer"
@@ -589,7 +695,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           setDetailDialogOpen(true);
                         }}
                       >
-                        <span className="font-medium text-accent">Note:</span> {res.special_requests}
+                        <span className="font-medium text-accent">Request:</span> {res.special_requests}
                       </div>
                     )}
                   </div>
