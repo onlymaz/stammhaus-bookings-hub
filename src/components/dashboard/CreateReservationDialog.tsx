@@ -38,9 +38,8 @@ interface TimeSlot {
   available: boolean;
 }
 
-// Guest options - Row 1: individual numbers, Row 2: larger groups
-const GUEST_OPTIONS_ROW1 = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12];
-const GUEST_OPTIONS_ROW2 = [15, 20, 25, 30, 40, 50, 75, 100, 150, 200];
+// Guest options - Numbers 1-10 as preset, then custom input for larger groups
+const GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export const CreateReservationDialog = ({
   open,
@@ -69,7 +68,7 @@ export const CreateReservationDialog = ({
   const handleCustomGuestsChange = (value: string) => {
     setCustomGuests(value);
     const num = parseInt(value);
-    if (!isNaN(num) && num >= 1 && num <= 200) {
+    if (!isNaN(num) && num >= 1 && num <= 500) {
       setGuests(num);
     }
   };
@@ -290,68 +289,51 @@ export const CreateReservationDialog = ({
 
           {/* Guest Selection */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Number of Guests *</Label>
+            <Label>Number of Guests *</Label>
+            
+            <div className="flex flex-wrap gap-1.5">
+              {GUEST_OPTIONS.map((num) => (
+                <Button
+                  key={num}
+                  type="button"
+                  variant={guests === num && !showCustomGuests ? "default" : "outline"}
+                  size="sm"
+                  className={cn(
+                    "text-sm h-10 w-10 font-medium transition-all",
+                    guests === num && !showCustomGuests && "shadow-md"
+                  )}
+                  onClick={() => handleGuestSelect(num)}
+                >
+                  {num}
+                </Button>
+              ))}
               <Button
                 type="button"
-                variant="ghost"
+                variant={showCustomGuests ? "secondary" : "outline"}
                 size="sm"
-                className="h-6 text-xs"
-                onClick={() => setShowCustomGuests(!showCustomGuests)}
+                className={cn(
+                  "text-sm h-10 px-3 font-medium transition-all",
+                  showCustomGuests && "bg-accent text-accent-foreground shadow-md"
+                )}
+                onClick={() => setShowCustomGuests(true)}
               >
-                {showCustomGuests ? "Quick select" : "Custom number"}
+                Custom
               </Button>
             </div>
             
-            {showCustomGuests ? (
-              <div className="flex items-center gap-2">
+            {showCustomGuests && (
+              <div className="flex items-center gap-2 mt-2">
                 <Input
                   type="number"
                   min={1}
-                  max={200}
-                  placeholder="Enter number (1-200)"
+                  max={500}
+                  placeholder="Enter number"
                   value={customGuests}
                   onChange={(e) => handleCustomGuestsChange(e.target.value)}
-                  className="max-w-[200px]"
+                  className="max-w-[140px]"
+                  autoFocus
                 />
                 <span className="text-sm text-muted-foreground">guests</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="grid grid-cols-10 gap-1.5">
-                  {GUEST_OPTIONS_ROW1.map((num) => (
-                    <Button
-                      key={num}
-                      type="button"
-                      variant={guests === num ? "default" : "outline"}
-                      size="sm"
-                      className={cn(
-                        "text-sm h-10 font-medium transition-all",
-                        guests === num && "shadow-md"
-                      )}
-                      onClick={() => handleGuestSelect(num)}
-                    >
-                      {num}
-                    </Button>
-                  ))}
-                </div>
-                <div className="grid grid-cols-10 gap-1.5">
-                  {GUEST_OPTIONS_ROW2.map((num) => (
-                    <Button
-                      key={num}
-                      type="button"
-                      variant={guests === num ? "secondary" : "outline"}
-                      size="sm"
-                      className={cn(
-                        "text-sm h-10 font-medium transition-all",
-                        guests === num && "bg-accent text-accent-foreground shadow-md"
-                      )}
-                      onClick={() => handleGuestSelect(num)}
-                    >
-                      {num}
-                    </Button>
-                  ))}
-                </div>
               </div>
             )}
           </div>
