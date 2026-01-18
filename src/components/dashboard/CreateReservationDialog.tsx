@@ -172,16 +172,35 @@ export const CreateReservationDialog = ({
     setIsLoading(true);
 
     try {
-      // Create or find customer
+      // Create or find customer by phone
       const { data: existingCustomer } = await supabase
         .from("customers")
-        .select("id")
+        .select("id, name, email")
         .eq("phone", customerPhone)
         .maybeSingle();
 
-      let customerId = existingCustomer?.id;
+      let customerId: string;
 
-      if (!customerId) {
+      if (existingCustomer) {
+        // Update existing customer's name and email if changed
+        customerId = existingCustomer.id;
+        
+        const updates: { name?: string; email?: string | null } = {};
+        if (existingCustomer.name !== customerName) {
+          updates.name = customerName;
+        }
+        if (existingCustomer.email !== (customerEmail || null)) {
+          updates.email = customerEmail || null;
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          await supabase
+            .from("customers")
+            .update(updates)
+            .eq("id", customerId);
+        }
+      } else {
+        // Create new customer
         const { data: newCustomer, error: customerError } = await supabase
           .from("customers")
           .insert({
