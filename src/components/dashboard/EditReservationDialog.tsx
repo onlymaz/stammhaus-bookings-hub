@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Users, Phone, Mail, User, Clock } from "lucide-react";
+import { CalendarIcon, Loader2, Phone, Mail, User, Clock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -28,24 +28,42 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-interface CreateReservationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 interface TimeSlot {
   time: string;
   available: boolean;
 }
 
-// Guest options - Numbers 1-10 as preset, then custom input for larger groups
+interface ReservationToEdit {
+  id: string;
+  reservation_date: string;
+  reservation_time: string;
+  guests: number;
+  status: string;
+  notes: string | null;
+  special_requests: string | null;
+  customer: {
+    name: string;
+    phone: string;
+    email: string | null;
+  } | null;
+}
+
+interface EditReservationDialogProps {
+  reservation: ReservationToEdit | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave?: () => void;
+}
+
 const GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-export const CreateReservationDialog = ({
+export const EditReservationDialog = ({
+  reservation,
   open,
   onOpenChange,
-}: CreateReservationDialogProps) => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  onSave,
+}: EditReservationDialogProps) => {
+  const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState<string>("");
   const [guests, setGuests] = useState<number>(2);
   const [customGuests, setCustomGuests] = useState<string>("");
@@ -54,10 +72,33 @@ export const CreateReservationDialog = ({
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [staffNote, setStaffNote] = useState("");
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const { toast } = useToast();
+
+  // Initialize form when reservation changes
+  useEffect(() => {
+    if (reservation && open) {
+      setDate(new Date(reservation.reservation_date));
+      setTime(reservation.reservation_time.slice(0, 5));
+      setGuests(reservation.guests);
+      setCustomerName(reservation.customer?.name || "");
+      setCustomerPhone(reservation.customer?.phone || "");
+      setCustomerEmail(reservation.customer?.email || "");
+      setSpecialRequests(reservation.special_requests || "");
+      setStaffNote(reservation.notes || "");
+      
+      if (reservation.guests > 10) {
+        setShowCustomGuests(true);
+        setCustomGuests(reservation.guests.toString());
+      } else {
+        setShowCustomGuests(false);
+        setCustomGuests("");
+      }
+    }
+  }, [reservation, open]);
 
   const handleGuestSelect = (num: number) => {
     setGuests(num);
@@ -83,7 +124,6 @@ export const CreateReservationDialog = ({
     setLoadingSlots(true);
     const dayOfWeek = selectedDate.getDay();
 
-    // Fetch operating hours and capacity settings in parallel
     const [hoursResult, capacityResult] = await Promise.all([
       supabase
         .from("operating_hours")
@@ -100,7 +140,6 @@ export const CreateReservationDialog = ({
     const hours = hoursResult.data;
     const slotDuration = capacityResult.data?.slot_duration_minutes || 15;
 
-    // If no operating hours set, use defaults (11:00 - 22:00)
     const defaultHours = {
       lunch_start: "11:00",
       lunch_end: "22:00",
@@ -119,13 +158,11 @@ export const CreateReservationDialog = ({
 
     const slots: TimeSlot[] = [];
     
-    // Generate lunch slots (main period)
     if (operatingHours.lunch_start && operatingHours.lunch_end) {
       const lunchSlots = generateSlotsForPeriod(operatingHours.lunch_start, operatingHours.lunch_end, slotDuration);
       slots.push(...lunchSlots);
     }
 
-    // Generate dinner slots (if separate dinner period exists)
     if (operatingHours.dinner_start && operatingHours.dinner_end) {
       const dinnerSlots = generateSlotsForPeriod(operatingHours.dinner_start, operatingHours.dinner_end, slotDuration);
       slots.push(...dinnerSlots);
@@ -160,7 +197,7 @@ export const CreateReservationDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date || !time || !customerName) {
+    if (!reservation || !date || !time || !customerName) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields",
@@ -172,98 +209,62 @@ export const CreateReservationDialog = ({
     setIsLoading(true);
 
     try {
-      let customerId: string;
+      // Update customer information
+      if (reservation.customer) {
+        const customerUpdates: { name?: string; phone?: string; email?: string | null } = {};
+        
+        if (reservation.customer.name !== customerName) {
+          customerUpdates.name = customerName;
+        }
+        if (reservation.customer.phone !== customerPhone) {
+          customerUpdates.phone = customerPhone || "";
+        }
+        if (reservation.customer.email !== (customerEmail || null)) {
+          customerUpdates.email = customerEmail || null;
+        }
 
-      // If phone is provided, try to find existing customer
-      if (customerPhone) {
-        const { data: existingCustomer } = await supabase
-          .from("customers")
-          .select("id, name, email")
-          .eq("phone", customerPhone)
-          .maybeSingle();
-
-        if (existingCustomer) {
-          // Update existing customer's name and email if changed
-          customerId = existingCustomer.id;
-          
-          const updates: { name?: string; email?: string | null } = {};
-          if (existingCustomer.name !== customerName) {
-            updates.name = customerName;
-          }
-          if (existingCustomer.email !== (customerEmail || null)) {
-            updates.email = customerEmail || null;
-          }
-          
-          if (Object.keys(updates).length > 0) {
-            await supabase
-              .from("customers")
-              .update(updates)
-              .eq("id", customerId);
-          }
-        } else {
-          // Create new customer with phone
-          const { data: newCustomer, error: customerError } = await supabase
-            .from("customers")
-            .insert({
-              name: customerName,
-              phone: customerPhone,
-              email: customerEmail || null,
-            })
-            .select("id")
+        if (Object.keys(customerUpdates).length > 0) {
+          // Get customer_id from reservation
+          const { data: reservationData } = await supabase
+            .from("reservations")
+            .select("customer_id")
+            .eq("id", reservation.id)
             .single();
 
-          if (customerError) throw customerError;
-          customerId = newCustomer.id;
+          if (reservationData) {
+            await supabase
+              .from("customers")
+              .update(customerUpdates)
+              .eq("id", reservationData.customer_id);
+          }
         }
-      } else {
-        // No phone - create new customer without phone
-        const { data: newCustomer, error: customerError } = await supabase
-          .from("customers")
-          .insert({
-            name: customerName,
-            phone: "",
-            email: customerEmail || null,
-          })
-          .select("id")
-          .single();
-
-        if (customerError) throw customerError;
-        customerId = newCustomer.id;
       }
 
-      // Create reservation
+      // Update reservation
       const { error: reservationError } = await supabase
         .from("reservations")
-        .insert({
-          customer_id: customerId,
+        .update({
           reservation_date: format(date, "yyyy-MM-dd"),
           reservation_time: time + ":00",
           guests: guests,
-          source: "phone",
           special_requests: specialRequests || null,
-        });
+          notes: staffNote || null,
+        })
+        .eq("id", reservation.id);
 
       if (reservationError) throw reservationError;
 
       toast({
-        title: "Reservation created",
-        description: `Booking confirmed for ${customerName} on ${format(date, "MMM d")} at ${time}`,
+        title: "Reservation updated",
+        description: `Booking updated for ${customerName} on ${format(date, "MMM d")} at ${time}`,
       });
 
-      // Reset form
-      setCustomerName("");
-      setCustomerPhone("");
-      setCustomerEmail("");
-      setSpecialRequests("");
-      setTime("");
-      setGuests(2);
-      setCustomGuests("");
-      setShowCustomGuests(false);
+      onSave?.();
       onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create reservation",
+        description: error.message || "Failed to update reservation",
         variant: "destructive",
       });
     } finally {
@@ -271,12 +272,14 @@ export const CreateReservationDialog = ({
     }
   };
 
+  if (!reservation) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            New Reservation
+            Edit Reservation
           </DialogTitle>
         </DialogHeader>
 
@@ -295,7 +298,7 @@ export const CreateReservationDialog = ({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "MMM d, yyyy") : "Pick a date"}
+                    {date ? format(date, "MMM d, yyyy") : "Select date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -311,14 +314,30 @@ export const CreateReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Selected</Label>
-              <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{guests}</span>
-                <span className="text-muted-foreground text-sm">
-                  {guests === 1 ? "guest" : "guests"}
-                </span>
-              </div>
+              <Label>Time *</Label>
+              {loadingSlots ? (
+                <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
+                  Loading...
+                </div>
+              ) : timeSlots.length === 0 ? (
+                <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
+                  Closed
+                </div>
+              ) : (
+                <Select value={time} onValueChange={setTime}>
+                  <SelectTrigger className="w-full">
+                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {timeSlots.filter(slot => slot.available).map((slot) => (
+                      <SelectItem key={slot.time} value={slot.time}>
+                        {slot.time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -373,34 +392,6 @@ export const CreateReservationDialog = ({
             )}
           </div>
 
-          {/* Time Slots */}
-          <div className="space-y-2">
-            <Label>Time *</Label>
-            {loadingSlots ? (
-              <div className="py-4 text-center text-muted-foreground">
-                Loading available times...
-              </div>
-            ) : timeSlots.length === 0 ? (
-              <div className="py-4 text-center text-muted-foreground border rounded-lg">
-                No available times for this date
-              </div>
-            ) : (
-              <Select value={time} onValueChange={setTime}>
-                <SelectTrigger className="w-full">
-                  <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Select a time" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {timeSlots.filter(slot => slot.available).map((slot) => (
-                    <SelectItem key={slot.time} value={slot.time}>
-                      {slot.time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
           {/* Customer Details */}
           <div className="space-y-4">
             <h3 className="font-medium text-sm text-muted-foreground">
@@ -408,11 +399,11 @@ export const CreateReservationDialog = ({
             </h3>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="edit-name">Name *</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="name"
+                  id="edit-name"
                   placeholder="Customer name"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
@@ -422,11 +413,11 @@ export const CreateReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
+              <Label htmlFor="edit-phone">Phone (optional)</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="phone"
+                  id="edit-phone"
                   type="tel"
                   placeholder="+49 123 456 7890"
                   value={customerPhone}
@@ -437,11 +428,11 @@ export const CreateReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email (optional)</Label>
+              <Label htmlFor="edit-email">Email (optional)</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
+                  id="edit-email"
                   type="email"
                   placeholder="customer@email.com"
                   value={customerEmail}
@@ -454,13 +445,25 @@ export const CreateReservationDialog = ({
 
           {/* Special Requests */}
           <div className="space-y-2">
-            <Label htmlFor="requests">Special Requests</Label>
+            <Label htmlFor="edit-requests">Special Requests</Label>
             <Textarea
-              id="requests"
+              id="edit-requests"
               placeholder="Allergies, occasion, seating preferences..."
               value={specialRequests}
               onChange={(e) => setSpecialRequests(e.target.value)}
-              rows={3}
+              rows={2}
+            />
+          </div>
+
+          {/* Staff Note */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-note">Staff Note</Label>
+            <Textarea
+              id="edit-note"
+              placeholder="Internal notes for staff..."
+              value={staffNote}
+              onChange={(e) => setStaffNote(e.target.value)}
+              rows={2}
             />
           </div>
 
@@ -478,10 +481,10 @@ export const CreateReservationDialog = ({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Saving...
                 </>
               ) : (
-                "Create Reservation"
+                "Save Changes"
               )}
             </Button>
           </div>

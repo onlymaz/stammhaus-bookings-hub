@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
+import { EditReservationDialog } from "./EditReservationDialog";
 
 interface Reservation {
   id: string;
@@ -68,6 +69,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reservationToDelete, setReservationToDelete] = useState<Reservation | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [reservationToEdit, setReservationToEdit] = useState<Reservation | null>(null);
   
   // Staff note inline editing state
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -591,6 +594,18 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReservationToEdit(res);
+                            setEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -712,6 +727,14 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         onStatusChange={fetchReservations}
+      />
+
+      {/* Edit Reservation Dialog */}
+      <EditReservationDialog
+        reservation={reservationToEdit}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={fetchReservations}
       />
 
       {/* Delete Confirmation Dialog */}
