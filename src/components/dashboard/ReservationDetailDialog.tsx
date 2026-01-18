@@ -9,10 +9,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus, Save, Edit2 } from "lucide-react";
+import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus, Save, Edit2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { EditReservationDialog } from "./EditReservationDialog";
 
 interface ReservationDetail {
   id: string;
@@ -59,6 +60,7 @@ export const ReservationDetailDialog = ({
   const [guestCount, setGuestCount] = useState(reservation?.guests || 1);
   const [staffNote, setStaffNote] = useState(reservation?.notes || "");
   const [isEditingNote, setIsEditingNote] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Update local state when reservation changes
@@ -341,14 +343,35 @@ export const ReservationDetailDialog = ({
             <p className="text-xs text-muted-foreground">
               Created {format(new Date(reservation.created_at), "MMM d, yyyy 'at' h:mm a")}
             </p>
-            <Button 
-              onClick={() => onOpenChange(false)}
-              className="px-6 shadow-md hover:shadow-lg transition-all duration-300"
-            >
-              Close
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => setEditDialogOpen(true)}
+                className="gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Button>
+              <Button 
+                onClick={() => onOpenChange(false)}
+                className="px-6 shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Edit Reservation Dialog */}
+        <EditReservationDialog
+          reservation={reservation}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSave={() => {
+            onStatusChange?.();
+            setEditDialogOpen(false);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
