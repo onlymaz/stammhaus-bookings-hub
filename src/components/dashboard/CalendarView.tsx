@@ -539,7 +539,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-5 pb-6 px-5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+          <CardContent className="pt-5 pb-6 px-5 min-h-0 flex-1 overflow-y-auto">
             {loading ? (
               <div className="py-12 text-center">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
