@@ -248,61 +248,61 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const monthDays = getMonthDays();
 
   return (
-    <div className="flex gap-4 md:gap-8 min-w-[900px]">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
       {/* Calendar View */}
-      <div className="flex-[2] min-w-0">
+      <div className="lg:flex-[2] min-w-0">
         <Card className="card-elevated border-0 shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between pb-6 pt-6 px-6 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <CalendarDays className="h-6 w-6 text-primary" />
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 sm:pb-6 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="font-display text-2xl font-bold tracking-tight">
+                <CardTitle className="font-display text-lg sm:text-2xl font-bold tracking-tight">
                   {viewMode === "month" 
                     ? format(currentMonth, "MMMM yyyy")
                     : format(weekStart, "MMMM yyyy")
                   }
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-0.5">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                   {reservations.length} reservations this {viewMode}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
               {/* View Toggle */}
-              <div className="flex items-center bg-secondary/60 rounded-xl p-1.5 shadow-inner">
+              <div className="flex items-center bg-secondary/60 rounded-lg sm:rounded-xl p-1 sm:p-1.5 shadow-inner">
                 <Button
                   variant={viewMode === "week" ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "h-9 px-4 rounded-lg transition-all duration-300",
+                    "h-8 sm:h-9 px-2 sm:px-4 rounded-md sm:rounded-lg transition-all duration-300 text-xs sm:text-sm",
                     viewMode === "week" && "shadow-md"
                   )}
                   onClick={() => setViewMode("week")}
                 >
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  Week
+                  <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Week</span>
                 </Button>
                 <Button
                   variant={viewMode === "month" ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "h-9 px-4 rounded-lg transition-all duration-300",
+                    "h-8 sm:h-9 px-2 sm:px-4 rounded-md sm:rounded-lg transition-all duration-300 text-xs sm:text-sm",
                     viewMode === "month" && "shadow-md"
                   )}
                   onClick={() => setViewMode("month")}
                 >
-                  <LayoutGrid className="h-4 w-4 mr-2" />
-                  Month
+                  <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Month</span>
                 </Button>
               </div>
 
-              <div className="flex items-center bg-secondary/40 rounded-xl p-1">
+              <div className="flex items-center bg-secondary/40 rounded-lg sm:rounded-xl p-0.5 sm:p-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-lg h-9 w-9 hover:bg-secondary"
+                  className="rounded-md sm:rounded-lg h-8 w-8 sm:h-9 sm:w-9 hover:bg-secondary"
                   onClick={() => {
                     if (viewMode === "week") {
                       setWeekStart(addDays(weekStart, -7));
@@ -316,7 +316,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="rounded-lg px-4 h-9 hover:bg-secondary font-medium"
+                  className="rounded-md sm:rounded-lg px-2 sm:px-4 h-8 sm:h-9 hover:bg-secondary font-medium text-xs sm:text-sm"
                   onClick={() => {
                     const today = new Date();
                     if (viewMode === "week") {
@@ -332,7 +332,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-lg h-9 w-9 hover:bg-secondary"
+                  className="rounded-md sm:rounded-lg h-8 w-8 sm:h-9 sm:w-9 hover:bg-secondary"
                   onClick={() => {
                     if (viewMode === "week") {
                       setWeekStart(addDays(weekStart, 7));
@@ -346,10 +346,10 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6">
             {viewMode === "week" ? (
               /* Week View */
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2">
                 {weekDays.map((day) => {
                   const dayReservations = getReservationsForDate(day);
                   const totalGuests = getTotalGuestsForDate(day);
@@ -361,20 +361,20 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                       key={day.toISOString()}
                       onClick={() => setSelectedDate(day)}
                       className={cn(
-                        "p-3 rounded-lg text-left transition-all min-h-[120px] border",
+                        "p-1.5 sm:p-3 rounded-lg text-left transition-all min-h-[70px] sm:min-h-[120px] border",
                         isSelected
                           ? "bg-primary/10 border-primary"
                           : "bg-card border-border hover:border-primary/50",
-                        isToday && !isSelected && "ring-2 ring-accent ring-offset-2"
+                        isToday && !isSelected && "ring-2 ring-accent ring-offset-1 sm:ring-offset-2"
                       )}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-0.5 sm:gap-0 mb-1 sm:mb-2">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">
                           {format(day, "EEE")}
                         </span>
                         <span
                           className={cn(
-                            "text-sm font-medium",
+                            "text-xs sm:text-sm font-medium",
                             isToday && "text-accent"
                           )}
                         >
@@ -382,24 +382,30 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         </span>
                       </div>
                       {dayReservations.length > 0 && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                            <Users className="h-3 w-3" />
-                            {totalGuests} guests
+                        <div className="space-y-0.5 sm:space-y-1">
+                          <div className="text-[9px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
+                            <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <span className="hidden sm:inline">{totalGuests} guests</span>
+                            <span className="sm:hidden">{totalGuests}</span>
                           </div>
-                          {dayReservations.slice(0, 2).map((res) => (
-                            <div
-                              key={res.id}
-                              className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate"
-                            >
-                              {res.reservation_time.slice(0, 5)} · {res.guests}p
-                            </div>
-                          ))}
-                          {dayReservations.length > 2 && (
-                            <div className="text-xs text-muted-foreground">
-                              +{dayReservations.length - 2} more
-                            </div>
-                          )}
+                          <div className="hidden sm:block space-y-1">
+                            {dayReservations.slice(0, 2).map((res) => (
+                              <div
+                                key={res.id}
+                                className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate"
+                              >
+                                {res.reservation_time.slice(0, 5)} · {res.guests}p
+                              </div>
+                            ))}
+                            {dayReservations.length > 2 && (
+                              <div className="text-xs text-muted-foreground">
+                                +{dayReservations.length - 2} more
+                              </div>
+                            )}
+                          </div>
+                          <div className="sm:hidden text-[9px] text-center font-medium text-primary">
+                            {dayReservations.length}
+                          </div>
                         </div>
                       )}
                     </button>
@@ -410,19 +416,20 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               /* Month View */
               <div>
                 {/* Weekday headers */}
-                <div className="grid grid-cols-7 gap-2 mb-3">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3">
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <div key={day} className="text-center text-xs font-semibold text-muted-foreground py-2 uppercase tracking-wide">
-                      {day}
+                    <div key={day} className="text-center text-[10px] sm:text-xs font-semibold text-muted-foreground py-1 sm:py-2 uppercase tracking-wide">
+                      <span className="hidden sm:inline">{day}</span>
+                      <span className="sm:hidden">{day.charAt(0)}</span>
                     </div>
                   ))}
                 </div>
                 
                 {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {monthDays.map((day, index) => {
-                    if (!day) {
-                      return <div key={`empty-${index}`} className="min-h-[90px]" />;
+                  if (!day) {
+                      return <div key={`empty-${index}`} className="min-h-[60px] sm:min-h-[90px]" />;
                     }
 
                     const dayReservations = getReservationsForDate(day);
@@ -436,16 +443,16 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
                         className={cn(
-                          "calendar-cell group",
-                          isSelected && "calendar-cell-selected",
-                          isToday && !isSelected && "calendar-cell-today",
+                          "p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-left transition-all duration-300 min-h-[60px] sm:min-h-[100px] border-2 bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 hover:shadow-lg cursor-pointer relative overflow-hidden",
+                          isSelected && "bg-gradient-to-br from-primary/10 to-primary/20 border-primary shadow-lg shadow-primary/10",
+                          isToday && !isSelected && "ring-2 ring-accent ring-offset-1 sm:ring-offset-2 ring-offset-background shadow-lg shadow-accent/20",
                           !isCurrentMonth && "opacity-40"
                         )}
                       >
-                        <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1.5">
                           <span
                             className={cn(
-                              "text-sm font-semibold",
+                              "text-xs sm:text-sm font-semibold",
                               isToday && "text-accent",
                               isSelected && "text-primary"
                             )}
@@ -453,30 +460,33 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                             {format(day, "d")}
                           </span>
                           {dayReservations.length > 0 && (
-                            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary">
+                            <Badge variant="secondary" className="text-[8px] sm:text-[10px] h-4 sm:h-5 px-1 sm:px-1.5 font-semibold bg-primary/10 text-primary">
                               {dayReservations.length}
                             </Badge>
                           )}
                         </div>
                         {dayReservations.length > 0 && (
-                          <div className="space-y-1">
-                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
-                              <Users className="h-2.5 w-2.5" />
-                              {totalGuests} guests
+                          <div className="space-y-0.5 sm:space-y-1">
+                            <div className="text-[9px] sm:text-[10px] text-muted-foreground flex items-center gap-0.5 sm:gap-1 font-medium">
+                              <Users className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+                              <span className="hidden sm:inline">{totalGuests} guests</span>
+                              <span className="sm:hidden">{totalGuests}</span>
                             </div>
-                            {dayReservations.slice(0, 2).map((res) => (
-                              <div
-                                key={res.id}
-                                className="reservation-chip"
-                              >
-                                {res.reservation_time.slice(0, 5)} · {res.guests}p
-                              </div>
-                            ))}
-                            {dayReservations.length > 2 && (
-                              <div className="text-[10px] text-muted-foreground font-medium">
-                                +{dayReservations.length - 2} more
-                              </div>
-                            )}
+                            <div className="hidden sm:block space-y-1">
+                              {dayReservations.slice(0, 2).map((res) => (
+                                <div
+                                  key={res.id}
+                                  className="reservation-chip"
+                                >
+                                  {res.reservation_time.slice(0, 5)} · {res.guests}p
+                                </div>
+                              ))}
+                              {dayReservations.length > 2 && (
+                                <div className="text-[10px] text-muted-foreground font-medium">
+                                  +{dayReservations.length - 2} more
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </button>
@@ -490,41 +500,41 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
       </div>
 
       {/* Day Detail */}
-      <div className="flex-1 min-w-[280px]">
-        <Card className="card-elevated sticky top-24 border-0 shadow-2xl flex flex-col max-h-[calc(100vh-7rem)]">
-          <CardHeader className="pb-4 pt-6 px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30">
+      <div className="lg:flex-1 lg:min-w-[280px]">
+        <Card className="card-elevated lg:sticky lg:top-24 border-0 shadow-2xl flex flex-col max-h-[60vh] lg:max-h-[calc(100vh-7rem)]">
+          <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0">
             <div className="flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
-                    <span className="text-primary-foreground font-bold text-lg">
+                <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+                    <span className="text-primary-foreground font-bold text-base sm:text-lg">
                       {format(selectedDate, "d")}
                     </span>
                   </div>
                   <div>
-                    <CardTitle className="font-display text-xl font-bold tracking-tight">
+                    <CardTitle className="font-display text-lg sm:text-xl font-bold tracking-tight">
                       {format(selectedDate, "EEEE")}
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {format(selectedDate, "MMMM yyyy")}
                     </p>
                   </div>
                 </div>
                 {todayReservations.length > 0 && (
-                  <div className="flex items-center gap-2 mt-3">
-                    <div className="stat-card flex items-center gap-2 py-2 px-3">
-                      <Users className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-bold text-foreground">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3">
+                    <div className="stat-card flex items-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 px-2 sm:px-3">
+                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                      <span className="text-xs sm:text-sm font-bold text-foreground">
                         {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
                       </span>
-                      <span className="text-xs text-muted-foreground">guests</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">guests</span>
                     </div>
-                    <div className="stat-card flex items-center gap-2 py-2 px-3">
-                      <Clock className="h-4 w-4 text-accent" />
-                      <span className="text-sm font-bold text-foreground">
+                    <div className="stat-card flex items-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 px-2 sm:px-3">
+                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
+                      <span className="text-xs sm:text-sm font-bold text-foreground">
                         {todayReservations.length}
                       </span>
-                      <span className="text-xs text-muted-foreground">bookings</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">bookings</span>
                     </div>
                   </div>
                 )}
@@ -532,44 +542,44 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               <Button 
                 size="sm" 
                 onClick={onCreateReservation} 
-                className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent"
+                className="gap-1.5 sm:gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent text-xs sm:text-sm px-2 sm:px-3"
               >
-                <Plus className="h-4 w-4" />
-                Add
+                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Add</span>
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-5 pb-6 px-5 min-h-0 flex-1 overflow-y-auto">
+          <CardContent className="pt-4 sm:pt-5 pb-4 sm:pb-6 px-3 sm:px-5 min-h-0 flex-1 overflow-y-auto">
             {loading ? (
-              <div className="py-12 text-center">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                  <Clock className="h-6 w-6 text-primary" />
+              <div className="py-8 sm:py-12 text-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4 animate-pulse">
+                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <p className="text-muted-foreground">Loading reservations...</p>
+                <p className="text-sm sm:text-base text-muted-foreground">Loading reservations...</p>
               </div>
             ) : todayReservations.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-5 shadow-inner">
-                  <CalendarDays className="h-10 w-10 text-muted-foreground/60" />
+              <div className="py-8 sm:py-12 text-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-inner">
+                  <CalendarDays className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/60" />
                 </div>
-                <p className="text-muted-foreground mb-5 font-medium">No reservations yet</p>
+                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-5 font-medium">No reservations yet</p>
                 <Button 
                   variant="outline" 
                   onClick={onCreateReservation} 
-                  className="gap-2 px-6 shadow-md hover:shadow-lg transition-all duration-300 border-2"
+                  className="gap-2 px-4 sm:px-6 shadow-md hover:shadow-lg transition-all duration-300 border-2 text-xs sm:text-sm"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Create First Reservation
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {todayReservations.map((res) => (
                   <div
                     key={res.id}
-                    className="day-panel-card group"
+                    className="p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group"
                   >
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                       <div 
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => {
@@ -577,98 +587,98 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           setDetailDialogOpen(true);
                         }}
                       >
-                        <span className="font-semibold block text-foreground group-hover:text-primary transition-colors">
+                        <span className="font-semibold block text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
                           {res.customer?.name || "Guest"}
                         </span>
                         {res.customer?.phone && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                            <Phone className="h-3 w-3" />
+                          <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                             {res.customer.phone}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={cn(getStatusBadgeClass(res.status), "text-xs font-medium")}>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2")}>
                           {res.status}
                         </Badge>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
                             setReservationToEdit(res);
                             setEditDialogOpen(true);
                           }}
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
                             setReservationToDelete(res);
                             setDeleteDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
                     <div 
-                      className="flex items-center gap-4 text-sm text-muted-foreground cursor-pointer"
+                      className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground cursor-pointer"
                       onClick={() => {
                         setSelectedReservation(res);
                         setDetailDialogOpen(true);
                       }}
                     >
-                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
-                        <Clock className="h-3 w-3" />
+                      <span className="flex items-center gap-1 sm:gap-1.5 bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs">
+                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {res.reservation_time.slice(0, 5)}
                       </span>
-                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded">
-                        <Users className="h-3 w-3" />
+                      <span className="flex items-center gap-1 sm:gap-1.5 bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs">
+                        <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {res.guests} guests
                       </span>
                     </div>
 
                     {/* Staff Note Section - Inline Editable */}
                     {editingNoteId === res.id ? (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-2 sm:mt-3 space-y-2">
                         <Textarea
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           placeholder="Add staff note..."
-                          className="text-xs min-h-[60px] resize-none"
+                          className="text-[10px] sm:text-xs min-h-[50px] sm:min-h-[60px] resize-none"
                           autoFocus
                         />
-                        <div className="flex items-center gap-2 justify-end">
+                        <div className="flex items-center gap-1.5 sm:gap-2 justify-end">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-xs"
                             onClick={cancelEditingNote}
                             disabled={isSavingNote}
                           >
-                            <X className="h-3 w-3 mr-1" />
+                            <X className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                             Cancel
                           </Button>
                           <Button
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-xs"
                             onClick={() => handleSaveNote(res.id)}
                             disabled={isSavingNote}
                           >
-                            <Save className="h-3 w-3 mr-1" />
+                            <Save className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                             {isSavingNote ? "Saving..." : "Save"}
                           </Button>
                         </div>
                       </div>
                     ) : res.notes ? (
                       <div 
-                        className="mt-3 text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2.5 rounded-lg cursor-pointer group/note relative"
+                        className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2 sm:p-2.5 rounded-lg cursor-pointer group/note relative"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
@@ -678,33 +688,33 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover/note:opacity-100 transition-opacity text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+                          className="h-5 w-5 sm:h-6 sm:w-6 absolute top-1 right-1 sm:opacity-0 sm:group-hover/note:opacity-100 transition-opacity text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50"
                           onClick={(e) => {
                             e.stopPropagation();
                             startEditingNote(res);
                           }}
                         >
-                          <Edit2 className="h-3 w-3" />
+                          <Edit2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         </Button>
                       </div>
                     ) : (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="mt-2 h-7 px-2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="mt-1.5 sm:mt-2 h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-xs text-muted-foreground sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
                         }}
                       >
-                        <Plus className="h-3 w-3 mr-1" />
+                        <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                         Add Staff Note
                       </Button>
                     )}
 
                     {res.special_requests && (
                       <div 
-                        className="mt-3 text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2.5 rounded-lg cursor-pointer"
+                        className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2 sm:p-2.5 rounded-lg cursor-pointer"
                         onClick={() => {
                           setSelectedReservation(res);
                           setDetailDialogOpen(true);
