@@ -91,6 +91,33 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   
   // Refresh trigger for table status
   const [tableStatusRefresh, setTableStatusRefresh] = useState(0);
+  
+  // Current time for "in progress" detection (updates every minute)
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Update current time every minute for live status
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Check if reservation time slot has started (for today only)
+  const isTimeSlotStarted = (reservation: Reservation): boolean => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    if (reservation.reservation_date !== today) return false;
+    
+    const [hours, minutes] = reservation.reservation_time.split(":").map(Number);
+    const reservationStart = new Date();
+    reservationStart.setHours(hours, minutes, 0, 0);
+    
+    return currentTime >= reservationStart && 
+           reservation.status !== "cancelled" && 
+           reservation.dining_status !== "completed" &&
+           reservation.dining_status !== "cancelled" &&
+           reservation.dining_status !== "no_show";
+  };
 
   const handleSaveNote = async (reservationId: string) => {
     setIsSavingNote(true);
@@ -605,10 +632,17 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               </div>
             ) : (
               <div className="space-y-2 sm:space-y-3">
-                {todayReservations.map((res) => (
+                {todayReservations.map((res) => {
+                  const slotStarted = isTimeSlotStarted(res);
+                  return (
                   <div
                     key={res.id}
-                    className="p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group"
+                    className={cn(
+                      "p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group",
+                      slotStarted 
+                        ? "reservation-in-progress" 
+                        : "border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50"
+                    )}
                   >
                     <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                       <div 
@@ -629,6 +663,11 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         )}
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2">
+                        {slotStarted && (
+                          <Badge className="badge-in-progress">
+                            IN PROGRESS
+                          </Badge>
+                        )}
                         <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2")}>
                           {res.status}
                         </Badge>
@@ -769,7 +808,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
