@@ -678,23 +678,24 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                       </div>
                     ) : res.notes ? (
                       <div 
-                        className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2 sm:p-2.5 rounded-lg cursor-pointer group/note relative"
+                        className="mt-2 sm:mt-3 text-xs sm:text-sm staff-note-box cursor-pointer group/note relative"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
                         }}
                       >
-                        <span className="font-medium text-amber-700 dark:text-amber-400">Staff Note:</span> {res.notes}
+                        <span className="staff-note-label">Staff Note:</span>{" "}
+                        <span className="staff-note-text">{res.notes}</span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-5 w-5 sm:h-6 sm:w-6 absolute top-1 right-1 sm:opacity-0 sm:group-hover/note:opacity-100 transition-opacity text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+                          className="h-6 w-6 sm:h-7 sm:w-7 absolute top-1.5 right-1.5 sm:opacity-0 sm:group-hover/note:opacity-100 transition-opacity text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50"
                           onClick={(e) => {
                             e.stopPropagation();
                             startEditingNote(res);
                           }}
                         >
-                          <Edit2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <Edit2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </Button>
                       </div>
                     ) : (
@@ -714,13 +715,14 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
                     {res.special_requests && (
                       <div 
-                        className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-muted-foreground bg-accent/10 border border-accent/20 p-2 sm:p-2.5 rounded-lg cursor-pointer"
+                        className="mt-2 sm:mt-3 text-xs sm:text-sm request-box cursor-pointer"
                         onClick={() => {
                           setSelectedReservation(res);
                           setDetailDialogOpen(true);
                         }}
                       >
-                        <span className="font-medium text-accent">Request:</span> {res.special_requests}
+                        <span className="request-label">Request:</span>{" "}
+                        <span className="request-text">{res.special_requests}</span>
                       </div>
                     )}
                   </div>

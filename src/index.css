@@ -236,6 +236,32 @@
     @apply opacity-100;
   }
 
+  /* Staff Note - High contrast amber/gold */
+  .staff-note-box {
+    @apply bg-amber-100 dark:bg-amber-900/60 border-2 border-amber-400 dark:border-amber-600 p-3 rounded-lg shadow-sm;
+  }
+
+  .staff-note-label {
+    @apply font-bold text-amber-800 dark:text-amber-200;
+  }
+
+  .staff-note-text {
+    @apply text-amber-900 dark:text-amber-100 font-medium;
+  }
+
+  /* Special Request - High contrast teal/accent */
+  .request-box {
+    @apply bg-teal-100 dark:bg-teal-900/60 border-2 border-teal-500 dark:border-teal-500 p-3 rounded-lg shadow-sm;
+  }
+
+  .request-label {
+    @apply font-bold text-teal-800 dark:text-teal-200;
+  }
+
+  .request-text {
+    @apply text-teal-900 dark:text-teal-100 font-medium;
+  }
+
   .premium-header {
     @apply bg-gradient-to-r from-card via-card to-secondary/50 border-b border-border/30;
   }
