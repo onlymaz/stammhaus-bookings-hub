@@ -256,20 +256,10 @@ export const InlineTableAssignment = ({
                         "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
                         selectedTableId === table.id
                           ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted",
-                        table.capacity < guests && "opacity-50"
+                          : "hover:bg-muted"
                       )}
                     >
-                      <span className="font-medium min-w-[40px]">T{table.table_number}</span>
-                      <span className={cn(
-                        "text-[10px]",
-                        selectedTableId === table.id ? "text-primary-foreground/80" : "text-muted-foreground"
-                      )}>
-                        {table.capacity} seats
-                      </span>
-                      {table.capacity < guests && (
-                        <span className="text-[9px] text-destructive ml-auto">small</span>
-                      )}
+                      <span className="font-medium">T{table.table_number}</span>
                       {table.id === currentTableId && (
                         <Check className="h-3 w-3 ml-auto" />
                       )}
@@ -289,20 +279,10 @@ export const InlineTableAssignment = ({
                         "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
                         selectedTableId === table.id
                           ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted",
-                        table.capacity < guests && "opacity-50"
+                          : "hover:bg-muted"
                       )}
                     >
-                      <span className="font-medium min-w-[40px]">T{table.table_number}</span>
-                      <span className={cn(
-                        "text-[10px]",
-                        selectedTableId === table.id ? "text-primary-foreground/80" : "text-muted-foreground"
-                      )}>
-                        {table.capacity} seats
-                      </span>
-                      {table.capacity < guests && (
-                        <span className="text-[9px] text-destructive ml-auto">small</span>
-                      )}
+                      <span className="font-medium">T{table.table_number}</span>
                       {table.id === currentTableId && (
                         <Check className="h-3 w-3 ml-auto" />
                       )}
@@ -316,7 +296,6 @@ export const InlineTableAssignment = ({
             {selectedTable && (
               <div className="mt-2 px-2 py-1 rounded bg-primary/10 text-xs">
                 Selected: <span className="font-medium">Table {selectedTable.table_number}</span>
-                <span className="text-muted-foreground ml-1">({selectedTable.capacity} seats, {selectedTable.zone})</span>
               </div>
             )}
 
