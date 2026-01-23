@@ -133,11 +133,17 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
     return currentTime >= reservationStart && currentTime < reservationEnd;
   };
 
-  // Check if reservation time slot has ended (for graying out)
-  const isTimeSlotPast = (reservation: Reservation): boolean => {
+  // Check if reservation is in the past (for graying out)
+  const isReservationPast = (reservation: Reservation): boolean => {
     const today = format(new Date(), "yyyy-MM-dd");
-    if (reservation.reservation_date !== today) return false;
     
+    // Past date = always gray
+    if (reservation.reservation_date < today) return true;
+    
+    // Future date = never gray
+    if (reservation.reservation_date > today) return false;
+    
+    // Today: check if time slot has ended
     const [startHours, startMinutes] = reservation.reservation_time.split(":").map(Number);
     const reservationStart = new Date();
     reservationStart.setHours(startHours, startMinutes, 0, 0);
@@ -670,7 +676,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               <div className="space-y-2 sm:space-y-3">
                 {todayReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
-                  const slotPast = isTimeSlotPast(res);
+                  const slotPast = isReservationPast(res);
                   return (
                   <div
                     key={res.id}
