@@ -21,9 +21,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Home, TreePine, Clock, AlertTriangle, Loader2, Check, Search } from "lucide-react";
+import { Users, Home, TreePine, Clock, AlertTriangle, Loader2, Check, Search, Building, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+
 
 interface TableAssignmentDialogProps {
   open: boolean;
@@ -139,21 +141,17 @@ export const TableAssignmentDialog = ({
     return availableTables.some(t => t.id === tableId);
   };
 
-  // Helper to get display name with T/TG prefix
-  // Inside tables: T1-T46, Garden tables: TG47-TG84
-  const getTableDisplayName = (table: RestaurantTable) => {
-    if (table.zone === 'inside') {
-      return `T${table.table_number}`;
-    } else {
-      return `TG${table.table_number}`;
-    }
-  };
+  // Table names now include prefix (T01, R37, G47, M01) - use directly
+  const getTableDisplayName = (table: RestaurantTable) => table.table_number;
 
   // Helper to extract numeric part for sorting
   const getTableNumeric = (tableNumber: string) => {
-    const num = parseInt(tableNumber, 10);
-    return isNaN(num) ? 0 : num;
+    const match = tableNumber.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   };
+
+  // Zone order for sorting
+  const zoneOrder: Record<string, number> = { inside: 0, room: 1, garden: 2, mezz: 3 };
 
   // Filter and sort tables
   const filteredTables = useMemo(() => {
@@ -173,13 +171,11 @@ export const TableAssignmentDialog = ({
       });
     }
     
-    // Sort: inside tables first, then garden tables, each sorted numerically
+    // Sort by zone order, then numerically
     return result.sort((a, b) => {
-      // Inside tables come first
-      if (a.zone !== b.zone) {
-        return a.zone === 'inside' ? -1 : 1;
-      }
-      // Then sort numerically
+      const zoneA = zoneOrder[a.zone] ?? 99;
+      const zoneB = zoneOrder[b.zone] ?? 99;
+      if (zoneA !== zoneB) return zoneA - zoneB;
       return getTableNumeric(a.table_number) - getTableNumeric(b.table_number);
     });
   }, [tables, activeZone, searchQuery]);
@@ -239,15 +235,23 @@ export const TableAssignmentDialog = ({
 
             {/* Zone Tabs */}
             <Tabs value={activeZone} onValueChange={(v) => setActiveZone(v as "all" | TableZone)}>
-              <TabsList className="w-full">
-                <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
-                <TabsTrigger value="inside" className="flex-1 gap-1.5">
-                  <Home className="h-3.5 w-3.5" />
-                  Inside
+              <TabsList className="w-full grid grid-cols-5">
+                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+                <TabsTrigger value="inside" className="text-xs gap-1">
+                  <Home className="h-3 w-3" />
+                  T
                 </TabsTrigger>
-                <TabsTrigger value="garden" className="flex-1 gap-1.5">
-                  <TreePine className="h-3.5 w-3.5" />
-                  Garden
+                <TabsTrigger value="room" className="text-xs gap-1">
+                  <Building className="h-3 w-3" />
+                  R
+                </TabsTrigger>
+                <TabsTrigger value="garden" className="text-xs gap-1">
+                  <TreePine className="h-3 w-3" />
+                  G
+                </TabsTrigger>
+                <TabsTrigger value="mezz" className="text-xs gap-1">
+                  <Layers className="h-3 w-3" />
+                  M
                 </TabsTrigger>
               </TabsList>
 
@@ -290,14 +294,12 @@ export const TableAssignmentDialog = ({
                             <span className="font-semibold">{getTableDisplayName(table)}</span>
                             <Badge 
                               variant="outline" 
-                              className={cn(
-                                "text-[10px]",
-                                table.zone === 'inside' 
-                                  ? "border-primary/30 text-primary"
-                                  : "border-accent/30 text-accent-foreground"
-                              )}
+                              className="text-[10px] border-muted-foreground/30"
                             >
-                              {table.zone === 'inside' ? <Home className="h-2.5 w-2.5" /> : <TreePine className="h-2.5 w-2.5" />}
+                              {table.zone === 'inside' && <Home className="h-2.5 w-2.5" />}
+                              {table.zone === 'room' && <Building className="h-2.5 w-2.5" />}
+                              {table.zone === 'garden' && <TreePine className="h-2.5 w-2.5" />}
+                              {table.zone === 'mezz' && <Layers className="h-2.5 w-2.5" />}
                             </Badge>
                           </div>
                           {isCurrent && (

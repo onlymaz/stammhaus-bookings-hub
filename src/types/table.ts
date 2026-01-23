@@ -1,4 +1,4 @@
-export type TableZone = 'inside' | 'garden';
+export type TableZone = 'inside' | 'garden' | 'room' | 'mezz';
 export type DiningStatus = 'reserved' | 'seated' | 'completed' | 'cancelled' | 'no_show';
 
 export interface RestaurantTable {
