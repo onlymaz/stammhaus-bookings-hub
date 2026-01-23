@@ -103,20 +103,56 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
     return () => clearInterval(interval);
   }, []);
 
-  // Check if reservation time slot has started (for today only)
-  const isTimeSlotStarted = (reservation: Reservation): boolean => {
+  // Check if reservation time slot is currently active (LIVE)
+  const isTimeSlotActive = (reservation: Reservation): boolean => {
     const today = format(new Date(), "yyyy-MM-dd");
     if (reservation.reservation_date !== today) return false;
     
-    const [hours, minutes] = reservation.reservation_time.split(":").map(Number);
-    const reservationStart = new Date();
-    reservationStart.setHours(hours, minutes, 0, 0);
+    // Skip if already completed/cancelled
+    if (reservation.dining_status === "completed" ||
+        reservation.dining_status === "cancelled" ||
+        reservation.dining_status === "no_show" ||
+        reservation.status === "cancelled") {
+      return false;
+    }
     
-    return currentTime >= reservationStart && 
-           reservation.status !== "cancelled" && 
-           reservation.dining_status !== "completed" &&
-           reservation.dining_status !== "cancelled" &&
-           reservation.dining_status !== "no_show";
+    const [startHours, startMinutes] = reservation.reservation_time.split(":").map(Number);
+    const reservationStart = new Date();
+    reservationStart.setHours(startHours, startMinutes, 0, 0);
+    
+    // Calculate end time (use explicit end_time or default 90 min)
+    let reservationEnd: Date;
+    if (reservation.reservation_end_time) {
+      const [endHours, endMinutes] = reservation.reservation_end_time.split(":").map(Number);
+      reservationEnd = new Date();
+      reservationEnd.setHours(endHours, endMinutes, 0, 0);
+    } else {
+      reservationEnd = new Date(reservationStart.getTime() + 90 * 60 * 1000);
+    }
+    
+    return currentTime >= reservationStart && currentTime < reservationEnd;
+  };
+
+  // Check if reservation time slot has ended (for graying out)
+  const isTimeSlotPast = (reservation: Reservation): boolean => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    if (reservation.reservation_date !== today) return false;
+    
+    const [startHours, startMinutes] = reservation.reservation_time.split(":").map(Number);
+    const reservationStart = new Date();
+    reservationStart.setHours(startHours, startMinutes, 0, 0);
+    
+    // Calculate end time
+    let reservationEnd: Date;
+    if (reservation.reservation_end_time) {
+      const [endHours, endMinutes] = reservation.reservation_end_time.split(":").map(Number);
+      reservationEnd = new Date();
+      reservationEnd.setHours(endHours, endMinutes, 0, 0);
+    } else {
+      reservationEnd = new Date(reservationStart.getTime() + 90 * 60 * 1000);
+    }
+    
+    return currentTime >= reservationEnd;
   };
 
   const handleSaveNote = async (reservationId: string) => {
@@ -633,15 +669,18 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             ) : (
               <div className="space-y-2 sm:space-y-3">
                 {todayReservations.map((res) => {
-                  const slotStarted = isTimeSlotStarted(res);
+                  const slotActive = isTimeSlotActive(res);
+                  const slotPast = isTimeSlotPast(res);
                   return (
                   <div
                     key={res.id}
                     className={cn(
                       "p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group",
-                      slotStarted 
+                      slotActive 
                         ? "reservation-in-progress" 
-                        : "border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50"
+                        : slotPast
+                          ? "reservation-past"
+                          : "border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50"
                     )}
                   >
                     <div className="flex items-start justify-between mb-1.5 sm:mb-2">
@@ -663,7 +702,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         )}
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        {slotStarted && (
+                        {slotActive && (
                           <Badge className="badge-in-progress whitespace-nowrap">
                             LIVE
                           </Badge>
