@@ -1,15 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Check, X, Table2, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Check, X, Table2, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +41,8 @@ export const InlineTableAssignment = ({
   const [availableTables, setAvailableTables] = useState<Table[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [zoneFilter, setZoneFilter] = useState<'all' | 'inside' | 'garden'>('all');
 
   // Calculate end time if not provided (default 1.5 hours)
   const getEndTime = () => {
@@ -63,11 +60,12 @@ export const InlineTableAssignment = ({
     try {
       const endTime = getEndTime();
       
+      // Fetch all available tables (no min capacity filter to show all options)
       const { data, error } = await supabase.rpc('get_available_tables', {
         _date: reservationDate,
         _start_time: reservationTime,
         _end_time: endTime,
-        _min_capacity: guests,
+        _min_capacity: 1, // Show all tables, let user choose
       });
 
       if (error) throw error;
@@ -150,13 +148,29 @@ export const InlineTableAssignment = ({
   const handleStartEdit = () => {
     setIsEditing(true);
     setSelectedTableId(currentTableId || "");
+    setSearchQuery("");
+    setZoneFilter('all');
     fetchAvailableTables();
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setSelectedTableId(currentTableId || "");
+    setSearchQuery("");
   };
+
+  // Filter tables based on search and zone
+  const filteredTables = availableTables.filter(table => {
+    const matchesSearch = table.table_number.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesZone = zoneFilter === 'all' || table.zone === zoneFilter;
+    return matchesSearch && matchesZone;
+  });
+
+  // Group tables by zone for display
+  const insideTables = filteredTables.filter(t => t.zone === 'inside');
+  const gardenTables = filteredTables.filter(t => t.zone === 'garden');
+
+  const selectedTable = availableTables.find(t => t.id === selectedTableId);
 
   if (isEditing) {
     return (
@@ -164,9 +178,14 @@ export const InlineTableAssignment = ({
         className="mt-2 sm:mt-3 p-2 sm:p-3 rounded-lg border-2 border-primary/30 bg-primary/5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-1.5 mb-2 text-xs font-medium text-primary">
-          <Table2 className="h-3 w-3" />
-          Assign Table
+        <div className="flex items-center justify-between gap-1.5 mb-2">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+            <Table2 className="h-3 w-3" />
+            Assign Table ({guests} guests)
+          </div>
+          <div className="text-[10px] text-muted-foreground">
+            {availableTables.length} available
+          </div>
         </div>
         
         {isLoading ? (
@@ -175,39 +194,133 @@ export const InlineTableAssignment = ({
           </div>
         ) : (
           <>
-            <Select
-              value={selectedTableId}
-              onValueChange={setSelectedTableId}
-            >
-              <SelectTrigger className="h-8 text-xs bg-background">
-                <SelectValue placeholder="Select a table..." />
-              </SelectTrigger>
-              <SelectContent className="z-50 bg-background">
-                {availableTables.length === 0 ? (
-                  <div className="py-2 px-3 text-xs text-muted-foreground">
-                    No tables available for this time slot
-                  </div>
-                ) : (
-                  availableTables.map((table) => (
-                    <SelectItem key={table.id} value={table.id} className="text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">T{table.table_number}</span>
-                        <Badge variant="outline" className="text-[9px] px-1 py-0">
-                          {table.zone === 'inside' ? 'Inside' : 'Garden'}
-                        </Badge>
-                        <span className="text-muted-foreground">
-                          ({table.capacity} seats)
-                        </span>
-                        {table.id === currentTableId && (
-                          <span className="text-primary text-[9px]">(current)</span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+            {/* Search and Filter */}
+            <div className="space-y-2 mb-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  placeholder="Search table..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-7 text-xs pl-7 bg-background"
+                />
+              </div>
+              
+              {/* Zone Filter Tabs */}
+              <div className="flex gap-1">
+                <Button
+                  variant={zoneFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 px-2 text-[10px] flex-1"
+                  onClick={() => setZoneFilter('all')}
+                >
+                  All ({availableTables.length})
+                </Button>
+                <Button
+                  variant={zoneFilter === 'inside' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 px-2 text-[10px] flex-1"
+                  onClick={() => setZoneFilter('inside')}
+                >
+                  Inside ({availableTables.filter(t => t.zone === 'inside').length})
+                </Button>
+                <Button
+                  variant={zoneFilter === 'garden' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 px-2 text-[10px] flex-1"
+                  onClick={() => setZoneFilter('garden')}
+                >
+                  Garden ({availableTables.filter(t => t.zone === 'garden').length})
+                </Button>
+              </div>
+            </div>
 
+            {/* Table List */}
+            <ScrollArea className="h-[150px] rounded border bg-background">
+              {filteredTables.length === 0 ? (
+                <div className="py-4 px-3 text-xs text-muted-foreground text-center">
+                  {searchQuery ? 'No tables match your search' : 'No tables available'}
+                </div>
+              ) : (
+                <div className="p-1 space-y-0.5">
+                  {zoneFilter === 'all' && insideTables.length > 0 && (
+                    <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded">
+                      Inside ({insideTables.length})
+                    </div>
+                  )}
+                  {(zoneFilter === 'all' || zoneFilter === 'inside') && insideTables.map((table) => (
+                    <button
+                      key={table.id}
+                      onClick={() => setSelectedTableId(table.id)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
+                        selectedTableId === table.id
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted",
+                        table.capacity < guests && "opacity-50"
+                      )}
+                    >
+                      <span className="font-medium min-w-[40px]">T{table.table_number}</span>
+                      <span className={cn(
+                        "text-[10px]",
+                        selectedTableId === table.id ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {table.capacity} seats
+                      </span>
+                      {table.capacity < guests && (
+                        <span className="text-[9px] text-destructive ml-auto">small</span>
+                      )}
+                      {table.id === currentTableId && (
+                        <Check className="h-3 w-3 ml-auto" />
+                      )}
+                    </button>
+                  ))}
+                  
+                  {zoneFilter === 'all' && gardenTables.length > 0 && (
+                    <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded">
+                      Garden ({gardenTables.length})
+                    </div>
+                  )}
+                  {(zoneFilter === 'all' || zoneFilter === 'garden') && gardenTables.map((table) => (
+                    <button
+                      key={table.id}
+                      onClick={() => setSelectedTableId(table.id)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
+                        selectedTableId === table.id
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted",
+                        table.capacity < guests && "opacity-50"
+                      )}
+                    >
+                      <span className="font-medium min-w-[40px]">T{table.table_number}</span>
+                      <span className={cn(
+                        "text-[10px]",
+                        selectedTableId === table.id ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {table.capacity} seats
+                      </span>
+                      {table.capacity < guests && (
+                        <span className="text-[9px] text-destructive ml-auto">small</span>
+                      )}
+                      {table.id === currentTableId && (
+                        <Check className="h-3 w-3 ml-auto" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+
+            {/* Selected Table Display */}
+            {selectedTable && (
+              <div className="mt-2 px-2 py-1 rounded bg-primary/10 text-xs">
+                Selected: <span className="font-medium">Table {selectedTable.table_number}</span>
+                <span className="text-muted-foreground ml-1">({selectedTable.capacity} seats, {selectedTable.zone})</span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
             <div className="flex items-center gap-1.5 mt-2 justify-end">
               {currentTableId && (
                 <Button
