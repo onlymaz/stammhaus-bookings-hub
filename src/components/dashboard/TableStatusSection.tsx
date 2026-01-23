@@ -2,22 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Table2, CheckCircle, Clock } from "lucide-react";
+import { Table2, CheckCircle, Clock, Home, Building, TreePine, Layers } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { TableZone } from "@/types/table";
 
 interface TableWithZone {
   id: string;
   table_number: string;
-  zone: 'inside' | 'garden';
+  zone: TableZone;
   capacity: number;
 }
 
 interface ReservedTableInfo {
   tableId: string;
   tableNumber: string;
-  zone: 'inside' | 'garden';
+  zone: TableZone;
   reservationTime: string;
   reservationEndTime: string; // always computed (fallback to start + 90min)
   customerName: string;
@@ -28,6 +28,17 @@ interface TableStatusSectionProps {
   refreshTrigger?: number;
 }
 
+// Zone order for sorting: T, R, G, M
+const zoneOrder: Record<string, number> = { inside: 0, room: 1, garden: 2, mezz: 3 };
+
+// Zone labels
+const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> = {
+  inside: { label: 'Inside (T)', icon: Home },
+  room: { label: 'Room (R)', icon: Building },
+  garden: { label: 'Garden (G)', icon: TreePine },
+  mezz: { label: 'Mezz (M)', icon: Layers },
+};
+
 export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatusSectionProps) => {
   const [allTables, setAllTables] = useState<TableWithZone[]>([]);
   const [reservedTables, setReservedTables] = useState<ReservedTableInfo[]>([]);
@@ -35,19 +46,13 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   const [activeTab, setActiveTab] = useState<'free' | 'reserved'>('free');
   const [nowTick, setNowTick] = useState(0);
 
-  // Helper to get display name: T1-T46 for inside, TG47-TG84 for garden
-  const getTableDisplayName = (table: { table_number: string; zone: 'inside' | 'garden' }) => {
-    if (table.zone === 'inside') {
-      return `T${table.table_number}`;
-    } else {
-      return `TG${table.table_number}`;
-    }
-  };
+  // Table names now include prefix (T01, R37, G47, M01) - use directly
+  const getTableDisplayName = (table: { table_number: string }) => table.table_number;
 
   // Helper for numeric sorting
   const getTableNumeric = (tableNumber: string) => {
-    const num = parseInt(tableNumber, 10);
-    return isNaN(num) ? 0 : num;
+    const match = tableNumber.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   };
 
   const timeStrToMinutes = (timeStr: string) => {
@@ -100,9 +105,11 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
       if (resError) throw resError;
 
-      // Sort tables: inside first, then garden, each numerically
+      // Sort tables by zone order, then numerically
       const sortedTables = (tables || []).sort((a, b) => {
-        if (a.zone !== b.zone) return a.zone === 'inside' ? -1 : 1;
+        const zoneA = zoneOrder[a.zone] ?? 99;
+        const zoneB = zoneOrder[b.zone] ?? 99;
+        if (zoneA !== zoneB) return zoneA - zoneB;
         return getTableNumeric(a.table_number) - getTableNumeric(b.table_number);
       }) as TableWithZone[];
 
@@ -124,9 +131,11 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
         })
         .filter(Boolean) as ReservedTableInfo[];
 
-      // Sort reserved tables
+      // Sort reserved tables by zone order, then numerically
       reserved.sort((a, b) => {
-        if (a.zone !== b.zone) return a.zone === 'inside' ? -1 : 1;
+        const zoneA = zoneOrder[a.zone] ?? 99;
+        const zoneB = zoneOrder[b.zone] ?? 99;
+        if (zoneA !== zoneB) return zoneA - zoneB;
         return getTableNumeric(a.tableNumber) - getTableNumeric(b.tableNumber);
       });
 
@@ -175,10 +184,19 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   const freeTables = allTables.filter(t => !reservedTableIds.has(t.id));
 
   // Group by zone for display
-  const freeInside = freeTables.filter(t => t.zone === 'inside');
-  const freeGarden = freeTables.filter(t => t.zone === 'garden');
-  const reservedInside = effectiveReservedTables.filter(t => t.zone === 'inside');
-  const reservedGarden = effectiveReservedTables.filter(t => t.zone === 'garden');
+  const freeByZone = {
+    inside: freeTables.filter(t => t.zone === 'inside'),
+    room: freeTables.filter(t => t.zone === 'room'),
+    garden: freeTables.filter(t => t.zone === 'garden'),
+    mezz: freeTables.filter(t => t.zone === 'mezz'),
+  };
+  const reservedByZone = {
+    inside: effectiveReservedTables.filter(t => t.zone === 'inside'),
+    room: effectiveReservedTables.filter(t => t.zone === 'room'),
+    garden: effectiveReservedTables.filter(t => t.zone === 'garden'),
+    mezz: effectiveReservedTables.filter(t => t.zone === 'mezz'),
+  };
+  const allZones: TableZone[] = ['inside', 'room', 'garden', 'mezz'];
 
   if (loading) {
     return (
@@ -219,38 +237,29 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
               </div>
             ) : (
               <div className="space-y-2">
-                {freeInside.length > 0 && (
-                  <div>
-                    <div className="text-[9px] font-medium text-muted-foreground mb-1">Inside ({freeInside.length})</div>
-                    <div className="flex flex-wrap gap-1">
-                      {freeInside.map(table => (
-                        <Badge
-                          key={table.id}
-                          variant="outline"
-                          className="text-[10px] bg-success/10 text-success border-success/30 px-1.5 py-0"
-                        >
-                          {getTableDisplayName(table)}
-                        </Badge>
-                      ))}
+                {allZones.map(zone => {
+                  const zoneTables = freeByZone[zone];
+                  if (zoneTables.length === 0) return null;
+                  const ZoneIcon = zoneLabels[zone].icon;
+                  return (
+                    <div key={zone}>
+                      <div className="text-[9px] font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                        <ZoneIcon className="h-2.5 w-2.5" /> {zoneLabels[zone].label} ({zoneTables.length})
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {zoneTables.map(table => (
+                          <Badge
+                            key={table.id}
+                            variant="outline"
+                            className="text-[10px] bg-success/10 text-success border-success/30 px-1.5 py-0"
+                          >
+                            {getTableDisplayName(table)}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {freeGarden.length > 0 && (
-                  <div>
-                    <div className="text-[9px] font-medium text-muted-foreground mb-1">Garden ({freeGarden.length})</div>
-                    <div className="flex flex-wrap gap-1">
-                      {freeGarden.map(table => (
-                        <Badge
-                          key={table.id}
-                          variant="outline"
-                          className="text-[10px] bg-success/10 text-success border-success/30 px-1.5 py-0"
-                        >
-                          {getTableDisplayName(table)}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             )}
           </ScrollArea>
@@ -264,42 +273,32 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
               </div>
             ) : (
               <div className="space-y-1">
-                {reservedInside.length > 0 && (
-                  <div className="text-[9px] font-medium text-muted-foreground mb-1">Inside ({reservedInside.length})</div>
-                )}
-                {reservedInside.map((rt, idx) => (
-                  <div
-                    key={`${rt.tableId}-${idx}`}
-                    className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-muted/50 text-[10px]"
-                  >
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-1.5 py-0">
-                      {getTableDisplayName({ table_number: rt.tableNumber, zone: rt.zone })}
-                    </Badge>
-                    <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      {rt.reservationTime.slice(0, 5)}
-                      {` - ${rt.reservationEndTime.slice(0, 5)}`}
-                    </span>
-                  </div>
-                ))}
-                {reservedGarden.length > 0 && (
-                  <div className="text-[9px] font-medium text-muted-foreground mb-1 mt-2">Garden ({reservedGarden.length})</div>
-                )}
-                {reservedGarden.map((rt, idx) => (
-                  <div
-                    key={`${rt.tableId}-${idx}`}
-                    className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-muted/50 text-[10px]"
-                  >
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-1.5 py-0">
-                      {getTableDisplayName({ table_number: rt.tableNumber, zone: rt.zone })}
-                    </Badge>
-                    <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      {rt.reservationTime.slice(0, 5)}
-                      {` - ${rt.reservationEndTime.slice(0, 5)}`}
-                    </span>
-                  </div>
-                ))}
+                {allZones.map(zone => {
+                  const zoneTables = reservedByZone[zone];
+                  if (zoneTables.length === 0) return null;
+                  const ZoneIcon = zoneLabels[zone].icon;
+                  return (
+                    <div key={zone}>
+                      <div className="text-[9px] font-medium text-muted-foreground mb-1 flex items-center gap-1 mt-2 first:mt-0">
+                        <ZoneIcon className="h-2.5 w-2.5" /> {zoneLabels[zone].label} ({zoneTables.length})
+                      </div>
+                      {zoneTables.map((rt, idx) => (
+                        <div
+                          key={`${rt.tableId}-${idx}`}
+                          className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-muted/50 text-[10px]"
+                        >
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-1.5 py-0">
+                            {getTableDisplayName({ table_number: rt.tableNumber })}
+                          </Badge>
+                          <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
+                          <span className="text-muted-foreground whitespace-nowrap">
+                            {rt.reservationTime.slice(0, 5)} - {rt.reservationEndTime.slice(0, 5)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </ScrollArea>

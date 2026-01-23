@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Table2, Loader2, Search } from "lucide-react";
+import { Check, X, Table2, Loader2, Search, Home, TreePine, Building, Layers } from "lucide-react";
+import { TableZone } from "@/types/table";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ interface Table {
   id: string;
   table_number: string;
   capacity: number;
-  zone: 'inside' | 'garden';
+  zone: TableZone;
 }
 
 interface InlineTableAssignmentProps {
@@ -42,7 +43,7 @@ export const InlineTableAssignment = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [zoneFilter, setZoneFilter] = useState<'all' | 'inside' | 'garden'>('all');
+  const [zoneFilter, setZoneFilter] = useState<'all' | TableZone>('all');
 
   // Calculate end time if not provided (default 1.5 hours)
   const getEndTime = () => {
@@ -159,20 +160,17 @@ export const InlineTableAssignment = ({
     setSearchQuery("");
   };
 
-  // Helper to get display name: T1-T46 for inside, TG47-TG84 for garden
-  const getTableDisplayName = (table: Table) => {
-    if (table.zone === 'inside') {
-      return `T${table.table_number}`;
-    } else {
-      return `TG${table.table_number}`;
-    }
-  };
+  // Table names now include prefix (T01, R37, G47, M01) - use directly
+  const getTableDisplayName = (table: Table) => table.table_number;
 
   // Helper for numeric sorting
   const getTableNumeric = (tableNumber: string) => {
-    const num = parseInt(tableNumber, 10);
-    return isNaN(num) ? 0 : num;
+    const match = tableNumber.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   };
+
+  // Zone order for sorting
+  const zoneOrder: Record<string, number> = { inside: 0, room: 1, garden: 2, mezz: 3 };
 
   // Filter and sort tables based on search and zone
   const filteredTables = availableTables
@@ -183,14 +181,17 @@ export const InlineTableAssignment = ({
       return matchesSearch && matchesZone;
     })
     .sort((a, b) => {
-      // Inside first, then garden
-      if (a.zone !== b.zone) return a.zone === 'inside' ? -1 : 1;
+      const zoneA = zoneOrder[a.zone] ?? 99;
+      const zoneB = zoneOrder[b.zone] ?? 99;
+      if (zoneA !== zoneB) return zoneA - zoneB;
       return getTableNumeric(a.table_number) - getTableNumeric(b.table_number);
     });
 
   // Group tables by zone for display
   const insideTables = filteredTables.filter(t => t.zone === 'inside');
+  const roomTables = filteredTables.filter(t => t.zone === 'room');
   const gardenTables = filteredTables.filter(t => t.zone === 'garden');
+  const mezzTables = filteredTables.filter(t => t.zone === 'mezz');
 
   const selectedTable = availableTables.find(t => t.id === selectedTableId);
 
@@ -236,23 +237,39 @@ export const InlineTableAssignment = ({
                   className="h-6 px-2 text-[10px] flex-1"
                   onClick={() => setZoneFilter('all')}
                 >
-                  All ({availableTables.length})
+                  All
                 </Button>
                 <Button
                   variant={zoneFilter === 'inside' ? 'default' : 'outline'}
                   size="sm"
-                  className="h-6 px-2 text-[10px] flex-1"
+                  className="h-6 px-1.5 text-[10px] flex-1"
                   onClick={() => setZoneFilter('inside')}
                 >
-                  Inside ({availableTables.filter(t => t.zone === 'inside').length})
+                  <Home className="h-2.5 w-2.5" />
+                </Button>
+                <Button
+                  variant={zoneFilter === 'room' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 px-1.5 text-[10px] flex-1"
+                  onClick={() => setZoneFilter('room')}
+                >
+                  <Building className="h-2.5 w-2.5" />
                 </Button>
                 <Button
                   variant={zoneFilter === 'garden' ? 'default' : 'outline'}
                   size="sm"
-                  className="h-6 px-2 text-[10px] flex-1"
+                  className="h-6 px-1.5 text-[10px] flex-1"
                   onClick={() => setZoneFilter('garden')}
                 >
-                  Garden ({availableTables.filter(t => t.zone === 'garden').length})
+                  <TreePine className="h-2.5 w-2.5" />
+                </Button>
+                <Button
+                  variant={zoneFilter === 'mezz' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 px-1.5 text-[10px] flex-1"
+                  onClick={() => setZoneFilter('mezz')}
+                >
+                  <Layers className="h-2.5 w-2.5" />
                 </Button>
               </div>
             </div>
@@ -265,51 +282,101 @@ export const InlineTableAssignment = ({
                 </div>
               ) : (
                 <div className="p-1 space-y-0.5">
-                  {zoneFilter === 'all' && insideTables.length > 0 && (
-                    <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded">
-                      Inside ({insideTables.length})
-                    </div>
+                  {/* Inside Tables */}
+                  {(zoneFilter === 'all' || zoneFilter === 'inside') && insideTables.length > 0 && (
+                    <>
+                      {zoneFilter === 'all' && (
+                        <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
+                          <Home className="h-2.5 w-2.5" /> Inside ({insideTables.length})
+                        </div>
+                      )}
+                      {insideTables.map((table) => (
+                        <button
+                          key={table.id}
+                          onClick={() => setSelectedTableId(table.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
+                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                          )}
+                        >
+                          <span className="font-medium">{getTableDisplayName(table)}</span>
+                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                        </button>
+                      ))}
+                    </>
                   )}
-                  {(zoneFilter === 'all' || zoneFilter === 'inside') && insideTables.map((table) => (
-                    <button
-                      key={table.id}
-                      onClick={() => setSelectedTableId(table.id)}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
-                        selectedTableId === table.id
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted"
-                      )}
-                    >
-                      <span className="font-medium">{getTableDisplayName(table)}</span>
-                      {table.id === currentTableId && (
-                        <Check className="h-3 w-3 ml-auto" />
-                      )}
-                    </button>
-                  ))}
                   
-                  {zoneFilter === 'all' && gardenTables.length > 0 && (
-                    <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded">
-                      Garden ({gardenTables.length})
-                    </div>
+                  {/* Room Tables */}
+                  {(zoneFilter === 'all' || zoneFilter === 'room') && roomTables.length > 0 && (
+                    <>
+                      {zoneFilter === 'all' && (
+                        <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
+                          <Building className="h-2.5 w-2.5" /> Room ({roomTables.length})
+                        </div>
+                      )}
+                      {roomTables.map((table) => (
+                        <button
+                          key={table.id}
+                          onClick={() => setSelectedTableId(table.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
+                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                          )}
+                        >
+                          <span className="font-medium">{getTableDisplayName(table)}</span>
+                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                        </button>
+                      ))}
+                    </>
                   )}
-                  {(zoneFilter === 'all' || zoneFilter === 'garden') && gardenTables.map((table) => (
-                    <button
-                      key={table.id}
-                      onClick={() => setSelectedTableId(table.id)}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
-                        selectedTableId === table.id
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted"
+                  
+                  {/* Garden Tables */}
+                  {(zoneFilter === 'all' || zoneFilter === 'garden') && gardenTables.length > 0 && (
+                    <>
+                      {zoneFilter === 'all' && (
+                        <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
+                          <TreePine className="h-2.5 w-2.5" /> Garden ({gardenTables.length})
+                        </div>
                       )}
-                    >
-                      <span className="font-medium">{getTableDisplayName(table)}</span>
-                      {table.id === currentTableId && (
-                        <Check className="h-3 w-3 ml-auto" />
+                      {gardenTables.map((table) => (
+                        <button
+                          key={table.id}
+                          onClick={() => setSelectedTableId(table.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
+                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                          )}
+                        >
+                          <span className="font-medium">{getTableDisplayName(table)}</span>
+                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  
+                  {/* Mezz Tables */}
+                  {(zoneFilter === 'all' || zoneFilter === 'mezz') && mezzTables.length > 0 && (
+                    <>
+                      {zoneFilter === 'all' && (
+                        <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
+                          <Layers className="h-2.5 w-2.5" /> Mezz ({mezzTables.length})
+                        </div>
                       )}
-                    </button>
-                  ))}
+                      {mezzTables.map((table) => (
+                        <button
+                          key={table.id}
+                          onClick={() => setSelectedTableId(table.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
+                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                          )}
+                        >
+                          <span className="font-medium">{getTableDisplayName(table)}</span>
+                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                        </button>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </ScrollArea>
