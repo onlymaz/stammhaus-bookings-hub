@@ -92,6 +92,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_free_tables: {
+        Row: {
+          created_at: string
+          date: string
+          dinner_free_tables: number
+          id: string
+          lunch_free_tables: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          dinner_free_tables?: number
+          id?: string
+          lunch_free_tables?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          dinner_free_tables?: number
+          id?: string
+          lunch_free_tables?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
