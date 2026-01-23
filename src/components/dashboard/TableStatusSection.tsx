@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
+import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Table2, CheckCircle, Clock } from "lucide-react";
@@ -19,7 +19,7 @@ interface ReservedTableInfo {
   tableNumber: string;
   zone: 'inside' | 'garden';
   reservationTime: string;
-  reservationEndTime: string | null;
+  reservationEndTime: string; // always computed (fallback to start + 90min)
   customerName: string;
 }
 
@@ -33,6 +33,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   const [reservedTables, setReservedTables] = useState<ReservedTableInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'free' | 'reserved'>('free');
+  const [nowTick, setNowTick] = useState(0);
 
   // Helper to get display name: T1-T46 for inside, TG47-TG84 for garden
   const getTableDisplayName = (table: { table_number: string; zone: 'inside' | 'garden' }) => {
@@ -47,6 +48,25 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   const getTableNumeric = (tableNumber: string) => {
     const num = parseInt(tableNumber, 10);
     return isNaN(num) ? 0 : num;
+  };
+
+  const timeStrToMinutes = (timeStr: string) => {
+    const [hh, mm] = timeStr.split(":");
+    const h = parseInt(hh || "0", 10);
+    const m = parseInt(mm || "0", 10);
+    return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+  };
+
+  const minutesToTimeStr = (minutes: number) => {
+    const mins = ((minutes % 1440) + 1440) % 1440;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
+  };
+
+  const computeEndTime = (startTime: string, endTime: string | null) => {
+    if (endTime) return endTime;
+    return minutesToTimeStr(timeStrToMinutes(startTime) + 90);
   };
 
   const fetchTableStatus = async () => {
@@ -98,7 +118,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
             tableNumber: table.table_number,
             zone: table.zone,
             reservationTime: res.reservation_time,
-            reservationEndTime: res.reservation_end_time,
+            reservationEndTime: computeEndTime(res.reservation_time, res.reservation_end_time),
             customerName: res.customer?.name || 'Unknown'
           };
         })
@@ -122,8 +142,34 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
     fetchTableStatus();
   }, [selectedDate, refreshTrigger]);
 
+  // Auto-refresh the derived Free/Reserved state while viewing "today"
+  useEffect(() => {
+    if (!isSameDay(selectedDate, new Date())) return;
+    const id = window.setInterval(() => setNowTick((t) => t + 1), 60_000);
+    return () => window.clearInterval(id);
+  }, [selectedDate]);
+
+  const effectiveReservedTables = useMemo(() => {
+    // keep hook dependency explicit
+    void nowTick;
+
+    const today = new Date();
+    const selectedDay = startOfDay(selectedDate);
+    const todayDay = startOfDay(today);
+
+    // past day => everything ended => all tables free
+    if (isBefore(selectedDay, todayDay)) return [];
+
+    // future day => keep "whole day" behavior (show upcoming reservations)
+    if (!isSameDay(selectedDate, today)) return reservedTables;
+
+    // today => table is reserved only if reservation has not ended yet
+    const nowMinutes = today.getHours() * 60 + today.getMinutes();
+    return reservedTables.filter((rt) => timeStrToMinutes(rt.reservationEndTime) > nowMinutes);
+  }, [reservedTables, selectedDate, nowTick]);
+
   // Get unique reserved table IDs
-  const reservedTableIds = new Set(reservedTables.map(rt => rt.tableId));
+  const reservedTableIds = new Set(effectiveReservedTables.map(rt => rt.tableId));
 
   // Free tables = all tables - reserved
   const freeTables = allTables.filter(t => !reservedTableIds.has(t.id));
@@ -131,8 +177,8 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   // Group by zone for display
   const freeInside = freeTables.filter(t => t.zone === 'inside');
   const freeGarden = freeTables.filter(t => t.zone === 'garden');
-  const reservedInside = reservedTables.filter(t => t.zone === 'inside');
-  const reservedGarden = reservedTables.filter(t => t.zone === 'garden');
+  const reservedInside = effectiveReservedTables.filter(t => t.zone === 'inside');
+  const reservedGarden = effectiveReservedTables.filter(t => t.zone === 'garden');
 
   if (loading) {
     return (
@@ -161,7 +207,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           </TabsTrigger>
           <TabsTrigger value="reserved" className="flex-1 h-6 text-[10px] gap-1">
             <Clock className="h-3 w-3" />
-            Reserved ({reservedTables.length})
+            Reserved ({effectiveReservedTables.length})
           </TabsTrigger>
         </TabsList>
 
@@ -212,7 +258,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
         <TabsContent value="reserved" className="mt-2">
           <ScrollArea className="h-[120px] rounded border bg-card p-2">
-            {reservedTables.length === 0 ? (
+            {effectiveReservedTables.length === 0 ? (
               <div className="text-[10px] text-muted-foreground text-center py-4">
                 No reserved tables for this day
               </div>
@@ -232,7 +278,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
                     <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
                     <span className="text-muted-foreground whitespace-nowrap">
                       {rt.reservationTime.slice(0, 5)}
-                      {rt.reservationEndTime && ` - ${rt.reservationEndTime.slice(0, 5)}`}
+                      {` - ${rt.reservationEndTime.slice(0, 5)}`}
                     </span>
                   </div>
                 ))}
@@ -250,7 +296,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
                     <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
                     <span className="text-muted-foreground whitespace-nowrap">
                       {rt.reservationTime.slice(0, 5)}
-                      {rt.reservationEndTime && ` - ${rt.reservationEndTime.slice(0, 5)}`}
+                      {` - ${rt.reservationEndTime.slice(0, 5)}`}
                     </span>
                   </div>
                 ))}
