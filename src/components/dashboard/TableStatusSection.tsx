@@ -46,8 +46,15 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   const [activeTab, setActiveTab] = useState<'free' | 'reserved'>('free');
   const [nowTick, setNowTick] = useState(0);
 
-  // Table names now include prefix (T01, R37, G47, M01) - use directly
-  const getTableDisplayName = (table: { table_number: string }) => table.table_number;
+  // Display without leading zeros: T01 -> T1, M01 -> M1 (keeps R37/G47 as-is)
+  const getTableDisplayName = (table: { table_number: string }) => {
+    const raw = table.table_number;
+    const m = raw.match(/^([A-Za-z]+)0*(\d+)$/);
+    if (!m) return raw;
+    const prefix = m[1];
+    const n = parseInt(m[2], 10);
+    return `${prefix}${Number.isFinite(n) ? n : m[2]}`;
+  };
 
   // Helper for numeric sorting
   const getTableNumeric = (tableNumber: string) => {
