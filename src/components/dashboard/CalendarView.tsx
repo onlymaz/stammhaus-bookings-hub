@@ -662,13 +662,13 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         {slotStarted && (
-                          <Badge className="badge-in-progress">
-                            IN PROGRESS
+                          <Badge className="badge-in-progress whitespace-nowrap">
+                            LIVE
                           </Badge>
                         )}
-                        <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2")}>
+                        <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 whitespace-nowrap")}>
                           {res.status}
                         </Badge>
                         <Button
