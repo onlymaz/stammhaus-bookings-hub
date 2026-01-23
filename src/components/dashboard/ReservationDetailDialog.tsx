@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,10 +14,10 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditReservationDialog } from "./EditReservationDialog";
-import { TableAssignmentDialog } from "./TableAssignmentDialog";
+import { MultiTableAssignmentDialog } from "./MultiTableAssignmentDialog";
 import { ExtendReservationDialog } from "./ExtendReservationDialog";
 import { DiningStatusBadge } from "./DiningStatusBadge";
-import { DiningStatus } from "@/types/table";
+import { DiningStatus, RestaurantTable } from "@/types/table";
 import { useTableManagement } from "@/hooks/useTableManagement";
 
 interface ReservationDetail {
@@ -71,8 +71,29 @@ export const ReservationDetailDialog = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [tableDialogOpen, setTableDialogOpen] = useState(false);
   const [extendDialogOpen, setExtendDialogOpen] = useState(false);
+  const [assignedTables, setAssignedTables] = useState<RestaurantTable[]>([]);
   const { toast } = useToast();
   const { tables, updateDiningStatus, calculateEndTime } = useTableManagement();
+
+  // Fetch all assigned tables from junction table
+  const fetchAssignedTables = useCallback(async () => {
+    if (!reservation?.id) return;
+    
+    const { data } = await supabase
+      .from("reservation_tables")
+      .select(`table:tables(*)`)
+      .eq("reservation_id", reservation.id);
+    
+    if (data) {
+      setAssignedTables(data.map(d => d.table as unknown as RestaurantTable).filter(Boolean));
+    }
+  }, [reservation?.id]);
+
+  useEffect(() => {
+    if (reservation?.id) {
+      fetchAssignedTables();
+    }
+  }, [reservation?.id, fetchAssignedTables]);
 
   // Update local state when reservation changes
   useEffect(() => {
@@ -231,15 +252,23 @@ export const ReservationDetailDialog = ({
 
           {/* Table Assignment & Dining Status */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50 space-y-4">
-            {/* Assigned Table */}
+            {/* Assigned Tables */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Table2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Assigned Table</p>
-                  {reservation.assigned_table_id ? (
+                  <p className="text-xs text-muted-foreground">Assigned Tables</p>
+                  {assignedTables.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {assignedTables.map(t => (
+                        <Badge key={t.id} variant="secondary" className="text-xs">
+                          {t.table_number}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : reservation.assigned_table_id ? (
                     <p className="font-semibold text-sm">
                       {tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unknown"}
                     </p>
@@ -255,12 +284,12 @@ export const ReservationDetailDialog = ({
                 className="gap-1.5"
               >
                 <Table2 className="h-3.5 w-3.5" />
-                {reservation.assigned_table_id ? "Change" : "Assign"}
+                {(assignedTables.length > 0 || reservation.assigned_table_id) ? "Change" : "Assign"}
               </Button>
             </div>
 
             {/* Time Range */}
-            {reservation.assigned_table_id && (
+            {(assignedTables.length > 0 || reservation.assigned_table_id) && (
               <div className="flex items-center justify-between pt-3 border-t border-border/40">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -483,8 +512,8 @@ export const ReservationDetailDialog = ({
           }}
         />
 
-        {/* Table Assignment Dialog */}
-        <TableAssignmentDialog
+        {/* Multi-Table Assignment Dialog */}
+        <MultiTableAssignmentDialog
           open={tableDialogOpen}
           onOpenChange={setTableDialogOpen}
           reservationId={reservation.id}
@@ -492,8 +521,10 @@ export const ReservationDetailDialog = ({
           startTime={reservation.reservation_time}
           endTime={reservation.reservation_end_time}
           guests={reservation.guests}
-          currentTableId={reservation.assigned_table_id}
-          onAssigned={onStatusChange}
+          onAssigned={() => {
+            fetchAssignedTables();
+            onStatusChange?.();
+          }}
         />
 
         {/* Extend Reservation Dialog */}

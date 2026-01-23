@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Check, X, Table2, Loader2, Search, Home, TreePine, Building, Layers } from "lucide-react";
-import { TableZone } from "@/types/table";
+import { TableZone, RestaurantTable } from "@/types/table";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useMultiTableAssignment } from "@/hooks/useMultiTableAssignment";
 
 interface Table {
   id: string;
@@ -38,22 +39,30 @@ export const InlineTableAssignment = ({
   onTableAssigned,
 }: InlineTableAssignmentProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedTableId, setSelectedTableId] = useState<string>(currentTableId || "");
+  const [selectedTableIds, setSelectedTableIds] = useState<Set<string>>(new Set());
   const [availableTables, setAvailableTables] = useState<Table[]>([]);
+  const [assignedTables, setAssignedTables] = useState<RestaurantTable[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<'all' | TableZone>('all');
+  
+  const { assignTables, getAssignedTables, releaseAllTables, calculateEndTime } = useMultiTableAssignment();
+
+  // Fetch assigned tables on mount
+  const fetchAssignedTablesData = useCallback(async () => {
+    const assigned = await getAssignedTables(reservationId);
+    setAssignedTables(assigned.map(a => a.table));
+  }, [reservationId, getAssignedTables]);
+
+  useEffect(() => {
+    fetchAssignedTablesData();
+  }, [fetchAssignedTablesData]);
 
   // Calculate end time if not provided (default 1.5 hours)
   const getEndTime = () => {
     if (reservationEndTime) return reservationEndTime;
-    const [hours, minutes] = reservationTime.split(':').map(Number);
-    const endHours = hours + 1;
-    const endMinutes = minutes + 30;
-    const adjustedHours = endMinutes >= 60 ? endHours + 1 : endHours;
-    const adjustedMinutes = endMinutes >= 60 ? endMinutes - 60 : endMinutes;
-    return `${String(adjustedHours).padStart(2, '0')}:${String(adjustedMinutes).padStart(2, '0')}:00`;
+    return calculateEndTime(reservationTime);
   };
 
   const fetchAvailableTables = async () => {
@@ -61,33 +70,28 @@ export const InlineTableAssignment = ({
     try {
       const endTime = getEndTime();
       
-      // Fetch all available tables (no min capacity filter to show all options)
+      // Fetch all available tables
       const { data, error } = await supabase.rpc('get_available_tables', {
         _date: reservationDate,
         _start_time: reservationTime,
         _end_time: endTime,
-        _min_capacity: 1, // Show all tables, let user choose
+        _min_capacity: 1,
       });
 
       if (error) throw error;
 
-      // Also fetch the currently assigned table if it exists (so it appears in the list)
       let tables = data || [];
       
-      if (currentTableId) {
-        const currentInList = tables.find((t: Table) => t.id === currentTableId);
-        if (!currentInList) {
-          const { data: currentTable } = await supabase
-            .from('tables')
-            .select('*')
-            .eq('id', currentTableId)
-            .single();
-          
-          if (currentTable) {
-            tables = [currentTable, ...tables];
-          }
+      // Include currently assigned tables
+      const assigned = await getAssignedTables(reservationId);
+      for (const a of assigned) {
+        if (!tables.find((t: Table) => t.id === a.table_id)) {
+          tables = [a.table, ...tables];
         }
       }
+      
+      // Pre-select assigned tables
+      setSelectedTableIds(new Set(assigned.map(a => a.table_id)));
 
       setAvailableTables(tables);
     } catch (error) {
@@ -98,27 +102,44 @@ export const InlineTableAssignment = ({
     }
   };
 
-  const handleSave = async () => {
-    if (!selectedTableId) {
-      toast.error('Please select a table');
-      return;
-    }
+  const toggleTable = (tableId: string) => {
+    setSelectedTableIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tableId)) {
+        next.delete(tableId);
+      } else {
+        next.add(tableId);
+      }
+      return next;
+    });
+  };
 
+  const handleSave = async () => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('reservations')
-        .update({ assigned_table_id: selectedTableId })
-        .eq('id', reservationId);
+      const tableIds = Array.from(selectedTableIds);
+      const endTime = getEndTime();
+      
+      const result = await assignTables(
+        reservationId,
+        tableIds,
+        reservationDate,
+        reservationTime,
+        endTime
+      );
 
-      if (error) throw error;
+      if (!result.success) throw new Error(result.error);
 
-      toast.success('Table assigned successfully');
+      toast.success(tableIds.length > 0 
+        ? `${tableIds.length} table${tableIds.length > 1 ? 's' : ''} assigned` 
+        : 'Tables cleared'
+      );
       setIsEditing(false);
+      fetchAssignedTablesData();
       onTableAssigned();
     } catch (error: any) {
-      console.error('Error assigning table:', error);
-      toast.error(error.message || 'Failed to assign table');
+      console.error('Error assigning tables:', error);
+      toast.error(error.message || 'Failed to assign tables');
     } finally {
       setIsSaving(false);
     }
@@ -127,20 +148,13 @@ export const InlineTableAssignment = ({
   const handleClear = async () => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('reservations')
-        .update({ assigned_table_id: null })
-        .eq('id', reservationId);
-
-      if (error) throw error;
-
-      toast.success('Table assignment removed');
-      setSelectedTableId("");
-      setIsEditing(false);
-      onTableAssigned();
-    } catch (error: any) {
-      console.error('Error removing table:', error);
-      toast.error(error.message || 'Failed to remove table');
+      const success = await releaseAllTables(reservationId);
+      if (success) {
+        setSelectedTableIds(new Set());
+        setIsEditing(false);
+        fetchAssignedTablesData();
+        onTableAssigned();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -148,7 +162,6 @@ export const InlineTableAssignment = ({
 
   const handleStartEdit = () => {
     setIsEditing(true);
-    setSelectedTableId(currentTableId || "");
     setSearchQuery("");
     setZoneFilter('all');
     fetchAvailableTables();
@@ -156,7 +169,6 @@ export const InlineTableAssignment = ({
 
   const handleCancel = () => {
     setIsEditing(false);
-    setSelectedTableId(currentTableId || "");
     setSearchQuery("");
   };
 
@@ -193,7 +205,8 @@ export const InlineTableAssignment = ({
   const gardenTables = filteredTables.filter(t => t.zone === 'garden');
   const mezzTables = filteredTables.filter(t => t.zone === 'mezz');
 
-  const selectedTable = availableTables.find(t => t.id === selectedTableId);
+  const selectedTablesData = availableTables.filter(t => selectedTableIds.has(t.id));
+  const totalSelectedCapacity = selectedTablesData.reduce((sum, t) => sum + t.capacity, 0);
 
   if (isEditing) {
     return (
@@ -293,14 +306,14 @@ export const InlineTableAssignment = ({
                       {insideTables.map((table) => (
                         <button
                           key={table.id}
-                          onClick={() => setSelectedTableId(table.id)}
+                          onClick={() => toggleTable(table.id)}
                           className={cn(
                             "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
-                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                            selectedTableIds.has(table.id) ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                           )}
                         >
                           <span className="font-medium">{getTableDisplayName(table)}</span>
-                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                          {selectedTableIds.has(table.id) && <Check className="h-3 w-3 ml-auto" />}
                         </button>
                       ))}
                     </>
@@ -317,14 +330,14 @@ export const InlineTableAssignment = ({
                       {roomTables.map((table) => (
                         <button
                           key={table.id}
-                          onClick={() => setSelectedTableId(table.id)}
+                          onClick={() => toggleTable(table.id)}
                           className={cn(
                             "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
-                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                            selectedTableIds.has(table.id) ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                           )}
                         >
                           <span className="font-medium">{getTableDisplayName(table)}</span>
-                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                          {selectedTableIds.has(table.id) && <Check className="h-3 w-3 ml-auto" />}
                         </button>
                       ))}
                     </>
@@ -341,14 +354,14 @@ export const InlineTableAssignment = ({
                       {gardenTables.map((table) => (
                         <button
                           key={table.id}
-                          onClick={() => setSelectedTableId(table.id)}
+                          onClick={() => toggleTable(table.id)}
                           className={cn(
                             "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
-                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                            selectedTableIds.has(table.id) ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                           )}
                         >
                           <span className="font-medium">{getTableDisplayName(table)}</span>
-                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                          {selectedTableIds.has(table.id) && <Check className="h-3 w-3 ml-auto" />}
                         </button>
                       ))}
                     </>
@@ -365,14 +378,14 @@ export const InlineTableAssignment = ({
                       {mezzTables.map((table) => (
                         <button
                           key={table.id}
-                          onClick={() => setSelectedTableId(table.id)}
+                          onClick={() => toggleTable(table.id)}
                           className={cn(
                             "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left transition-colors",
-                            selectedTableId === table.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                            selectedTableIds.has(table.id) ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                           )}
                         >
                           <span className="font-medium">{getTableDisplayName(table)}</span>
-                          {table.id === currentTableId && <Check className="h-3 w-3 ml-auto" />}
+                          {selectedTableIds.has(table.id) && <Check className="h-3 w-3 ml-auto" />}
                         </button>
                       ))}
                     </>
@@ -381,16 +394,30 @@ export const InlineTableAssignment = ({
               )}
             </ScrollArea>
 
-            {/* Selected Table Display */}
-            {selectedTable && (
-              <div className="mt-2 px-2 py-1 rounded bg-primary/10 text-xs">
-                Selected: <span className="font-medium">{getTableDisplayName(selectedTable)}</span>
+            {/* Selected Tables Display */}
+            {selectedTablesData.length > 0 && (
+              <div className="mt-2 px-2 py-1.5 rounded bg-primary/10 text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">
+                    {selectedTablesData.length} table{selectedTablesData.length > 1 ? 's' : ''} selected
+                  </span>
+                  <span className="text-muted-foreground">
+                    Capacity: {totalSelectedCapacity}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedTablesData.map(t => (
+                    <Badge key={t.id} variant="secondary" className="text-[9px] h-4">
+                      {getTableDisplayName(t)}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 
             {/* Action Buttons */}
             <div className="flex items-center gap-1.5 mt-2 justify-end">
-              {currentTableId && (
+              {(assignedTables.length > 0 || currentTableId) && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -398,7 +425,7 @@ export const InlineTableAssignment = ({
                   onClick={handleClear}
                   disabled={isSaving}
                 >
-                  Clear
+                  Clear All
                 </Button>
               )}
               <Button
@@ -415,14 +442,14 @@ export const InlineTableAssignment = ({
                 size="sm"
                 className="h-6 px-2 text-[10px]"
                 onClick={handleSave}
-                disabled={isSaving || !selectedTableId}
+                disabled={isSaving || selectedTableIds.size === 0}
               >
                 {isSaving ? (
                   <Loader2 className="h-2.5 w-2.5 mr-0.5 animate-spin" />
                 ) : (
                   <Check className="h-2.5 w-2.5 mr-0.5" />
                 )}
-                Assign
+                Assign {selectedTableIds.size > 0 ? `(${selectedTableIds.size})` : ''}
               </Button>
             </div>
           </>
@@ -431,12 +458,14 @@ export const InlineTableAssignment = ({
     );
   }
 
-  // Display mode
+  // Display mode - show assigned tables
+  const hasAssignedTables = assignedTables.length > 0 || currentTableId;
+  
   return (
     <div 
       className={cn(
         "mt-2 sm:mt-3 flex items-center gap-2 cursor-pointer group/table",
-        currentTableId ? "px-2 py-1.5 rounded-md bg-primary/10 border border-primary/20" : ""
+        hasAssignedTables ? "px-2 py-1.5 rounded-md bg-primary/10 border border-primary/20" : ""
       )}
       onClick={(e) => {
         e.stopPropagation();
@@ -445,18 +474,29 @@ export const InlineTableAssignment = ({
     >
       <Table2 className={cn(
         "h-3 w-3",
-        currentTableId ? "text-primary" : "text-muted-foreground"
+        hasAssignedTables ? "text-primary" : "text-muted-foreground"
       )} />
-      {currentTableId && currentTableNumber ? (
+      {assignedTables.length > 0 ? (
+        <div className="flex items-center gap-1 flex-wrap">
+          {assignedTables.slice(0, 3).map(t => (
+            <Badge key={t.id} variant="secondary" className="text-[9px] h-4 bg-primary/20 text-primary">
+              {t.table_number}
+            </Badge>
+          ))}
+          {assignedTables.length > 3 && (
+            <span className="text-[9px] text-muted-foreground">+{assignedTables.length - 3}</span>
+          )}
+        </div>
+      ) : currentTableId && currentTableNumber ? (
         <span className="text-xs font-medium text-primary">
           Table {currentTableNumber}
         </span>
       ) : (
         <span className="text-xs text-muted-foreground group-hover/table:text-primary transition-colors">
-          + Assign Table
+          + Assign Tables
         </span>
       )}
-      {currentTableId && (
+      {hasAssignedTables && (
         <Check className="h-3 w-3 text-primary ml-auto" />
       )}
     </div>
