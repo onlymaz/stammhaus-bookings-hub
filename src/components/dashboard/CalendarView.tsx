@@ -37,17 +37,27 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
 import { EditReservationDialog } from "./EditReservationDialog";
+import { InlineTableAssignment } from "./InlineTableAssignment";
 
 interface Reservation {
   id: string;
   reservation_date: string;
   reservation_time: string;
+  reservation_end_time: string | null;
   guests: number;
   status: string;
+  dining_status: 'reserved' | 'seated' | 'completed' | 'cancelled' | 'no_show';
   notes: string | null;
   special_requests: string | null;
   source: string;
   created_at: string;
+  assigned_table_id: string | null;
+  assigned_table?: {
+    id: string;
+    table_number: string;
+    capacity: number;
+    zone: string;
+  } | null;
   customer: {
     name: string;
     phone: string;
@@ -266,7 +276,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
         source,
         created_at,
         assigned_table_id,
-        customer:customers(name, phone, email)
+        customer:customers(name, phone, email),
+        assigned_table:tables(id, table_number, capacity, zone)
       `)
       .gte("reservation_date", format(startDate, "yyyy-MM-dd"))
       .lte("reservation_date", format(endDate, "yyyy-MM-dd"))
@@ -808,6 +819,18 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         {res.guests} guests
                       </span>
                     </div>
+
+                    {/* Inline Table Assignment */}
+                    <InlineTableAssignment
+                      reservationId={res.id}
+                      reservationDate={res.reservation_date}
+                      reservationTime={res.reservation_time}
+                      reservationEndTime={res.reservation_end_time}
+                      currentTableId={res.assigned_table_id}
+                      currentTableNumber={res.assigned_table?.table_number}
+                      guests={res.guests}
+                      onTableAssigned={fetchReservations}
+                    />
 
                     {/* Staff Note Section - Inline Editable */}
                     {editingNoteId === res.id ? (
