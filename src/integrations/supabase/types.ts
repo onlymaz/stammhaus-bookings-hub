@@ -261,13 +261,16 @@ export type Database = {
       }
       reservations: {
         Row: {
+          assigned_table_id: string | null
           created_at: string
           created_by: string | null
           customer_id: string
+          dining_status: Database["public"]["Enums"]["dining_status"]
           guests: number
           id: string
           notes: string | null
           reservation_date: string
+          reservation_end_time: string | null
           reservation_time: string
           source: string
           special_requests: string | null
@@ -275,13 +278,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_table_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
+          dining_status?: Database["public"]["Enums"]["dining_status"]
           guests: number
           id?: string
           notes?: string | null
           reservation_date: string
+          reservation_end_time?: string | null
           reservation_time: string
           source: string
           special_requests?: string | null
@@ -289,13 +295,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_table_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
+          dining_status?: Database["public"]["Enums"]["dining_status"]
           guests?: number
           id?: string
           notes?: string | null
           reservation_date?: string
+          reservation_end_time?: string | null
           reservation_time?: string
           source?: string
           special_requests?: string | null
@@ -303,6 +312,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reservations_assigned_table_id_fkey"
+            columns: ["assigned_table_id"]
+            isOneToOne: false
+            referencedRelation: "tables"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reservations_customer_id_fkey"
             columns: ["customer_id"]
@@ -314,25 +330,31 @@ export type Database = {
       }
       tables: {
         Row: {
+          capacity: number
           created_at: string
           id: string
           is_active: boolean
           seats: number
           table_number: string
+          zone: Database["public"]["Enums"]["table_zone"]
         }
         Insert: {
+          capacity?: number
           created_at?: string
           id?: string
           is_active?: boolean
           seats?: number
           table_number: string
+          zone?: Database["public"]["Enums"]["table_zone"]
         }
         Update: {
+          capacity?: number
           created_at?: string
           id?: string
           is_active?: boolean
           seats?: number
           table_number?: string
+          zone?: Database["public"]["Enums"]["table_zone"]
         }
         Relationships: []
       }
@@ -389,6 +411,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_available_tables: {
+        Args: {
+          _date: string
+          _end_time: string
+          _min_capacity?: number
+          _start_time: string
+          _zone?: Database["public"]["Enums"]["table_zone"]
+        }
+        Returns: {
+          capacity: number
+          created_at: string
+          id: string
+          is_active: boolean
+          seats: number
+          table_number: string
+          zone: Database["public"]["Enums"]["table_zone"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tables"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_table_conflict: {
+        Args: {
+          _date: string
+          _end_time: string
+          _exclude_reservation_id?: string
+          _start_time: string
+          _table_id: string
+        }
+        Returns: {
+          customer_name: string
+          end_time: string
+          reservation_id: string
+          start_time: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -397,9 +458,26 @@ export type Database = {
         Returns: boolean
       }
       is_staff_or_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_table_available: {
+        Args: {
+          _date: string
+          _end_time: string
+          _exclude_reservation_id?: string
+          _start_time: string
+          _table_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "staff"
+      dining_status:
+        | "reserved"
+        | "seated"
+        | "completed"
+        | "cancelled"
+        | "no_show"
+      table_zone: "inside" | "garden"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -528,6 +606,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "staff"],
+      dining_status: [
+        "reserved",
+        "seated",
+        "completed",
+        "cancelled",
+        "no_show",
+      ],
+      table_zone: ["inside", "garden"],
     },
   },
 } as const

@@ -257,12 +257,15 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
         id,
         reservation_date,
         reservation_time,
+        reservation_end_time,
         guests,
         status,
+        dining_status,
         notes,
         special_requests,
         source,
         created_at,
+        assigned_table_id,
         customer:customers(name, phone, email)
       `)
       .gte("reservation_date", format(startDate, "yyyy-MM-dd"))
