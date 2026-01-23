@@ -261,6 +261,16 @@
     border-color: hsl(var(--success));
   }
 
+  /* Past Reservation Card (time slot ended) */
+  .reservation-past {
+    @apply border-border/30 opacity-60;
+    background: linear-gradient(to bottom right, hsl(var(--muted)), hsl(var(--muted) / 0.5));
+  }
+
+  .dark .reservation-past {
+    background: linear-gradient(to bottom right, hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.3));
+  }
+
   /* Staff Note - High contrast amber/gold */
   .staff-note-box {
     @apply bg-amber-100 dark:bg-amber-900/60 border-2 border-amber-400 dark:border-amber-600 p-3 rounded-lg shadow-sm;
