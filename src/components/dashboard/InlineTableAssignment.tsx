@@ -159,12 +159,34 @@ export const InlineTableAssignment = ({
     setSearchQuery("");
   };
 
-  // Filter tables based on search and zone
-  const filteredTables = availableTables.filter(table => {
-    const matchesSearch = table.table_number.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesZone = zoneFilter === 'all' || table.zone === zoneFilter;
-    return matchesSearch && matchesZone;
-  });
+  // Helper to get display name: T1-T46 for inside, TG47-TG84 for garden
+  const getTableDisplayName = (table: Table) => {
+    if (table.zone === 'inside') {
+      return `T${table.table_number}`;
+    } else {
+      return `TG${table.table_number}`;
+    }
+  };
+
+  // Helper for numeric sorting
+  const getTableNumeric = (tableNumber: string) => {
+    const num = parseInt(tableNumber, 10);
+    return isNaN(num) ? 0 : num;
+  };
+
+  // Filter and sort tables based on search and zone
+  const filteredTables = availableTables
+    .filter(table => {
+      const displayName = getTableDisplayName(table).toLowerCase();
+      const matchesSearch = !searchQuery || displayName.includes(searchQuery.toLowerCase());
+      const matchesZone = zoneFilter === 'all' || table.zone === zoneFilter;
+      return matchesSearch && matchesZone;
+    })
+    .sort((a, b) => {
+      // Inside first, then garden
+      if (a.zone !== b.zone) return a.zone === 'inside' ? -1 : 1;
+      return getTableNumeric(a.table_number) - getTableNumeric(b.table_number);
+    });
 
   // Group tables by zone for display
   const insideTables = filteredTables.filter(t => t.zone === 'inside');
@@ -259,7 +281,7 @@ export const InlineTableAssignment = ({
                           : "hover:bg-muted"
                       )}
                     >
-                      <span className="font-medium">T{table.table_number}</span>
+                      <span className="font-medium">{getTableDisplayName(table)}</span>
                       {table.id === currentTableId && (
                         <Check className="h-3 w-3 ml-auto" />
                       )}
@@ -282,7 +304,7 @@ export const InlineTableAssignment = ({
                           : "hover:bg-muted"
                       )}
                     >
-                      <span className="font-medium">T{table.table_number}</span>
+                      <span className="font-medium">{getTableDisplayName(table)}</span>
                       {table.id === currentTableId && (
                         <Check className="h-3 w-3 ml-auto" />
                       )}
@@ -295,7 +317,7 @@ export const InlineTableAssignment = ({
             {/* Selected Table Display */}
             {selectedTable && (
               <div className="mt-2 px-2 py-1 rounded bg-primary/10 text-xs">
-                Selected: <span className="font-medium">Table {selectedTable.table_number}</span>
+                Selected: <span className="font-medium">{getTableDisplayName(selectedTable)}</span>
               </div>
             )}
 
