@@ -477,7 +477,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
-      table_zone: "inside" | "garden"
+      table_zone: "inside" | "garden" | "room" | "mezz"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -613,7 +613,7 @@ export const Constants = {
         "cancelled",
         "no_show",
       ],
-      table_zone: ["inside", "garden"],
+      table_zone: ["inside", "garden", "room", "mezz"],
     },
   },
 } as const
