@@ -78,9 +78,9 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [noteText, setNoteText] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
   
-  // Free tables state
-  const [lunchFreeTables, setLunchFreeTables] = useState<number>(0);
-  const [dinnerFreeTables, setDinnerFreeTables] = useState<number>(0);
+  // Free tables state (alphanumeric list)
+  const [lunchFreeTables, setLunchFreeTables] = useState<string>("");
+  const [dinnerFreeTables, setDinnerFreeTables] = useState<string>("");
   const [isSavingFreeTables, setIsSavingFreeTables] = useState(false);
 
   const handleSaveNote = async (reservationId: string) => {
@@ -171,15 +171,15 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
       .maybeSingle();
     
     if (data) {
-      setLunchFreeTables(data.lunch_free_tables);
-      setDinnerFreeTables(data.dinner_free_tables);
+      setLunchFreeTables(data.lunch_free_tables || "");
+      setDinnerFreeTables(data.dinner_free_tables || "");
     } else {
-      setLunchFreeTables(0);
-      setDinnerFreeTables(0);
+      setLunchFreeTables("");
+      setDinnerFreeTables("");
     }
   };
 
-  const saveFreeTables = async (slot: "lunch" | "dinner", value: number) => {
+  const saveFreeTables = async (slot: "lunch" | "dinner", value: string) => {
     setIsSavingFreeTables(true);
     const dateStr = format(selectedDate, "yyyy-MM-dd");
     
@@ -204,8 +204,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
           .from("daily_free_tables")
           .insert({
             date: dateStr,
-            lunch_free_tables: slot === "lunch" ? value : 0,
-            dinner_free_tables: slot === "dinner" ? value : 0,
+            lunch_free_tables: slot === "lunch" ? value : "",
+            dinner_free_tables: slot === "dinner" ? value : "",
           });
       }
       toast.success(`${slot === "lunch" ? "Lunch" : "Dinner"} free tables updated`);
@@ -616,34 +616,36 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             </div>
             
             {/* Free Tables Section */}
-            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-border/40">
+            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/40">
               <div className="flex items-center gap-1.5">
                 <UtensilsCrossed className="h-3.5 w-3.5 text-success" />
-                <span className="text-[10px] text-muted-foreground font-medium">Free Tables:</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Free Tables (e.g., A1, B2, C3):</span>
               </div>
-              <div className="flex items-center gap-1 bg-success-muted px-2 py-1 rounded-md border border-success-border">
-                <span className="text-[10px] text-success font-medium">Lunch</span>
-                <Input
-                  type="number"
-                  min={0}
-                  value={lunchFreeTables}
-                  onChange={(e) => setLunchFreeTables(parseInt(e.target.value) || 0)}
-                  onBlur={() => saveFreeTables("lunch", lunchFreeTables)}
-                  className="w-10 h-5 text-xs text-center p-0 border-0 bg-transparent font-bold text-success"
-                  disabled={isSavingFreeTables}
-                />
-              </div>
-              <div className="flex items-center gap-1 bg-warning-muted px-2 py-1 rounded-md border border-warning-border">
-                <span className="text-[10px] text-warning font-medium">Dinner</span>
-                <Input
-                  type="number"
-                  min={0}
-                  value={dinnerFreeTables}
-                  onChange={(e) => setDinnerFreeTables(parseInt(e.target.value) || 0)}
-                  onBlur={() => saveFreeTables("dinner", dinnerFreeTables)}
-                  className="w-10 h-5 text-xs text-center p-0 border-0 bg-transparent font-bold text-warning"
-                  disabled={isSavingFreeTables}
-                />
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 bg-success-muted px-2 py-1.5 rounded-md border border-success-border">
+                  <span className="text-[10px] text-success font-medium shrink-0">Lunch:</span>
+                  <Input
+                    type="text"
+                    placeholder="A1, B2, C3..."
+                    value={lunchFreeTables}
+                    onChange={(e) => setLunchFreeTables(e.target.value)}
+                    onBlur={() => saveFreeTables("lunch", lunchFreeTables)}
+                    className="h-5 text-xs p-1 border-0 bg-white/50 dark:bg-black/20 font-medium text-success placeholder:text-success/50"
+                    disabled={isSavingFreeTables}
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-warning-muted px-2 py-1.5 rounded-md border border-warning-border">
+                  <span className="text-[10px] text-warning font-medium shrink-0">Dinner:</span>
+                  <Input
+                    type="text"
+                    placeholder="A1, B2, C3..."
+                    value={dinnerFreeTables}
+                    onChange={(e) => setDinnerFreeTables(e.target.value)}
+                    onBlur={() => saveFreeTables("dinner", dinnerFreeTables)}
+                    className="h-5 text-xs p-1 border-0 bg-white/50 dark:bg-black/20 font-medium text-warning placeholder:text-warning/50"
+                    disabled={isSavingFreeTables}
+                  />
+                </div>
               </div>
             </div>
           </CardHeader>
