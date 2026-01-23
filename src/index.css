@@ -45,10 +45,14 @@
     /* Success */
     --success: 142 70% 40%;
     --success-foreground: 0 0% 100%;
+    --success-muted: 142 60% 92%;
+    --success-border: 142 55% 65%;
 
     /* Warning */
     --warning: 38 92% 50%;
     --warning-foreground: 0 10% 15%;
+    --warning-muted: 43 96% 90%;
+    --warning-border: 43 80% 60%;
 
     /* Borders & Inputs */
     --border: 30 20% 88%;

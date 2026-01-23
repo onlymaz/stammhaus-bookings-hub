@@ -15,7 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, UtensilsCrossed } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -76,6 +77,11 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
+  
+  // Free tables state
+  const [lunchFreeTables, setLunchFreeTables] = useState<number>(0);
+  const [dinnerFreeTables, setDinnerFreeTables] = useState<number>(0);
+  const [isSavingFreeTables, setIsSavingFreeTables] = useState(false);
 
   const handleSaveNote = async (reservationId: string) => {
     setIsSavingNote(true);
@@ -154,6 +160,65 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
       fetchReservations();
     }
   }, [refreshTrigger]);
+
+  // Fetch free tables for selected date
+  const fetchFreeTables = async (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const { data } = await supabase
+      .from("daily_free_tables")
+      .select("lunch_free_tables, dinner_free_tables")
+      .eq("date", dateStr)
+      .maybeSingle();
+    
+    if (data) {
+      setLunchFreeTables(data.lunch_free_tables);
+      setDinnerFreeTables(data.dinner_free_tables);
+    } else {
+      setLunchFreeTables(0);
+      setDinnerFreeTables(0);
+    }
+  };
+
+  const saveFreeTables = async (slot: "lunch" | "dinner", value: number) => {
+    setIsSavingFreeTables(true);
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    
+    try {
+      // Check if record exists
+      const { data: existing } = await supabase
+        .from("daily_free_tables")
+        .select("id")
+        .eq("date", dateStr)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing
+        const updateField = slot === "lunch" ? "lunch_free_tables" : "dinner_free_tables";
+        await supabase
+          .from("daily_free_tables")
+          .update({ [updateField]: value })
+          .eq("date", dateStr);
+      } else {
+        // Insert new
+        await supabase
+          .from("daily_free_tables")
+          .insert({
+            date: dateStr,
+            lunch_free_tables: slot === "lunch" ? value : 0,
+            dinner_free_tables: slot === "dinner" ? value : 0,
+          });
+      }
+      toast.success(`${slot === "lunch" ? "Lunch" : "Dinner"} free tables updated`);
+    } catch (error: any) {
+      toast.error("Failed to save: " + error.message);
+    } finally {
+      setIsSavingFreeTables(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFreeTables(selectedDate);
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchReservations();
@@ -528,24 +593,59 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 <span className="hidden sm:inline">Add</span>
               </Button>
             </div>
-            {todayReservations.length > 0 && (
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
-                  <Users className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-bold text-foreground">
-                    {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">guests</span>
-                </div>
-                <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
-                  <Clock className="h-3.5 w-3.5 text-accent" />
-                  <span className="text-xs font-bold text-foreground">
-                    {todayReservations.length}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">bookings</span>
-                </div>
+            {/* Stats row */}
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {todayReservations.length > 0 && (
+                <>
+                  <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
+                    <Users className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-bold text-foreground">
+                      {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">guests</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
+                    <Clock className="h-3.5 w-3.5 text-accent" />
+                    <span className="text-xs font-bold text-foreground">
+                      {todayReservations.length}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">bookings</span>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {/* Free Tables Section */}
+            <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-border/40">
+              <div className="flex items-center gap-1.5">
+                <UtensilsCrossed className="h-3.5 w-3.5 text-success" />
+                <span className="text-[10px] text-muted-foreground font-medium">Free Tables:</span>
               </div>
-            )}
+              <div className="flex items-center gap-1 bg-success-muted px-2 py-1 rounded-md border border-success-border">
+                <span className="text-[10px] text-success font-medium">Lunch</span>
+                <Input
+                  type="number"
+                  min={0}
+                  value={lunchFreeTables}
+                  onChange={(e) => setLunchFreeTables(parseInt(e.target.value) || 0)}
+                  onBlur={() => saveFreeTables("lunch", lunchFreeTables)}
+                  className="w-10 h-5 text-xs text-center p-0 border-0 bg-transparent font-bold text-success"
+                  disabled={isSavingFreeTables}
+                />
+              </div>
+              <div className="flex items-center gap-1 bg-warning-muted px-2 py-1 rounded-md border border-warning-border">
+                <span className="text-[10px] text-warning font-medium">Dinner</span>
+                <Input
+                  type="number"
+                  min={0}
+                  value={dinnerFreeTables}
+                  onChange={(e) => setDinnerFreeTables(parseInt(e.target.value) || 0)}
+                  onBlur={() => saveFreeTables("dinner", dinnerFreeTables)}
+                  className="w-10 h-5 text-xs text-center p-0 border-0 bg-transparent font-bold text-warning"
+                  disabled={isSavingFreeTables}
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="pt-4 sm:pt-5 pb-4 sm:pb-6 px-3 sm:px-5 min-h-0 flex-1 overflow-y-auto">
             {loading ? (
