@@ -140,19 +140,18 @@ export const TableAssignmentDialog = ({
   };
 
   // Helper to get display name with T/TG prefix
+  // Inside tables: T1-T46, Garden tables: TG47-TG84
   const getTableDisplayName = (table: RestaurantTable) => {
     if (table.zone === 'inside') {
       return `T${table.table_number}`;
     } else {
-      // Garden tables already have "G" prefix in DB (like G1, G2), so just add "T" to make "TG1"
-      return `T${table.table_number}`;
+      return `TG${table.table_number}`;
     }
   };
 
   // Helper to extract numeric part for sorting
   const getTableNumeric = (tableNumber: string) => {
-    const numMatch = tableNumber.replace(/^G/i, '');
-    const num = parseInt(numMatch, 10);
+    const num = parseInt(tableNumber, 10);
     return isNaN(num) ? 0 : num;
   };
 
