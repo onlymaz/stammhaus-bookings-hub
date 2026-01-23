@@ -15,7 +15,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, UtensilsCrossed } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, UtensilsCrossed, ChevronDown } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -82,6 +87,14 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [lunchFreeTables, setLunchFreeTables] = useState<string>("");
   const [dinnerFreeTables, setDinnerFreeTables] = useState<string>("");
   const [isSavingFreeTables, setIsSavingFreeTables] = useState(false);
+  const [lunchExpanded, setLunchExpanded] = useState(false);
+  const [dinnerExpanded, setDinnerExpanded] = useState(false);
+
+  // Helper to count tables from comma-separated string
+  const countTables = (tableStr: string) => {
+    if (!tableStr.trim()) return 0;
+    return tableStr.split(',').filter(t => t.trim()).length;
+  };
 
   const handleSaveNote = async (reservationId: string) => {
     setIsSavingNote(true);
@@ -619,33 +632,82 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/40">
               <div className="flex items-center gap-1.5">
                 <UtensilsCrossed className="h-3.5 w-3.5 text-success" />
-                <span className="text-[10px] text-muted-foreground font-medium">Free Tables (e.g., A1, B2, C3):</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Free Tables:</span>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 bg-success-muted px-2 py-1.5 rounded-md border border-success-border">
-                  <span className="text-[10px] text-success font-medium shrink-0">Lunch:</span>
-                  <Input
-                    type="text"
-                    placeholder="A1, B2, C3..."
-                    value={lunchFreeTables}
-                    onChange={(e) => setLunchFreeTables(e.target.value)}
-                    onBlur={() => saveFreeTables("lunch", lunchFreeTables)}
-                    className="h-5 text-xs p-1 border-0 bg-white/50 dark:bg-black/20 font-medium text-success placeholder:text-success/50"
-                    disabled={isSavingFreeTables}
-                  />
-                </div>
-                <div className="flex items-center gap-2 bg-warning-muted px-2 py-1.5 rounded-md border border-warning-border">
-                  <span className="text-[10px] text-warning font-medium shrink-0">Dinner:</span>
-                  <Input
-                    type="text"
-                    placeholder="A1, B2, C3..."
-                    value={dinnerFreeTables}
-                    onChange={(e) => setDinnerFreeTables(e.target.value)}
-                    onBlur={() => saveFreeTables("dinner", dinnerFreeTables)}
-                    className="h-5 text-xs p-1 border-0 bg-white/50 dark:bg-black/20 font-medium text-warning placeholder:text-warning/50"
-                    disabled={isSavingFreeTables}
-                  />
-                </div>
+                {/* Lunch Collapsible */}
+                <Collapsible open={lunchExpanded} onOpenChange={setLunchExpanded}>
+                  <CollapsibleTrigger asChild>
+                    <button className="w-full flex items-center justify-between gap-2 bg-success-muted hover:bg-success-muted/80 px-2 py-1.5 rounded-md border border-success-border transition-colors">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-success font-medium">Lunch:</span>
+                        <Badge variant="secondary" className="bg-success/20 text-success text-[10px] px-1.5 py-0">
+                          {countTables(lunchFreeTables)} tables
+                        </Badge>
+                      </div>
+                      <ChevronDown className={cn("h-3.5 w-3.5 text-success transition-transform", lunchExpanded && "rotate-180")} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-1">
+                    <div className="bg-card border border-success-border rounded-md p-2 shadow-lg">
+                      <Input
+                        type="text"
+                        placeholder="T1, T2, A1, B2..."
+                        value={lunchFreeTables}
+                        onChange={(e) => setLunchFreeTables(e.target.value)}
+                        onBlur={() => saveFreeTables("lunch", lunchFreeTables)}
+                        className="h-7 text-xs border-success/30 focus:border-success font-medium"
+                        disabled={isSavingFreeTables}
+                      />
+                      {lunchFreeTables && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {lunchFreeTables.split(',').filter(t => t.trim()).map((table, i) => (
+                            <Badge key={i} variant="outline" className="text-[10px] bg-success/10 text-success border-success/30">
+                              {table.trim()}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Dinner Collapsible */}
+                <Collapsible open={dinnerExpanded} onOpenChange={setDinnerExpanded}>
+                  <CollapsibleTrigger asChild>
+                    <button className="w-full flex items-center justify-between gap-2 bg-warning-muted hover:bg-warning-muted/80 px-2 py-1.5 rounded-md border border-warning-border transition-colors">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-warning font-medium">Dinner:</span>
+                        <Badge variant="secondary" className="bg-warning/20 text-warning text-[10px] px-1.5 py-0">
+                          {countTables(dinnerFreeTables)} tables
+                        </Badge>
+                      </div>
+                      <ChevronDown className={cn("h-3.5 w-3.5 text-warning transition-transform", dinnerExpanded && "rotate-180")} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-1">
+                    <div className="bg-card border border-warning-border rounded-md p-2 shadow-lg">
+                      <Input
+                        type="text"
+                        placeholder="T1, T2, A1, B2..."
+                        value={dinnerFreeTables}
+                        onChange={(e) => setDinnerFreeTables(e.target.value)}
+                        onBlur={() => saveFreeTables("dinner", dinnerFreeTables)}
+                        className="h-7 text-xs border-warning/30 focus:border-warning font-medium"
+                        disabled={isSavingFreeTables}
+                      />
+                      {dinnerFreeTables && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {dinnerFreeTables.split(',').filter(t => t.trim()).map((table, i) => (
+                            <Badge key={i} variant="outline" className="text-[10px] bg-warning/10 text-warning border-warning/30">
+                              {table.trim()}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </div>
           </CardHeader>
