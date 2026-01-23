@@ -501,8 +501,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
       {/* Day Detail */}
       <div className="lg:flex-1 lg:min-w-[280px]">
-        <Card className="card-elevated lg:sticky lg:top-24 border-0 shadow-2xl flex flex-col max-h-[60vh] lg:max-h-[calc(100vh-7rem)]">
-          <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0">
+        <Card className="card-elevated lg:sticky lg:top-24 border-0 shadow-2xl flex flex-col max-h-[60vh] lg:max-h-[calc(100vh-7rem)] overflow-hidden">
+          <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10 backdrop-blur-sm">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
