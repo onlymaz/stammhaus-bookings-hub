@@ -141,13 +141,18 @@ export const TableAssignmentDialog = ({
 
   // Helper to get display name with T/TG prefix
   const getTableDisplayName = (table: RestaurantTable) => {
-    const prefix = table.zone === 'inside' ? 'T' : 'TG';
-    return `${prefix}${table.table_number}`;
+    if (table.zone === 'inside') {
+      return `T${table.table_number}`;
+    } else {
+      // Garden tables already have "G" prefix in DB (like G1, G2), so just add "T" to make "TG1"
+      return `T${table.table_number}`;
+    }
   };
 
   // Helper to extract numeric part for sorting
   const getTableNumeric = (tableNumber: string) => {
-    const num = parseInt(tableNumber, 10);
+    const numMatch = tableNumber.replace(/^G/i, '');
+    const num = parseInt(numMatch, 10);
     return isNaN(num) ? 0 : num;
   };
 
@@ -162,16 +167,22 @@ export const TableAssignmentDialog = ({
     
     // Filter by search query
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().replace(/^(tg?)/i, '');
+      const query = searchQuery.toLowerCase();
       result = result.filter(t => {
         const displayName = getTableDisplayName(t).toLowerCase();
-        const tableNum = t.table_number.toLowerCase();
-        return displayName.includes(searchQuery.toLowerCase()) || tableNum.includes(query);
+        return displayName.includes(query);
       });
     }
     
-    // Sort numerically by table number
-    return result.sort((a, b) => getTableNumeric(a.table_number) - getTableNumeric(b.table_number));
+    // Sort: inside tables first, then garden tables, each sorted numerically
+    return result.sort((a, b) => {
+      // Inside tables come first
+      if (a.zone !== b.zone) {
+        return a.zone === 'inside' ? -1 : 1;
+      }
+      // Then sort numerically
+      return getTableNumeric(a.table_number) - getTableNumeric(b.table_number);
+    });
   }, [tables, activeZone, searchQuery]);
 
   const selectedTable = tables.find(t => t.id === selectedTableId);
