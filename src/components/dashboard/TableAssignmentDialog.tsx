@@ -231,8 +231,8 @@ export const TableAssignmentDialog = ({
                               <Check className="h-3 w-3 text-primary-foreground" />
                             </div>
                           )}
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold text-sm">{table.table_number}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">{table.table_number}</span>
                             <Badge 
                               variant="outline" 
                               className={cn(
@@ -244,11 +244,6 @@ export const TableAssignmentDialog = ({
                             >
                               {table.zone === 'inside' ? <Home className="h-2.5 w-2.5" /> : <TreePine className="h-2.5 w-2.5" />}
                             </Badge>
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Users className="h-3 w-3" />
-                            <span className={cn(!meetsCapacity && "text-amber-600")}>{table.capacity}</span>
-                            {!meetsCapacity && <AlertTriangle className="h-3 w-3 text-amber-500" />}
                           </div>
                           {isCurrent && (
                             <Badge className="mt-1.5 text-[9px]" variant="secondary">Current</Badge>
@@ -265,7 +260,7 @@ export const TableAssignmentDialog = ({
             {selectedTable && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm">
-                  <strong>Selected:</strong> Table {selectedTable.table_number} ({selectedTable.capacity} seats, {selectedTable.zone})
+                  <strong>Selected:</strong> Table {selectedTable.table_number}
                 </p>
               </div>
             )}
