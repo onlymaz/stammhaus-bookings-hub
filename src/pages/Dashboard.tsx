@@ -4,13 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Gauge } from "lucide-react";
+import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Gauge, Table2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
 import { TeamManagement } from "@/components/dashboard/TeamManagement";
-
 import { CapacitySettings } from "@/components/dashboard/CapacitySettings";
+import { TableManagementPanel } from "@/components/dashboard/TableManagementPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Popover,
@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [websiteNotifCount, setWebsiteNotifCount] = useState(0);
-  const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity">("preferences");
+  const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity" | "tables">("preferences");
   const [resetToToday, setResetToToday] = useState(0);
   const [calendarRefresh, setCalendarRefresh] = useState(0);
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -387,6 +387,15 @@ const Dashboard = () => {
                         <Gauge className="h-4 w-4" />
                         Capacity
                       </Button>
+                      <Button
+                        variant={settingsTab === "tables" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSettingsTab("tables")}
+                        className="gap-2"
+                      >
+                        <Table2 className="h-4 w-4" />
+                        Tables
+                      </Button>
                     </div>
                   )}
 
@@ -458,12 +467,19 @@ const Dashboard = () => {
                       </h3>
                       <TeamManagement />
                     </div>
-                  ) : (
+                  ) : settingsTab === "capacity" ? (
                     <div className="py-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                         Capacity Settings
                       </h3>
                       <CapacitySettings />
+                    </div>
+                  ) : (
+                    <div className="py-6">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                        Table Management
+                      </h3>
+                      <TableManagementPanel />
                     </div>
                   )}
                 </SheetContent>

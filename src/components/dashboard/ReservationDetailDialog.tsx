@@ -9,22 +9,30 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus, Save, Edit2, Pencil } from "lucide-react";
+import { Clock, Users, Phone, Mail, FileText, MessageSquare, Calendar, CheckCircle, XCircle, UserX, Plus, Minus, Save, Edit2, Pencil, Armchair, Table2, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditReservationDialog } from "./EditReservationDialog";
+import { TableAssignmentDialog } from "./TableAssignmentDialog";
+import { ExtendReservationDialog } from "./ExtendReservationDialog";
+import { DiningStatusBadge } from "./DiningStatusBadge";
+import { DiningStatus } from "@/types/table";
+import { useTableManagement } from "@/hooks/useTableManagement";
 
 interface ReservationDetail {
   id: string;
   reservation_date: string;
   reservation_time: string;
+  reservation_end_time?: string | null;
   guests: number;
   status: string;
+  dining_status?: DiningStatus;
   notes: string | null;
   special_requests: string | null;
   source: string;
   created_at: string;
+  assigned_table_id?: string | null;
   customer: {
     name: string;
     phone: string;
@@ -61,7 +69,10 @@ export const ReservationDetailDialog = ({
   const [staffNote, setStaffNote] = useState(reservation?.notes || "");
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [tableDialogOpen, setTableDialogOpen] = useState(false);
+  const [extendDialogOpen, setExtendDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { tables, updateDiningStatus, calculateEndTime } = useTableManagement();
 
   // Update local state when reservation changes
   useEffect(() => {
@@ -218,7 +229,106 @@ export const ReservationDetailDialog = ({
             </div>
           </div>
 
-          {/* Staff Note - Editable */}
+          {/* Table Assignment & Dining Status */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50 space-y-4">
+            {/* Assigned Table */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Table2 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Assigned Table</p>
+                  {reservation.assigned_table_id ? (
+                    <p className="font-semibold text-sm">
+                      {tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unknown"}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">Not assigned</p>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTableDialogOpen(true)}
+                className="gap-1.5"
+              >
+                <Table2 className="h-3.5 w-3.5" />
+                {reservation.assigned_table_id ? "Change" : "Assign"}
+              </Button>
+            </div>
+
+            {/* Time Range */}
+            {reservation.assigned_table_id && (
+              <div className="flex items-center justify-between pt-3 border-t border-border/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Timer className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Time Range</p>
+                    <p className="font-semibold text-sm">
+                      {reservation.reservation_time.slice(0, 5)} - {(reservation.reservation_end_time || calculateEndTime(reservation.reservation_time)).slice(0, 5)}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExtendDialogOpen(true)}
+                  className="gap-1.5"
+                >
+                  <Timer className="h-3.5 w-3.5" />
+                  Extend
+                </Button>
+              </div>
+            )}
+
+            {/* Dining Status */}
+            <div className="flex items-center justify-between pt-3 border-t border-border/40">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <Armchair className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Dining Status</p>
+                  <DiningStatusBadge status={reservation.dining_status || 'reserved'} className="mt-1" />
+                </div>
+              </div>
+              <div className="flex gap-1.5">
+                {reservation.dining_status !== 'seated' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const success = await updateDiningStatus(reservation.id, 'seated');
+                      if (success) onStatusChange?.();
+                    }}
+                    className="gap-1.5 text-xs border-success/30 text-success hover:bg-success/10"
+                  >
+                    <Armchair className="h-3.5 w-3.5" />
+                    Seat
+                  </Button>
+                )}
+                {reservation.dining_status === 'seated' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const success = await updateDiningStatus(reservation.id, 'completed');
+                      if (success) onStatusChange?.();
+                    }}
+                    className="gap-1.5 text-xs"
+                  >
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    Complete
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="p-4 rounded-xl bg-gradient-to-br from-secondary/60 to-secondary/30 border border-border/30">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -372,6 +482,34 @@ export const ReservationDetailDialog = ({
             setEditDialogOpen(false);
           }}
         />
+
+        {/* Table Assignment Dialog */}
+        <TableAssignmentDialog
+          open={tableDialogOpen}
+          onOpenChange={setTableDialogOpen}
+          reservationId={reservation.id}
+          date={reservation.reservation_date}
+          startTime={reservation.reservation_time}
+          endTime={reservation.reservation_end_time}
+          guests={reservation.guests}
+          currentTableId={reservation.assigned_table_id}
+          onAssigned={onStatusChange}
+        />
+
+        {/* Extend Reservation Dialog */}
+        {reservation.assigned_table_id && (
+          <ExtendReservationDialog
+            open={extendDialogOpen}
+            onOpenChange={setExtendDialogOpen}
+            reservationId={reservation.id}
+            tableId={reservation.assigned_table_id}
+            tableName={tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unknown"}
+            date={reservation.reservation_date}
+            currentStartTime={reservation.reservation_time}
+            currentEndTime={reservation.reservation_end_time || calculateEndTime(reservation.reservation_time)}
+            onExtended={onStatusChange}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
