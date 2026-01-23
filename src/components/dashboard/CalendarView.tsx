@@ -15,12 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, UtensilsCrossed, ChevronDown } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -38,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
 import { EditReservationDialog } from "./EditReservationDialog";
 import { InlineTableAssignment } from "./InlineTableAssignment";
+import { TableStatusSection } from "./TableStatusSection";
 
 interface Reservation {
   id: string;
@@ -93,18 +89,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [noteText, setNoteText] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
   
-  // Free tables state (alphanumeric list)
-  const [lunchFreeTables, setLunchFreeTables] = useState<string>("");
-  const [dinnerFreeTables, setDinnerFreeTables] = useState<string>("");
-  const [isSavingFreeTables, setIsSavingFreeTables] = useState(false);
-  const [lunchExpanded, setLunchExpanded] = useState(false);
-  const [dinnerExpanded, setDinnerExpanded] = useState(false);
-
-  // Helper to count tables from comma-separated string
-  const countTables = (tableStr: string) => {
-    if (!tableStr.trim()) return 0;
-    return tableStr.split(',').filter(t => t.trim()).length;
-  };
+  // Refresh trigger for table status
+  const [tableStatusRefresh, setTableStatusRefresh] = useState(0);
 
   const handleSaveNote = async (reservationId: string) => {
     setIsSavingNote(true);
@@ -184,64 +170,10 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
     }
   }, [refreshTrigger]);
 
-  // Fetch free tables for selected date
-  const fetchFreeTables = async (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
-    const { data } = await supabase
-      .from("daily_free_tables")
-      .select("lunch_free_tables, dinner_free_tables")
-      .eq("date", dateStr)
-      .maybeSingle();
-    
-    if (data) {
-      setLunchFreeTables(data.lunch_free_tables || "");
-      setDinnerFreeTables(data.dinner_free_tables || "");
-    } else {
-      setLunchFreeTables("");
-      setDinnerFreeTables("");
-    }
-  };
-
-  const saveFreeTables = async (slot: "lunch" | "dinner", value: string) => {
-    setIsSavingFreeTables(true);
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    
-    try {
-      // Check if record exists
-      const { data: existing } = await supabase
-        .from("daily_free_tables")
-        .select("id")
-        .eq("date", dateStr)
-        .maybeSingle();
-
-      if (existing) {
-        // Update existing
-        const updateField = slot === "lunch" ? "lunch_free_tables" : "dinner_free_tables";
-        await supabase
-          .from("daily_free_tables")
-          .update({ [updateField]: value })
-          .eq("date", dateStr);
-      } else {
-        // Insert new
-        await supabase
-          .from("daily_free_tables")
-          .insert({
-            date: dateStr,
-            lunch_free_tables: slot === "lunch" ? value : "",
-            dinner_free_tables: slot === "dinner" ? value : "",
-          });
-      }
-      toast.success(`${slot === "lunch" ? "Lunch" : "Dinner"} free tables updated`);
-    } catch (error: any) {
-      toast.error("Failed to save: " + error.message);
-    } finally {
-      setIsSavingFreeTables(false);
-    }
-  };
-
+  // Refresh table status when reservations change
   useEffect(() => {
-    fetchFreeTables(selectedDate);
-  }, [selectedDate]);
+    setTableStatusRefresh(prev => prev + 1);
+  }, [reservations]);
 
   useEffect(() => {
     fetchReservations();
@@ -642,88 +574,11 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               )}
             </div>
             
-            {/* Free Tables Section */}
-            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/40">
-              <div className="flex items-center gap-1.5">
-                <UtensilsCrossed className="h-3.5 w-3.5 text-success" />
-                <span className="text-[10px] text-muted-foreground font-medium">Free Tables:</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {/* Lunch Collapsible */}
-                <Collapsible open={lunchExpanded} onOpenChange={setLunchExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between gap-2 bg-success-muted hover:bg-success-muted/80 px-2 py-1.5 rounded-md border border-success-border transition-colors">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-success font-medium">Lunch:</span>
-                        <Badge variant="secondary" className="bg-success/20 text-success text-[10px] px-1.5 py-0">
-                          {countTables(lunchFreeTables)} tables
-                        </Badge>
-                      </div>
-                      <ChevronDown className={cn("h-3.5 w-3.5 text-success transition-transform", lunchExpanded && "rotate-180")} />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-1">
-                    <div className="bg-card border border-success-border rounded-md p-2 shadow-lg">
-                      <Input
-                        type="text"
-                        placeholder="T1, T2, A1, B2..."
-                        value={lunchFreeTables}
-                        onChange={(e) => setLunchFreeTables(e.target.value)}
-                        onBlur={() => saveFreeTables("lunch", lunchFreeTables)}
-                        className="h-7 text-xs border-success/30 focus:border-success font-medium"
-                        disabled={isSavingFreeTables}
-                      />
-                      {lunchFreeTables && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {lunchFreeTables.split(',').filter(t => t.trim()).map((table, i) => (
-                            <Badge key={i} variant="outline" className="text-[10px] bg-success/10 text-success border-success/30">
-                              {table.trim()}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Dinner Collapsible */}
-                <Collapsible open={dinnerExpanded} onOpenChange={setDinnerExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between gap-2 bg-warning-muted hover:bg-warning-muted/80 px-2 py-1.5 rounded-md border border-warning-border transition-colors">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-warning font-medium">Dinner:</span>
-                        <Badge variant="secondary" className="bg-warning/20 text-warning text-[10px] px-1.5 py-0">
-                          {countTables(dinnerFreeTables)} tables
-                        </Badge>
-                      </div>
-                      <ChevronDown className={cn("h-3.5 w-3.5 text-warning transition-transform", dinnerExpanded && "rotate-180")} />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-1">
-                    <div className="bg-card border border-warning-border rounded-md p-2 shadow-lg">
-                      <Input
-                        type="text"
-                        placeholder="T1, T2, A1, B2..."
-                        value={dinnerFreeTables}
-                        onChange={(e) => setDinnerFreeTables(e.target.value)}
-                        onBlur={() => saveFreeTables("dinner", dinnerFreeTables)}
-                        className="h-7 text-xs border-warning/30 focus:border-warning font-medium"
-                        disabled={isSavingFreeTables}
-                      />
-                      {dinnerFreeTables && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {dinnerFreeTables.split(',').filter(t => t.trim()).map((table, i) => (
-                            <Badge key={i} variant="outline" className="text-[10px] bg-warning/10 text-warning border-warning/30">
-                              {table.trim()}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-            </div>
+            {/* Table Status Section */}
+            <TableStatusSection 
+              selectedDate={selectedDate} 
+              refreshTrigger={tableStatusRefresh} 
+            />
           </CardHeader>
           <CardContent className="pt-4 sm:pt-5 pb-4 sm:pb-6 px-3 sm:px-5 min-h-0 flex-1 overflow-y-auto">
             {loading ? (
