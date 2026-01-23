@@ -96,27 +96,27 @@ export type Database = {
         Row: {
           created_at: string
           date: string
-          dinner_free_tables: number
+          dinner_free_tables: string
           id: string
-          lunch_free_tables: number
+          lunch_free_tables: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           created_at?: string
           date: string
-          dinner_free_tables?: number
+          dinner_free_tables?: string
           id?: string
-          lunch_free_tables?: number
+          lunch_free_tables?: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           created_at?: string
           date?: string
-          dinner_free_tables?: number
+          dinner_free_tables?: string
           id?: string
-          lunch_free_tables?: number
+          lunch_free_tables?: string
           updated_at?: string
           updated_by?: string | null
         }
