@@ -240,6 +240,27 @@
     @apply opacity-100;
   }
 
+  /* In Progress Reservation Card */
+  .reservation-in-progress {
+    @apply border-l-4 shadow-md;
+    border-left-color: hsl(var(--success));
+    border-top-color: hsl(var(--success-border));
+    border-right-color: hsl(var(--success-border));
+    border-bottom-color: hsl(var(--success-border));
+    background: linear-gradient(to bottom right, hsl(var(--success-muted)), hsl(var(--success-muted) / 0.5));
+  }
+
+  .dark .reservation-in-progress {
+    background: linear-gradient(to bottom right, hsl(var(--success) / 0.15), hsl(var(--success) / 0.08));
+  }
+
+  .badge-in-progress {
+    @apply text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 animate-pulse;
+    background-color: hsl(var(--success));
+    color: hsl(var(--success-foreground));
+    border-color: hsl(var(--success));
+  }
+
   /* Staff Note - High contrast amber/gold */
   .staff-note-box {
     @apply bg-amber-100 dark:bg-amber-900/60 border-2 border-amber-400 dark:border-amber-600 p-3 rounded-lg shadow-sm;
