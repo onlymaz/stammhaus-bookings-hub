@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTableManagement } from "@/hooks/useTableManagement";
 import { RestaurantTable, TableZone } from "@/types/table";
 import {
@@ -11,7 +11,6 @@ import {
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -20,10 +19,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Home, TreePine, Clock, AlertTriangle, Loader2, Check } from "lucide-react";
+import { Users, Home, TreePine, Clock, AlertTriangle, Loader2, Check, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -67,6 +65,7 @@ export const TableAssignmentDialog = ({
   const [conflictDialog, setConflictDialog] = useState(false);
   const [conflictMessage, setConflictMessage] = useState("");
   const [activeZone, setActiveZone] = useState<"all" | TableZone>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const effectiveEndTime = customEndTime || endTime || calculateEndTime(startTime);
 
@@ -76,6 +75,7 @@ export const TableAssignmentDialog = ({
       fetchAvailableTables();
       setSelectedTableId(currentTableId || null);
       setCustomEndTime(endTime?.slice(0, 5) || "");
+      setSearchQuery("");
     }
   }, [open, date, startTime]);
 
@@ -139,9 +139,40 @@ export const TableAssignmentDialog = ({
     return availableTables.some(t => t.id === tableId);
   };
 
-  const filteredTables = activeZone === "all" 
-    ? tables.filter(t => t.is_active)
-    : tables.filter(t => t.is_active && t.zone === activeZone);
+  // Helper to get display name with T/TG prefix
+  const getTableDisplayName = (table: RestaurantTable) => {
+    const prefix = table.zone === 'inside' ? 'T' : 'TG';
+    return `${prefix}${table.table_number}`;
+  };
+
+  // Helper to extract numeric part for sorting
+  const getTableNumeric = (tableNumber: string) => {
+    const num = parseInt(tableNumber, 10);
+    return isNaN(num) ? 0 : num;
+  };
+
+  // Filter and sort tables
+  const filteredTables = useMemo(() => {
+    let result = tables.filter(t => t.is_active);
+    
+    // Filter by zone
+    if (activeZone !== "all") {
+      result = result.filter(t => t.zone === activeZone);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().replace(/^(tg?)/i, '');
+      result = result.filter(t => {
+        const displayName = getTableDisplayName(t).toLowerCase();
+        const tableNum = t.table_number.toLowerCase();
+        return displayName.includes(searchQuery.toLowerCase()) || tableNum.includes(query);
+      });
+    }
+    
+    // Sort numerically by table number
+    return result.sort((a, b) => getTableNumeric(a.table_number) - getTableNumeric(b.table_number));
+  }, [tables, activeZone, searchQuery]);
 
   const selectedTable = tables.find(t => t.id === selectedTableId);
 
@@ -154,7 +185,10 @@ export const TableAssignmentDialog = ({
               Assign Table
               {currentTableId && (
                 <Badge variant="outline" className="ml-2">
-                  Currently: {tables.find(t => t.id === currentTableId)?.table_number}
+                  Currently: {(() => {
+                    const t = tables.find(t => t.id === currentTableId);
+                    return t ? getTableDisplayName(t) : '';
+                  })()}
                 </Badge>
               )}
             </DialogTitle>
@@ -180,6 +214,17 @@ export const TableAssignmentDialog = ({
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span>{guests} guests</span>
               </div>
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search table (e.g. T5, TG12)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
             </div>
 
             {/* Zone Tabs */}
@@ -232,14 +277,14 @@ export const TableAssignmentDialog = ({
                             </div>
                           )}
                           <div className="flex items-center justify-between">
-                            <span className="font-semibold">{table.table_number}</span>
+                            <span className="font-semibold">{getTableDisplayName(table)}</span>
                             <Badge 
                               variant="outline" 
                               className={cn(
                                 "text-[10px]",
                                 table.zone === 'inside' 
-                                  ? "border-blue-500/30 text-blue-600"
-                                  : "border-green-500/30 text-green-600"
+                                  ? "border-primary/30 text-primary"
+                                  : "border-accent/30 text-accent-foreground"
                               )}
                             >
                               {table.zone === 'inside' ? <Home className="h-2.5 w-2.5" /> : <TreePine className="h-2.5 w-2.5" />}
@@ -260,7 +305,7 @@ export const TableAssignmentDialog = ({
             {selectedTable && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm">
-                  <strong>Selected:</strong> Table {selectedTable.table_number}
+                  <strong>Selected:</strong> {getTableDisplayName(selectedTable)}
                 </p>
               </div>
             )}
