@@ -248,9 +248,9 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const monthDays = getMonthDays();
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* Calendar View */}
-      <div className="lg:flex-[2] min-w-0">
+      <div className="lg:flex-[2] min-w-0 lg:pr-[340px]">
         <Card className="card-elevated border-0 shadow-2xl">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 sm:pb-6 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
             <div className="flex items-center gap-3 sm:gap-4">
@@ -499,55 +499,53 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
         </Card>
       </div>
 
-      {/* Day Detail */}
-      <div className="lg:flex-1 lg:min-w-[280px]">
-        <Card className="card-elevated lg:sticky lg:top-24 border-0 shadow-2xl flex flex-col max-h-[60vh] lg:max-h-[calc(100vh-7rem)] overflow-hidden">
-          <CardHeader className="pb-3 sm:pb-4 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10 backdrop-blur-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
-                    <span className="text-primary-foreground font-bold text-base sm:text-lg">
-                      {format(selectedDate, "d")}
-                    </span>
-                  </div>
-                  <div>
-                    <CardTitle className="font-display text-lg sm:text-xl font-bold tracking-tight">
-                      {format(selectedDate, "EEEE")}
-                    </CardTitle>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {format(selectedDate, "MMMM yyyy")}
-                    </p>
-                  </div>
+      {/* Day Detail - Fixed on desktop */}
+      <div className="lg:fixed lg:right-6 lg:top-[88px] lg:w-[320px] lg:h-[calc(100vh-104px)] z-40">
+        <Card className="card-elevated border-0 shadow-2xl flex flex-col h-full max-h-[60vh] lg:max-h-full overflow-hidden">
+          <CardHeader className="pb-2 pt-3 px-3 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <span className="text-primary-foreground font-bold text-lg">
+                    {format(selectedDate, "d")}
+                  </span>
                 </div>
-                {todayReservations.length > 0 && (
-                  <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                    <div className="stat-card flex items-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 px-2 sm:px-3">
-                      <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                      <span className="text-xs sm:text-sm font-bold text-foreground">
-                        {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">guests</span>
-                    </div>
-                    <div className="stat-card flex items-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 px-2 sm:px-3">
-                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
-                      <span className="text-xs sm:text-sm font-bold text-foreground">
-                        {todayReservations.length}
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">bookings</span>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <CardTitle className="font-display text-base font-bold tracking-tight leading-tight">
+                    {format(selectedDate, "EEEE")}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    {format(selectedDate, "MMMM yyyy")}
+                  </p>
+                </div>
               </div>
               <Button 
                 size="sm" 
                 onClick={onCreateReservation} 
-                className="gap-1.5 sm:gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent text-xs sm:text-sm px-2 sm:px-3"
+                className="gap-1.5 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent text-xs px-2 h-8"
               >
-                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Plus className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Add</span>
               </Button>
             </div>
+            {todayReservations.length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
+                  <Users className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-bold text-foreground">
+                    {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">guests</span>
+                </div>
+                <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
+                  <Clock className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-xs font-bold text-foreground">
+                    {todayReservations.length}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">bookings</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="pt-4 sm:pt-5 pb-4 sm:pb-6 px-3 sm:px-5 min-h-0 flex-1 overflow-y-auto">
             {loading ? (
