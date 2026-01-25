@@ -623,24 +623,32 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             </div>
             {/* Stats row */}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              {todayReservations.length > 0 && (
-                <>
-                  <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
-                    <Users className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-xs font-bold text-foreground">
-                      {todayReservations.reduce((sum, r) => sum + r.guests, 0)}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">guests</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
-                    <Clock className="h-3.5 w-3.5 text-accent" />
-                    <span className="text-xs font-bold text-foreground">
-                      {todayReservations.length}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">bookings</span>
-                  </div>
-                </>
-              )}
+              {todayReservations.length > 0 && (() => {
+                const activeReservations = todayReservations.filter(
+                  r => r.status !== 'cancelled' && r.dining_status !== 'cancelled' && r.dining_status !== 'no_show'
+                );
+                const totalGuests = activeReservations.reduce((sum, r) => sum + r.guests, 0);
+                const activeBookings = activeReservations.length;
+                
+                return (
+                  <>
+                    <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
+                      <Users className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-xs font-bold text-foreground">
+                        {totalGuests}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">total guests</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
+                      <Clock className="h-3.5 w-3.5 text-accent" />
+                      <span className="text-xs font-bold text-foreground">
+                        {activeBookings}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">bookings</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
             
             {/* Table Status Section */}
