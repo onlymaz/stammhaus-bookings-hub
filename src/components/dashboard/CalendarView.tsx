@@ -697,9 +697,19 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           setDetailDialogOpen(true);
                         }}
                       >
-                        <span className="font-semibold block text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
-                          {res.customer?.name || "Guest"}
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
+                            {res.customer?.name || "Guest"}
+                          </span>
+                          {slotActive && (
+                            <Badge className="badge-in-progress text-[10px] px-1.5 py-0.5">
+                              LIVE
+                            </Badge>
+                          )}
+                          <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2")}>
+                            {res.status}
+                          </Badge>
+                        </div>
                         {res.customer?.phone && (
                           <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                             <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -707,15 +717,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        {slotActive && (
-                          <Badge className="badge-in-progress whitespace-nowrap">
-                            LIVE
-                          </Badge>
-                        )}
-                        <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 whitespace-nowrap")}>
-                          {res.status}
-                        </Badge>
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                         <Button
                           variant="ghost"
                           size="icon"
