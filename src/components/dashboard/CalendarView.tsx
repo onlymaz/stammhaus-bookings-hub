@@ -562,6 +562,50 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
   return (
     <div className="w-full">
+      {/* Tab Navigation - At the top */}
+      <div className="flex items-center gap-2 mb-4">
+        <Button
+          variant={activeTab === "bookings" ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setActiveTab("bookings")}
+          className={cn(
+            "gap-2 rounded-lg",
+            activeTab === "bookings" && "shadow-md"
+          )}
+        >
+          <BookOpen className="h-4 w-4" />
+          Bookings
+        </Button>
+        
+        <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant={activeTab === "calendar" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("calendar")}
+              className={cn(
+                "gap-2 rounded-lg",
+                activeTab === "calendar" && "shadow-md"
+              )}
+            >
+              <CalendarDays className="h-4 w-4" />
+              Calendar
+              <ChevronDown className={cn(
+                "h-3 w-3 transition-transform",
+                calendarPopoverOpen && "rotate-180"
+              )} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-[380px] p-4 z-[100] bg-card border border-border shadow-2xl" 
+            align="start"
+            sideOffset={8}
+          >
+            {renderCalendarContent()}
+          </PopoverContent>
+        </Popover>
+      </div>
+
       {/* Full Width Reservation Panel */}
       <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)] overflow-hidden">
         <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10">
@@ -625,50 +669,6 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             selectedDate={selectedDate} 
             refreshTrigger={tableStatusRefresh} 
           />
-
-          {/* Tab Navigation */}
-          <div className="flex items-center gap-2 mt-4 border-t border-border/30 pt-4">
-            <Button
-              variant={activeTab === "bookings" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab("bookings")}
-              className={cn(
-                "gap-2 rounded-lg",
-                activeTab === "bookings" && "shadow-md"
-              )}
-            >
-              <BookOpen className="h-4 w-4" />
-              Bookings
-            </Button>
-            
-            <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={activeTab === "calendar" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("calendar")}
-                  className={cn(
-                    "gap-2 rounded-lg",
-                    activeTab === "calendar" && "shadow-md"
-                  )}
-                >
-                  <CalendarDays className="h-4 w-4" />
-                  Calendar
-                  <ChevronDown className={cn(
-                    "h-3 w-3 transition-transform",
-                    calendarPopoverOpen && "rotate-180"
-                  )} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent 
-                className="w-[380px] p-4 z-[100] bg-card border border-border shadow-2xl" 
-                align="start"
-                sideOffset={8}
-              >
-                {renderCalendarContent()}
-              </PopoverContent>
-            </Popover>
-          </div>
         </CardHeader>
 
         <CardContent className="pt-5 pb-6 px-4 sm:px-6 min-h-0 flex-1 overflow-y-auto">
