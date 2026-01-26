@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, ChevronDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -91,6 +91,9 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   
   // Refresh trigger for table status
   const [tableStatusRefresh, setTableStatusRefresh] = useState(0);
+  
+  // Customer search state
+  const [customerSearch, setCustomerSearch] = useState("");
   
   // Current time for "in progress" detection (updates every minute)
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -658,6 +661,30 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             />
           </CardHeader>
           <CardContent className="pt-4 sm:pt-5 pb-4 sm:pb-6 px-3 sm:px-5 min-h-0 flex-1 overflow-y-auto">
+            {/* Customer Search */}
+            {todayReservations.length > 0 && (
+              <div className="relative mb-3">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search customer..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className="pl-8 h-8 text-xs"
+                />
+                {customerSearch && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                    onClick={() => setCustomerSearch("")}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            )}
+            
             {loading ? (
               <div className="py-8 sm:py-12 text-center">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4 animate-pulse">
@@ -680,9 +707,25 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                   Create First Reservation
                 </Button>
               </div>
-            ) : (
+            ) : (() => {
+              const filteredReservations = customerSearch.trim()
+                ? todayReservations.filter(r => 
+                    r.customer?.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                    r.customer?.phone?.toLowerCase().includes(customerSearch.toLowerCase())
+                  )
+                : todayReservations;
+              
+              if (filteredReservations.length === 0) {
+                return (
+                  <div className="py-6 text-center">
+                    <p className="text-sm text-muted-foreground">No matching customers found</p>
+                  </div>
+                );
+              }
+              
+              return (
               <div className="space-y-2 sm:space-y-3">
-                {todayReservations.map((res) => {
+                {filteredReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
                   const slotPast = isReservationPast(res);
                   return (
@@ -866,7 +909,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                   );
                 })}
               </div>
-            )}
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
