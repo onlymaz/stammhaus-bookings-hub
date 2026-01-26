@@ -735,7 +735,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               }
               
               return (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
                   const slotPast = isReservationPast(res);
@@ -743,7 +743,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                   <div
                     key={res.id}
                     className={cn(
-                      "p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group",
+                      "p-3 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-md relative overflow-hidden group",
                       slotActive 
                         ? "reservation-in-progress" 
                         : slotPast
