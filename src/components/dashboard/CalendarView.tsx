@@ -345,287 +345,37 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-      {/* Calendar View */}
-      <div className="lg:flex-[2] min-w-0 lg:pr-[340px]">
-        <Card className="card-elevated border-0 shadow-2xl">
-          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 sm:pb-6 pt-4 sm:pt-6 px-4 sm:px-6 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="font-display text-lg sm:text-2xl font-bold tracking-tight">
-                  {viewMode === "month" 
-                    ? format(currentMonth, "MMMM yyyy")
-                    : format(weekStart, "MMMM yyyy")
-                  }
-                </CardTitle>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {reservations.length} reservations this {viewMode}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-              {/* View Toggle */}
-              <div className="flex items-center bg-secondary/60 rounded-lg sm:rounded-xl p-1 sm:p-1.5 shadow-inner">
-                <Button
-                  variant={viewMode === "week" ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "h-8 sm:h-9 px-2 sm:px-4 rounded-md sm:rounded-lg transition-all duration-300 text-xs sm:text-sm",
-                    viewMode === "week" && "shadow-md"
-                  )}
-                  onClick={() => setViewMode("week")}
-                >
-                  <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Week</span>
-                </Button>
-                <Button
-                  variant={viewMode === "month" ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "h-8 sm:h-9 px-2 sm:px-4 rounded-md sm:rounded-lg transition-all duration-300 text-xs sm:text-sm",
-                    viewMode === "month" && "shadow-md"
-                  )}
-                  onClick={() => setViewMode("month")}
-                >
-                  <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Month</span>
-                </Button>
-              </div>
-
-              <div className="flex items-center bg-secondary/40 rounded-lg sm:rounded-xl p-0.5 sm:p-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-md sm:rounded-lg h-8 w-8 sm:h-9 sm:w-9 hover:bg-secondary"
-                  onClick={() => {
-                    if (viewMode === "week") {
-                      setWeekStart(addDays(weekStart, -7));
-                    } else {
-                      setCurrentMonth(addMonths(currentMonth, -1));
-                    }
-                  }}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-md sm:rounded-lg px-2 sm:px-4 h-8 sm:h-9 hover:bg-secondary font-medium text-xs sm:text-sm"
-                  onClick={() => {
-                    const today = new Date();
-                    if (viewMode === "week") {
-                      setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
-                    } else {
-                      setCurrentMonth(today);
-                    }
-                    setSelectedDate(today);
-                  }}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-md sm:rounded-lg h-8 w-8 sm:h-9 sm:w-9 hover:bg-secondary"
-                  onClick={() => {
-                    if (viewMode === "week") {
-                      setWeekStart(addDays(weekStart, 7));
-                    } else {
-                      setCurrentMonth(addMonths(currentMonth, 1));
-                    }
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            {viewMode === "week" ? (
-              /* Week View */
-              <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                {weekDays.map((day) => {
-                  const dayReservations = getReservationsForDate(day);
-                  const totalGuests = getTotalGuestsForDate(day);
-                  const isSelected = isSameDay(day, selectedDate);
-                  const isToday = isSameDay(day, new Date());
-
-                  return (
-                    <button
-                      key={day.toISOString()}
-                      onClick={() => setSelectedDate(day)}
-                      className={cn(
-                        "p-1.5 sm:p-3 rounded-lg text-left transition-all min-h-[70px] sm:min-h-[120px] border",
-                        isSelected
-                          ? "bg-primary/10 border-primary"
-                          : "bg-card border-border hover:border-primary/50",
-                        isToday && !isSelected && "ring-2 ring-accent ring-offset-1 sm:ring-offset-2"
-                      )}
-                    >
-                      <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-0.5 sm:gap-0 mb-1 sm:mb-2">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">
-                          {format(day, "EEE")}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-xs sm:text-sm font-medium",
-                            isToday && "text-accent"
-                          )}
-                        >
-                          {format(day, "d")}
-                        </span>
-                      </div>
-                      {dayReservations.length > 0 && (
-                        <div className="space-y-0.5 sm:space-y-1">
-                          <div className="text-[9px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
-                            <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                            <span className="hidden sm:inline">{totalGuests} guests</span>
-                            <span className="sm:hidden">{totalGuests}</span>
-                          </div>
-                          <div className="hidden sm:block space-y-1">
-                            {dayReservations.slice(0, 2).map((res) => (
-                              <div
-                                key={res.id}
-                                className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate"
-                              >
-                                {res.reservation_time.slice(0, 5)} · {res.guests}p
-                              </div>
-                            ))}
-                            {dayReservations.length > 2 && (
-                              <div className="text-xs text-muted-foreground">
-                                +{dayReservations.length - 2} more
-                              </div>
-                            )}
-                          </div>
-                          <div className="sm:hidden text-[9px] text-center font-medium text-primary">
-                            {dayReservations.length}
-                          </div>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              /* Month View */
-              <div>
-                {/* Weekday headers */}
-                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <div key={day} className="text-center text-[10px] sm:text-xs font-semibold text-muted-foreground py-1 sm:py-2 uppercase tracking-wide">
-                      <span className="hidden sm:inline">{day}</span>
-                      <span className="sm:hidden">{day.charAt(0)}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                  {monthDays.map((day, index) => {
-                  if (!day) {
-                      return <div key={`empty-${index}`} className="min-h-[60px] sm:min-h-[90px]" />;
-                    }
-
-                    const dayReservations = getReservationsForDate(day);
-                    const totalGuests = getTotalGuestsForDate(day);
-                    const isSelected = isSameDay(day, selectedDate);
-                    const isToday = isSameDay(day, new Date());
-                    const isCurrentMonth = isSameMonth(day, currentMonth);
-
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        onClick={() => setSelectedDate(day)}
-                        className={cn(
-                          "p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-left transition-all duration-300 min-h-[60px] sm:min-h-[100px] border-2 bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 hover:shadow-lg cursor-pointer relative overflow-hidden",
-                          isSelected && "bg-gradient-to-br from-primary/10 to-primary/20 border-primary shadow-lg shadow-primary/10",
-                          isToday && !isSelected && "ring-2 ring-accent ring-offset-1 sm:ring-offset-2 ring-offset-background shadow-lg shadow-accent/20",
-                          !isCurrentMonth && "opacity-40"
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-0.5 sm:mb-1.5">
-                          <span
-                            className={cn(
-                              "text-xs sm:text-sm font-semibold",
-                              isToday && "text-accent",
-                              isSelected && "text-primary"
-                            )}
-                          >
-                            {format(day, "d")}
-                          </span>
-                          {dayReservations.length > 0 && (
-                            <Badge variant="secondary" className="text-[8px] sm:text-[10px] h-4 sm:h-5 px-1 sm:px-1.5 font-semibold bg-primary/10 text-primary">
-                              {dayReservations.length}
-                            </Badge>
-                          )}
-                        </div>
-                        {dayReservations.length > 0 && (
-                          <div className="space-y-0.5 sm:space-y-1">
-                            <div className="text-[9px] sm:text-[10px] text-muted-foreground flex items-center gap-0.5 sm:gap-1 font-medium">
-                              <Users className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
-                              <span className="hidden sm:inline">{totalGuests} guests</span>
-                              <span className="sm:hidden">{totalGuests}</span>
-                            </div>
-                            <div className="hidden sm:block space-y-1">
-                              {dayReservations.slice(0, 2).map((res) => (
-                                <div
-                                  key={res.id}
-                                  className="reservation-chip"
-                                >
-                                  {res.reservation_time.slice(0, 5)} · {res.guests}p
-                                </div>
-                              ))}
-                              {dayReservations.length > 2 && (
-                                <div className="text-[10px] text-muted-foreground font-medium">
-                                  +{dayReservations.length - 2} more
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Day Detail - Fixed on desktop */}
-      <div className="lg:fixed lg:right-6 lg:top-[88px] lg:w-[320px] lg:h-[calc(100vh-104px)] z-40">
-        <Card className="card-elevated border-0 shadow-2xl flex flex-col h-full max-h-[60vh] lg:max-h-full overflow-hidden">
-          <CardHeader className="pb-2 pt-3 px-3 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
-                  <span className="text-primary-foreground font-bold text-lg">
+      {/* Day Detail Panel - Main View (Left/First) */}
+      <div className="lg:flex-[3] min-w-0 order-2 lg:order-1">
+        <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)]">
+          <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <span className="text-primary-foreground font-bold text-2xl">
                     {format(selectedDate, "d")}
                   </span>
                 </div>
                 <div>
-                  <CardTitle className="font-display text-base font-bold tracking-tight leading-tight">
+                  <CardTitle className="font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight">
                     {format(selectedDate, "EEEE")}
                   </CardTitle>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {format(selectedDate, "MMMM yyyy")}
                   </p>
                 </div>
               </div>
               <Button 
-                size="sm" 
+                size="default" 
                 onClick={onCreateReservation} 
-                className="gap-1.5 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent text-xs px-2 h-8"
+                className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Add</span>
+                <Plus className="h-4 w-4" />
+                <span>Add</span>
               </Button>
             </div>
             {/* Stats row */}
-            <div className="flex flex-wrap items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-3 mt-3">
               {todayReservations.length > 0 && (() => {
                 const activeReservations = todayReservations.filter(
                   r => r.status !== 'cancelled' && r.dining_status !== 'cancelled' && r.dining_status !== 'no_show'
@@ -635,19 +385,19 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 
                 return (
                   <>
-                    <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
-                      <Users className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-xs font-bold text-foreground">
+                    <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-bold text-foreground">
                         {totalGuests}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">total guests</span>
+                      <span className="text-xs text-muted-foreground">total guests</span>
                     </div>
-                    <div className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-muted/60">
-                      <Clock className="h-3.5 w-3.5 text-accent" />
-                      <span className="text-xs font-bold text-foreground">
+                    <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
+                      <Clock className="h-4 w-4 text-accent" />
+                      <span className="text-sm font-bold text-foreground">
                         {activeBookings}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">bookings</span>
+                      <span className="text-xs text-muted-foreground">bookings</span>
                     </div>
                   </>
                 );
@@ -660,50 +410,50 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               refreshTrigger={tableStatusRefresh} 
             />
           </CardHeader>
-          <CardContent className="pt-4 sm:pt-5 pb-4 sm:pb-6 px-3 sm:px-5 min-h-0 flex-1 overflow-y-auto">
+          <CardContent className="pt-5 pb-6 px-4 sm:px-6 min-h-0 flex-1 overflow-y-auto">
             {/* Customer Search */}
             {todayReservations.length > 0 && (
-              <div className="relative mb-3">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <div className="relative mb-4 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search customer..."
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="pl-8 h-8 text-xs"
+                  className="pl-10 h-10"
                 />
                 {customerSearch && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                     onClick={() => setCustomerSearch("")}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             )}
             
             {loading ? (
-              <div className="py-8 sm:py-12 text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4 animate-pulse">
-                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div className="py-12 text-center">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Clock className="h-7 w-7 text-primary" />
                 </div>
-                <p className="text-sm sm:text-base text-muted-foreground">Loading reservations...</p>
+                <p className="text-base text-muted-foreground">Loading reservations...</p>
               </div>
             ) : todayReservations.length === 0 ? (
-              <div className="py-8 sm:py-12 text-center">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-inner">
-                  <CalendarDays className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/60" />
+              <div className="py-16 text-center">
+                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                  <CalendarDays className="h-12 w-12 text-muted-foreground/60" />
                 </div>
-                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-5 font-medium">No reservations yet</p>
+                <p className="text-lg text-muted-foreground mb-6 font-medium">No reservations yet</p>
                 <Button 
                   variant="outline" 
                   onClick={onCreateReservation} 
-                  className="gap-2 px-4 sm:px-6 shadow-md hover:shadow-lg transition-all duration-300 border-2 text-xs sm:text-sm"
+                  className="gap-2 px-8 shadow-md hover:shadow-lg transition-all duration-300 border-2"
                 >
-                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <Plus className="h-4 w-4" />
                   Create First Reservation
                 </Button>
               </div>
@@ -717,14 +467,14 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               
               if (filteredReservations.length === 0) {
                 return (
-                  <div className="py-6 text-center">
-                    <p className="text-sm text-muted-foreground">No matching customers found</p>
+                  <div className="py-8 text-center">
+                    <p className="text-base text-muted-foreground">No matching customers found</p>
                   </div>
                 );
               }
               
               return (
-              <div className="space-y-2 sm:space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
                   const slotPast = isReservationPast(res);
@@ -732,7 +482,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                   <div
                     key={res.id}
                     className={cn(
-                      "p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group",
+                      "p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group",
                       slotActive 
                         ? "reservation-in-progress" 
                         : slotPast
@@ -740,7 +490,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                           : "border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50"
                     )}
                   >
-                    <div className="flex items-start justify-between mb-1.5 sm:mb-2">
+                    <div className="flex items-start justify-between mb-2">
                       <div 
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => {
@@ -749,7 +499,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         }}
                       >
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
+                          <span className="font-semibold text-base text-foreground group-hover:text-primary transition-colors truncate">
                             {res.customer?.name || "Guest"}
                           </span>
                           {slotActive && (
@@ -757,13 +507,13 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                               LIVE
                             </Badge>
                           )}
-                          <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2")}>
+                          <Badge className={cn(getStatusBadgeClass(res.status), "text-xs font-medium px-2")}>
                             {res.status}
                           </Badge>
                         </div>
                         {res.customer?.phone && (
-                          <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                            <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <Phone className="h-3 w-3" />
                             {res.customer.phone}
                           </span>
                         )}
@@ -772,42 +522,42 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
                           onClick={(e) => {
                             e.stopPropagation();
                             setReservationToEdit(res);
                             setEditDialogOpen(true);
                           }}
                         >
-                          <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                           onClick={(e) => {
                             e.stopPropagation();
                             setReservationToDelete(res);
                             setDeleteDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                     <div 
-                      className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground cursor-pointer"
+                      className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer"
                       onClick={() => {
                         setSelectedReservation(res);
                         setDetailDialogOpen(true);
                       }}
                     >
-                      <span className="flex items-center gap-1 sm:gap-1.5 bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs">
-                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded text-xs">
+                        <Clock className="h-3 w-3" />
                         {res.reservation_time.slice(0, 5)}
                       </span>
-                      <span className="flex items-center gap-1 sm:gap-1.5 bg-muted/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs">
-                        <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded text-xs">
+                        <Users className="h-3 w-3" />
                         {res.guests} guests
                       </span>
                     </div>
@@ -826,39 +576,39 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
                     {/* Staff Note Section - Inline Editable */}
                     {editingNoteId === res.id ? (
-                      <div className="mt-2 sm:mt-3 space-y-2">
+                      <div className="mt-3 space-y-2">
                         <Textarea
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           placeholder="Add staff note..."
-                          className="text-[10px] sm:text-xs min-h-[50px] sm:min-h-[60px] resize-none"
+                          className="text-xs min-h-[60px] resize-none"
                           autoFocus
                         />
-                        <div className="flex items-center gap-1.5 sm:gap-2 justify-end">
+                        <div className="flex items-center gap-2 justify-end">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-xs"
+                            className="h-7 px-2 text-xs"
                             onClick={cancelEditingNote}
                             disabled={isSavingNote}
                           >
-                            <X className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                            <X className="h-3 w-3 mr-1" />
                             Cancel
                           </Button>
                           <Button
                             size="sm"
-                            className="h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-xs"
+                            className="h-7 px-2 text-xs"
                             onClick={() => handleSaveNote(res.id)}
                             disabled={isSavingNote}
                           >
-                            <Save className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                            <Save className="h-3 w-3 mr-1" />
                             {isSavingNote ? "Saving..." : "Save"}
                           </Button>
                         </div>
                       </div>
                     ) : res.notes ? (
                       <div 
-                        className="mt-2 sm:mt-3 text-xs sm:text-sm staff-note-box cursor-pointer group/note relative"
+                        className="mt-3 text-sm staff-note-box cursor-pointer group/note relative"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
@@ -869,33 +619,33 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 sm:h-7 sm:w-7 absolute top-1.5 right-1.5 sm:opacity-0 sm:group-hover/note:opacity-100 transition-opacity text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50"
+                          className="h-7 w-7 absolute top-1.5 right-1.5 opacity-0 group-hover/note:opacity-100 transition-opacity text-accent-foreground hover:bg-accent/20"
                           onClick={(e) => {
                             e.stopPropagation();
                             startEditingNote(res);
                           }}
                         >
-                          <Edit2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     ) : (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="mt-1.5 sm:mt-2 h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-xs text-muted-foreground sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                        className="mt-2 h-7 px-2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
                         }}
                       >
-                        <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                        <Plus className="h-3 w-3 mr-1" />
                         Add Staff Note
                       </Button>
                     )}
 
                     {res.special_requests && (
                       <div 
-                        className="mt-2 sm:mt-3 text-xs sm:text-sm request-box cursor-pointer"
+                        className="mt-3 text-sm request-box cursor-pointer"
                         onClick={() => {
                           setSelectedReservation(res);
                           setDetailDialogOpen(true);
@@ -911,6 +661,220 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               </div>
               );
             })()}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Calendar View - Smaller Column (Right/Second) */}
+      <div className="lg:w-[380px] xl:w-[420px] flex-shrink-0 order-1 lg:order-2">
+        <Card className="card-elevated border-0 shadow-2xl sticky top-[88px]">
+          <CardHeader className="flex flex-col gap-3 pb-3 pt-4 px-4 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <CalendarDays className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="font-display text-lg font-bold tracking-tight">
+                  {viewMode === "month" 
+                    ? format(currentMonth, "MMMM yyyy")
+                    : format(weekStart, "MMMM yyyy")
+                  }
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {reservations.length} reservations this {viewMode}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              {/* View Toggle */}
+              <div className="flex items-center bg-secondary/60 rounded-lg p-1 shadow-inner">
+                <Button
+                  variant={viewMode === "week" ? "default" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "h-7 px-2.5 rounded-md transition-all duration-300 text-xs",
+                    viewMode === "week" && "shadow-md"
+                  )}
+                  onClick={() => setViewMode("week")}
+                >
+                  <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                  Week
+                </Button>
+                <Button
+                  variant={viewMode === "month" ? "default" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "h-7 px-2.5 rounded-md transition-all duration-300 text-xs",
+                    viewMode === "month" && "shadow-md"
+                  )}
+                  onClick={() => setViewMode("month")}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
+                  Month
+                </Button>
+              </div>
+
+              <div className="flex items-center bg-secondary/40 rounded-lg p-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-md h-7 w-7 hover:bg-secondary"
+                  onClick={() => {
+                    if (viewMode === "week") {
+                      setWeekStart(addDays(weekStart, -7));
+                    } else {
+                      setCurrentMonth(addMonths(currentMonth, -1));
+                    }
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-md px-2.5 h-7 hover:bg-secondary font-medium text-xs"
+                  onClick={() => {
+                    const today = new Date();
+                    if (viewMode === "week") {
+                      setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
+                    } else {
+                      setCurrentMonth(today);
+                    }
+                    setSelectedDate(today);
+                  }}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-md h-7 w-7 hover:bg-secondary"
+                  onClick={() => {
+                    if (viewMode === "week") {
+                      setWeekStart(addDays(weekStart, 7));
+                    } else {
+                      setCurrentMonth(addMonths(currentMonth, 1));
+                    }
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-3">
+            {viewMode === "week" ? (
+              /* Week View */
+              <div className="grid grid-cols-7 gap-1">
+                {weekDays.map((day) => {
+                  const dayReservations = getReservationsForDate(day);
+                  const totalGuests = getTotalGuestsForDate(day);
+                  const isSelected = isSameDay(day, selectedDate);
+                  const isToday = isSameDay(day, new Date());
+
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => setSelectedDate(day)}
+                      className={cn(
+                        "p-1.5 rounded-lg text-center transition-all min-h-[70px] border",
+                        isSelected
+                          ? "bg-primary/10 border-primary"
+                          : "bg-card border-border hover:border-primary/50",
+                        isToday && !isSelected && "ring-2 ring-accent ring-offset-1"
+                      )}
+                    >
+                      <div className="text-[10px] text-muted-foreground">
+                        {format(day, "EEE")}
+                      </div>
+                      <div
+                        className={cn(
+                          "text-sm font-semibold",
+                          isToday && "text-accent",
+                          isSelected && "text-primary"
+                        )}
+                      >
+                        {format(day, "d")}
+                      </div>
+                      {dayReservations.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          <div className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5">
+                            <Users className="h-2.5 w-2.5" />
+                            {totalGuests}
+                          </div>
+                          <Badge variant="secondary" className="text-[8px] h-4 px-1 font-semibold">
+                            {dayReservations.length}
+                          </Badge>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Month View */
+              <div>
+                {/* Weekday headers */}
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
+                    <div key={i} className="text-center text-[10px] font-semibold text-muted-foreground py-1 uppercase">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {monthDays.map((day, index) => {
+                  if (!day) {
+                      return <div key={`empty-${index}`} className="min-h-[44px]" />;
+                    }
+
+                    const dayReservations = getReservationsForDate(day);
+                    const totalGuests = getTotalGuestsForDate(day);
+                    const isSelected = isSameDay(day, selectedDate);
+                    const isToday = isSameDay(day, new Date());
+                    const isCurrentMonth = isSameMonth(day, currentMonth);
+
+                    return (
+                      <button
+                        key={day.toISOString()}
+                        onClick={() => setSelectedDate(day)}
+                        className={cn(
+                          "p-1 rounded-lg text-center transition-all duration-300 min-h-[44px] border bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 cursor-pointer relative",
+                          isSelected && "bg-gradient-to-br from-primary/10 to-primary/20 border-primary shadow-md",
+                          isToday && !isSelected && "ring-2 ring-accent ring-offset-1 ring-offset-background",
+                          !isCurrentMonth && "opacity-40"
+                        )}
+                      >
+                        <div className="flex items-center justify-between px-0.5">
+                          <span
+                            className={cn(
+                              "text-xs font-semibold",
+                              isToday && "text-accent",
+                              isSelected && "text-primary"
+                            )}
+                          >
+                            {format(day, "d")}
+                          </span>
+                          {dayReservations.length > 0 && (
+                            <Badge variant="secondary" className="text-[8px] h-4 min-w-4 px-1 font-bold bg-primary/10 text-primary">
+                              {dayReservations.length}
+                            </Badge>
+                          )}
+                        </div>
+                        {dayReservations.length > 0 && (
+                          <div className="text-[8px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
+                            <Users className="h-2 w-2" />
+                            {totalGuests}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
