@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Gauge, Table2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
@@ -497,20 +497,9 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-6">
-        <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="mb-6 bg-secondary/50 p-1">
-            <TabsTrigger value="calendar" className="gap-2 data-[state=active]:shadow-sm">
-              <Calendar className="h-4 w-4" />
-              Calendar
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="calendar" className="animate-fade-in">
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-              <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} refreshTrigger={calendarRefresh} />
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
+          <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} refreshTrigger={calendarRefresh} />
+        </div>
       </main>
 
       <CreateReservationDialog 
