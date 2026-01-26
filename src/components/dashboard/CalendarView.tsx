@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, ChevronDown, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Users, Clock, CalendarDays, LayoutGrid, Phone, Trash2, Edit2, Save, X, ChevronDown, Search, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -28,6 +28,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
@@ -68,6 +73,7 @@ interface CalendarViewProps {
 }
 
 type ViewMode = "week" | "month";
+type ActiveTab = "bookings" | "calendar";
 
 export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger }: CalendarViewProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -83,6 +89,10 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [isDeleting, setIsDeleting] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [reservationToEdit, setReservationToEdit] = useState<Reservation | null>(null);
+  
+  // Active tab state
+  const [activeTab, setActiveTab] = useState<ActiveTab>("bookings");
+  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
   
   // Staff note inline editing state
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -343,97 +353,348 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
   const monthDays = getMonthDays();
 
-  return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-      {/* Day Detail Panel - Main View (Left/First) */}
-      <div className="lg:flex-[3] min-w-0 order-2 lg:order-1">
-        <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)] overflow-hidden">
-          <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
-                  <span className="text-primary-foreground font-bold text-2xl">
-                    {format(selectedDate, "d")}
-                  </span>
-                </div>
-                <div>
-                  <CardTitle className="font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight">
-                    {format(selectedDate, "EEEE")}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {format(selectedDate, "MMMM yyyy")}
-                  </p>
-                </div>
-              </div>
-              <Button 
-                size="default" 
-                onClick={onCreateReservation} 
-                className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add</span>
-              </Button>
-            </div>
-            {/* Stats row */}
-            <div className="flex flex-wrap items-center gap-3 mt-3">
-              {todayReservations.length > 0 && (() => {
-                const activeReservations = todayReservations.filter(
-                  r => r.status !== 'cancelled' && r.dining_status !== 'cancelled' && r.dining_status !== 'no_show'
-                );
-                const totalGuests = activeReservations.reduce((sum, r) => sum + r.guests, 0);
-                const activeBookings = activeReservations.length;
-                
-                return (
-                  <>
-                    <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
-                      <Users className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-bold text-foreground">
-                        {totalGuests}
-                      </span>
-                      <span className="text-xs text-muted-foreground">total guests</span>
-                    </div>
-                    <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
-                      <Clock className="h-4 w-4 text-accent" />
-                      <span className="text-sm font-bold text-foreground">
-                        {activeBookings}
-                      </span>
-                      <span className="text-xs text-muted-foreground">bookings</span>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-            
-            {/* Table Status Section */}
-            <TableStatusSection 
-              selectedDate={selectedDate} 
-              refreshTrigger={tableStatusRefresh} 
-            />
-          </CardHeader>
-          <CardContent className="pt-5 pb-6 px-4 sm:px-6 min-h-0 flex-1 overflow-y-auto">
-            {/* Customer Search */}
-            {todayReservations.length > 0 && (
-              <div className="relative mb-4 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search customer..."
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="pl-10 h-10"
-                />
-                {customerSearch && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                    onClick={() => setCustomerSearch("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+  // Calendar content for popover/dropdown
+  const renderCalendarContent = () => (
+    <div className="w-full">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        {/* View Toggle */}
+        <div className="flex items-center bg-secondary/60 rounded-lg p-1 shadow-inner">
+          <Button
+            variant={viewMode === "week" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "h-7 px-2.5 rounded-md transition-all duration-300 text-xs",
+              viewMode === "week" && "shadow-md"
             )}
+            onClick={() => setViewMode("week")}
+          >
+            <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+            Week
+          </Button>
+          <Button
+            variant={viewMode === "month" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "h-7 px-2.5 rounded-md transition-all duration-300 text-xs",
+              viewMode === "month" && "shadow-md"
+            )}
+            onClick={() => setViewMode("month")}
+          >
+            <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
+            Month
+          </Button>
+        </div>
+
+        <div className="flex items-center bg-secondary/40 rounded-lg p-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-md h-7 w-7 hover:bg-secondary"
+            onClick={() => {
+              if (viewMode === "week") {
+                setWeekStart(addDays(weekStart, -7));
+              } else {
+                setCurrentMonth(addMonths(currentMonth, -1));
+              }
+            }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-md px-2.5 h-7 hover:bg-secondary font-medium text-xs"
+            onClick={() => {
+              const today = new Date();
+              if (viewMode === "week") {
+                setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
+              } else {
+                setCurrentMonth(today);
+              }
+              setSelectedDate(today);
+            }}
+          >
+            Today
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-md h-7 w-7 hover:bg-secondary"
+            onClick={() => {
+              if (viewMode === "week") {
+                setWeekStart(addDays(weekStart, 7));
+              } else {
+                setCurrentMonth(addMonths(currentMonth, 1));
+              }
+            }}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {viewMode === "week" ? (
+        /* Week View */
+        <div className="grid grid-cols-7 gap-1">
+          {weekDays.map((day) => {
+            const dayReservations = getReservationsForDate(day);
+            const totalGuests = getTotalGuestsForDate(day);
+            const isSelected = isSameDay(day, selectedDate);
+            const isToday = isSameDay(day, new Date());
+
+            return (
+              <button
+                key={day.toISOString()}
+                onClick={() => {
+                  setSelectedDate(day);
+                  setActiveTab("bookings");
+                  setCalendarPopoverOpen(false);
+                }}
+                className={cn(
+                  "p-1.5 rounded-lg text-center transition-all min-h-[70px] border",
+                  isSelected
+                    ? "bg-primary/10 border-primary"
+                    : "bg-card border-border hover:border-primary/50",
+                  isToday && !isSelected && "ring-2 ring-accent ring-offset-1"
+                )}
+              >
+                <div className="text-[10px] text-muted-foreground">
+                  {format(day, "EEE")}
+                </div>
+                <div
+                  className={cn(
+                    "text-sm font-semibold",
+                    isToday && "text-accent",
+                    isSelected && "text-primary"
+                  )}
+                >
+                  {format(day, "d")}
+                </div>
+                {dayReservations.length > 0 && (
+                  <div className="mt-1 space-y-0.5">
+                    <div className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5">
+                      <Users className="h-2.5 w-2.5" />
+                      {totalGuests}
+                    </div>
+                    <Badge variant="secondary" className="text-[8px] h-4 px-1 font-semibold">
+                      {dayReservations.length}
+                    </Badge>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        /* Month View */
+        <div>
+          {/* Month title */}
+          <div className="text-center font-semibold text-sm mb-2">
+            {format(currentMonth, "MMMM yyyy")}
+          </div>
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
+              <div key={i} className="text-center text-[10px] font-semibold text-muted-foreground py-1 uppercase">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {monthDays.map((day, index) => {
+              if (!day) {
+                return <div key={`empty-${index}`} className="min-h-[40px]" />;
+              }
+
+              const dayReservations = getReservationsForDate(day);
+              const totalGuests = getTotalGuestsForDate(day);
+              const isSelected = isSameDay(day, selectedDate);
+              const isToday = isSameDay(day, new Date());
+              const isCurrentMonth = isSameMonth(day, currentMonth);
+
+              return (
+                <button
+                  key={day.toISOString()}
+                  onClick={() => {
+                    setSelectedDate(day);
+                    setActiveTab("bookings");
+                    setCalendarPopoverOpen(false);
+                  }}
+                  className={cn(
+                    "p-1 rounded-lg text-center transition-all duration-300 min-h-[40px] border bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 cursor-pointer relative",
+                    isSelected && "bg-gradient-to-br from-primary/10 to-primary/20 border-primary shadow-md",
+                    isToday && !isSelected && "ring-2 ring-accent ring-offset-1 ring-offset-background",
+                    !isCurrentMonth && "opacity-40"
+                  )}
+                >
+                  <div className="flex items-center justify-between px-0.5">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        isToday && "text-accent",
+                        isSelected && "text-primary"
+                      )}
+                    >
+                      {format(day, "d")}
+                    </span>
+                    {dayReservations.length > 0 && (
+                      <Badge variant="secondary" className="text-[8px] h-4 min-w-4 px-1 font-bold bg-primary/10 text-primary">
+                        {dayReservations.length}
+                      </Badge>
+                    )}
+                  </div>
+                  {dayReservations.length > 0 && (
+                    <div className="text-[8px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
+                      <Users className="h-2 w-2" />
+                      {totalGuests}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="w-full">
+      {/* Full Width Reservation Panel */}
+      <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)] overflow-hidden">
+        <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
+                <span className="text-primary-foreground font-bold text-2xl">
+                  {format(selectedDate, "d")}
+                </span>
+              </div>
+              <div>
+                <CardTitle className="font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight">
+                  {format(selectedDate, "EEEE")}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {format(selectedDate, "MMMM yyyy")}
+                </p>
+              </div>
+            </div>
+            <Button 
+              size="default" 
+              onClick={onCreateReservation} 
+              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add</span>
+            </Button>
+          </div>
+          {/* Stats row */}
+          <div className="flex flex-wrap items-center gap-3 mt-3">
+            {todayReservations.length > 0 && (() => {
+              const activeReservations = todayReservations.filter(
+                r => r.status !== 'cancelled' && r.dining_status !== 'cancelled' && r.dining_status !== 'no_show'
+              );
+              const totalGuests = activeReservations.reduce((sum, r) => sum + r.guests, 0);
+              const activeBookings = activeReservations.length;
+              
+              return (
+                <>
+                  <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-bold text-foreground">
+                      {totalGuests}
+                    </span>
+                    <span className="text-xs text-muted-foreground">total guests</span>
+                  </div>
+                  <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
+                    <Clock className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-bold text-foreground">
+                      {activeBookings}
+                    </span>
+                    <span className="text-xs text-muted-foreground">bookings</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+          
+          {/* Table Status Section */}
+          <TableStatusSection 
+            selectedDate={selectedDate} 
+            refreshTrigger={tableStatusRefresh} 
+          />
+
+          {/* Tab Navigation */}
+          <div className="flex items-center gap-2 mt-4 border-t border-border/30 pt-4">
+            <Button
+              variant={activeTab === "bookings" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("bookings")}
+              className={cn(
+                "gap-2 rounded-lg",
+                activeTab === "bookings" && "shadow-md"
+              )}
+            >
+              <BookOpen className="h-4 w-4" />
+              Bookings
+            </Button>
+            
+            <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={activeTab === "calendar" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setActiveTab("calendar")}
+                  className={cn(
+                    "gap-2 rounded-lg",
+                    activeTab === "calendar" && "shadow-md"
+                  )}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Calendar
+                  <ChevronDown className={cn(
+                    "h-3 w-3 transition-transform",
+                    calendarPopoverOpen && "rotate-180"
+                  )} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-[380px] p-4 z-[100] bg-card border border-border shadow-2xl" 
+                align="start"
+                sideOffset={8}
+              >
+                {renderCalendarContent()}
+              </PopoverContent>
+            </Popover>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-5 pb-6 px-4 sm:px-6 min-h-0 flex-1 overflow-y-auto">
+          {/* Customer Search */}
+          {todayReservations.length > 0 && (
+            <div className="relative mb-4 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search customer..."
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
+                className="pl-10 h-10"
+              />
+              {customerSearch && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={() => setCustomerSearch("")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
             
             {loading ? (
               <div className="py-12 text-center">
@@ -663,221 +924,6 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
             })()}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Calendar View - Smaller Column (Right/Second) */}
-      <div className="lg:w-[380px] xl:w-[420px] flex-shrink-0 order-1 lg:order-2">
-        <Card className="card-elevated border-0 shadow-2xl sticky top-[88px]">
-          <CardHeader className="flex flex-col gap-3 pb-3 pt-4 px-4 bg-gradient-to-r from-card via-card to-secondary/40 border-b border-border/30">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <CalendarDays className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="font-display text-lg font-bold tracking-tight">
-                  {viewMode === "month" 
-                    ? format(currentMonth, "MMMM yyyy")
-                    : format(weekStart, "MMMM yyyy")
-                  }
-                </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {reservations.length} reservations this {viewMode}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              {/* View Toggle */}
-              <div className="flex items-center bg-secondary/60 rounded-lg p-1 shadow-inner">
-                <Button
-                  variant={viewMode === "week" ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "h-7 px-2.5 rounded-md transition-all duration-300 text-xs",
-                    viewMode === "week" && "shadow-md"
-                  )}
-                  onClick={() => setViewMode("week")}
-                >
-                  <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                  Week
-                </Button>
-                <Button
-                  variant={viewMode === "month" ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "h-7 px-2.5 rounded-md transition-all duration-300 text-xs",
-                    viewMode === "month" && "shadow-md"
-                  )}
-                  onClick={() => setViewMode("month")}
-                >
-                  <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
-                  Month
-                </Button>
-              </div>
-
-              <div className="flex items-center bg-secondary/40 rounded-lg p-0.5">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-md h-7 w-7 hover:bg-secondary"
-                  onClick={() => {
-                    if (viewMode === "week") {
-                      setWeekStart(addDays(weekStart, -7));
-                    } else {
-                      setCurrentMonth(addMonths(currentMonth, -1));
-                    }
-                  }}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-md px-2.5 h-7 hover:bg-secondary font-medium text-xs"
-                  onClick={() => {
-                    const today = new Date();
-                    if (viewMode === "week") {
-                      setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
-                    } else {
-                      setCurrentMonth(today);
-                    }
-                    setSelectedDate(today);
-                  }}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-md h-7 w-7 hover:bg-secondary"
-                  onClick={() => {
-                    if (viewMode === "week") {
-                      setWeekStart(addDays(weekStart, 7));
-                    } else {
-                      setCurrentMonth(addMonths(currentMonth, 1));
-                    }
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-3">
-            {viewMode === "week" ? (
-              /* Week View */
-              <div className="grid grid-cols-7 gap-1">
-                {weekDays.map((day) => {
-                  const dayReservations = getReservationsForDate(day);
-                  const totalGuests = getTotalGuestsForDate(day);
-                  const isSelected = isSameDay(day, selectedDate);
-                  const isToday = isSameDay(day, new Date());
-
-                  return (
-                    <button
-                      key={day.toISOString()}
-                      onClick={() => setSelectedDate(day)}
-                      className={cn(
-                        "p-1.5 rounded-lg text-center transition-all min-h-[70px] border",
-                        isSelected
-                          ? "bg-primary/10 border-primary"
-                          : "bg-card border-border hover:border-primary/50",
-                        isToday && !isSelected && "ring-2 ring-accent ring-offset-1"
-                      )}
-                    >
-                      <div className="text-[10px] text-muted-foreground">
-                        {format(day, "EEE")}
-                      </div>
-                      <div
-                        className={cn(
-                          "text-sm font-semibold",
-                          isToday && "text-accent",
-                          isSelected && "text-primary"
-                        )}
-                      >
-                        {format(day, "d")}
-                      </div>
-                      {dayReservations.length > 0 && (
-                        <div className="mt-1 space-y-0.5">
-                          <div className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5">
-                            <Users className="h-2.5 w-2.5" />
-                            {totalGuests}
-                          </div>
-                          <Badge variant="secondary" className="text-[8px] h-4 px-1 font-semibold">
-                            {dayReservations.length}
-                          </Badge>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              /* Month View */
-              <div>
-                {/* Weekday headers */}
-                <div className="grid grid-cols-7 gap-1 mb-1">
-                  {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
-                    <div key={i} className="text-center text-[10px] font-semibold text-muted-foreground py-1 uppercase">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-1">
-                  {monthDays.map((day, index) => {
-                  if (!day) {
-                      return <div key={`empty-${index}`} className="min-h-[44px]" />;
-                    }
-
-                    const dayReservations = getReservationsForDate(day);
-                    const totalGuests = getTotalGuestsForDate(day);
-                    const isSelected = isSameDay(day, selectedDate);
-                    const isToday = isSameDay(day, new Date());
-                    const isCurrentMonth = isSameMonth(day, currentMonth);
-
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        onClick={() => setSelectedDate(day)}
-                        className={cn(
-                          "p-1 rounded-lg text-center transition-all duration-300 min-h-[44px] border bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 cursor-pointer relative",
-                          isSelected && "bg-gradient-to-br from-primary/10 to-primary/20 border-primary shadow-md",
-                          isToday && !isSelected && "ring-2 ring-accent ring-offset-1 ring-offset-background",
-                          !isCurrentMonth && "opacity-40"
-                        )}
-                      >
-                        <div className="flex items-center justify-between px-0.5">
-                          <span
-                            className={cn(
-                              "text-xs font-semibold",
-                              isToday && "text-accent",
-                              isSelected && "text-primary"
-                            )}
-                          >
-                            {format(day, "d")}
-                          </span>
-                          {dayReservations.length > 0 && (
-                            <Badge variant="secondary" className="text-[8px] h-4 min-w-4 px-1 font-bold bg-primary/10 text-primary">
-                              {dayReservations.length}
-                            </Badge>
-                          )}
-                        </div>
-                        {dayReservations.length > 0 && (
-                          <div className="text-[8px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
-                            <Users className="h-2 w-2" />
-                            {totalGuests}
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Reservation Detail Dialog */}
       <ReservationDetailDialog
