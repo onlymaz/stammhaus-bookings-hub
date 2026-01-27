@@ -465,7 +465,9 @@ export const InlineTableAssignment = ({
     <div 
       className={cn(
         "mt-2 sm:mt-3 flex items-center gap-2 cursor-pointer group/table",
-        hasAssignedTables ? "px-2 py-1.5 rounded-md bg-primary/10 border border-primary/20" : ""
+        hasAssignedTables 
+          ? "px-3 py-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 shadow-sm" 
+          : ""
       )}
       onClick={(e) => {
         e.stopPropagation();
@@ -473,31 +475,33 @@ export const InlineTableAssignment = ({
       }}
     >
       <Table2 className={cn(
-        "h-3 w-3",
-        hasAssignedTables ? "text-primary" : "text-muted-foreground"
+        hasAssignedTables ? "h-4 w-4 text-rose-700 dark:text-rose-400" : "h-3 w-3 text-muted-foreground"
       )} />
       {assignedTables.length > 0 ? (
-        <div className="flex items-center gap-1 flex-wrap">
-          {assignedTables.slice(0, 3).map(t => (
-            <Badge key={t.id} variant="secondary" className="text-[9px] h-4 bg-primary/20 text-primary">
+        <div className="flex items-center gap-1.5 flex-wrap flex-1">
+          {assignedTables.slice(0, 4).map(t => (
+            <Badge 
+              key={t.id} 
+              className="text-xs font-bold px-2 py-0.5 h-auto bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-sm"
+            >
               {t.table_number}
             </Badge>
           ))}
-          {assignedTables.length > 3 && (
-            <span className="text-[9px] text-muted-foreground">+{assignedTables.length - 3}</span>
+          {assignedTables.length > 4 && (
+            <span className="text-xs font-medium text-rose-600 dark:text-rose-400">+{assignedTables.length - 4}</span>
           )}
         </div>
       ) : currentTableId && currentTableNumber ? (
-        <span className="text-xs font-medium text-primary">
-          Table {currentTableNumber}
-        </span>
+        <Badge className="text-xs font-bold px-2 py-0.5 h-auto bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-sm">
+          {currentTableNumber}
+        </Badge>
       ) : (
         <span className="text-xs text-muted-foreground group-hover/table:text-primary transition-colors">
           + Assign Tables
         </span>
       )}
       {hasAssignedTables && (
-        <Check className="h-3 w-3 text-primary ml-auto" />
+        <Check className="h-4 w-4 text-rose-700 dark:text-rose-400 ml-auto flex-shrink-0" />
       )}
     </div>
   );
