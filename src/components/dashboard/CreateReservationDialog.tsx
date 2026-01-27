@@ -273,7 +273,7 @@ export const CreateReservationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[38rem] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[37rem] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
             New Reservation
