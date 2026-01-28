@@ -337,16 +337,11 @@ const Dashboard = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-[90vw] max-w-[800px] p-0 z-[100] bg-card border border-border shadow-2xl" 
+                  className="w-[320px] p-3 z-[100] bg-card border border-border shadow-2xl" 
                   align="start"
                   sideOffset={8}
                 >
-                  <div className="p-4">
-                    <TableStatusSection 
-                      selectedDate={selectedDate} 
-                      refreshTrigger={calendarRefresh} 
-                    />
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-4">Tables view opens in main view</p>
                 </PopoverContent>
               </Popover>
             </div>
@@ -605,15 +600,24 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-4">
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-          <CalendarView 
-            onCreateReservation={() => setShowCreateDialog(true)} 
-            refreshTrigger={calendarRefresh}
-            selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
-            calendarPopoverOpen={calendarPopoverOpen}
-            onCalendarPopoverChange={setCalendarPopoverOpen}
-            onStatsChange={setDailyStats}
-          />
+          {tablesPopoverOpen ? (
+            <div className="bg-card border border-border rounded-xl shadow-lg p-6">
+              <TableStatusSection 
+                selectedDate={selectedDate} 
+                refreshTrigger={calendarRefresh} 
+              />
+            </div>
+          ) : (
+            <CalendarView 
+              onCreateReservation={() => setShowCreateDialog(true)} 
+              refreshTrigger={calendarRefresh}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+              calendarPopoverOpen={calendarPopoverOpen}
+              onCalendarPopoverChange={setCalendarPopoverOpen}
+              onStatsChange={setDailyStats}
+            />
+          )}
         </div>
       </main>
 

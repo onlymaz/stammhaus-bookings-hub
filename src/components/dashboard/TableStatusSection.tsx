@@ -218,47 +218,48 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
   }
 
   return (
-    <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/40">
-      <div className="flex items-center gap-1.5">
-        <Table2 className="h-3.5 w-3.5 text-primary" />
-        <span className="text-[10px] text-muted-foreground font-medium">Table Status:</span>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <Table2 className="h-5 w-5 text-primary" />
+        <span className="text-base font-semibold">Table Status</span>
+        <span className="text-sm text-muted-foreground">({allTables.length} tables)</span>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'free' | 'reserved')}>
-        <TabsList className="w-full h-7 p-0.5">
-          <TabsTrigger value="free" className="flex-1 h-6 text-[10px] gap-1">
-            <CheckCircle className="h-3 w-3" />
+        <TabsList className="w-full h-10 p-1">
+          <TabsTrigger value="free" className="flex-1 h-8 text-sm gap-2">
+            <CheckCircle className="h-4 w-4" />
             Free ({freeTables.length})
           </TabsTrigger>
-          <TabsTrigger value="reserved" className="flex-1 h-6 text-[10px] gap-1">
-            <Clock className="h-3 w-3" />
+          <TabsTrigger value="reserved" className="flex-1 h-8 text-sm gap-2">
+            <Clock className="h-4 w-4" />
             Reserved ({effectiveReservedTables.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="free" className="mt-2">
-          <ScrollArea className="h-[120px] rounded border bg-card p-2">
+        <TabsContent value="free" className="mt-4">
+          <ScrollArea className="h-auto max-h-[60vh] rounded-lg border bg-card p-4">
             {freeTables.length === 0 ? (
-              <div className="text-[10px] text-muted-foreground text-center py-4">
+              <div className="text-sm text-muted-foreground text-center py-8">
                 No free tables for this day
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {allZones.map(zone => {
                   const zoneTables = freeByZone[zone];
                   if (zoneTables.length === 0) return null;
                   const ZoneIcon = zoneLabels[zone].icon;
                   return (
                     <div key={zone}>
-                      <div className="text-[9px] font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                        <ZoneIcon className="h-2.5 w-2.5" /> {zoneLabels[zone].label} ({zoneTables.length})
+                      <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                        <ZoneIcon className="h-4 w-4" /> {zoneLabels[zone].label} ({zoneTables.length})
                       </div>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-2">
                         {zoneTables.map(table => (
                           <Badge
                             key={table.id}
                             variant="outline"
-                            className="text-[10px] bg-success/10 text-success border-success/30 px-1.5 py-0"
+                            className="text-sm bg-success/10 text-success border-success/30 px-3 py-1"
                           >
                             {getTableDisplayName(table)}
                           </Badge>
@@ -272,29 +273,29 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="reserved" className="mt-2">
-          <ScrollArea className="h-[120px] rounded border bg-card p-2">
+        <TabsContent value="reserved" className="mt-4">
+          <ScrollArea className="h-auto max-h-[60vh] rounded-lg border bg-card p-4">
             {effectiveReservedTables.length === 0 ? (
-              <div className="text-[10px] text-muted-foreground text-center py-4">
+              <div className="text-sm text-muted-foreground text-center py-8">
                 No reserved tables for this day
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-4">
                 {allZones.map(zone => {
                   const zoneTables = reservedByZone[zone];
                   if (zoneTables.length === 0) return null;
                   const ZoneIcon = zoneLabels[zone].icon;
                   return (
                     <div key={zone}>
-                      <div className="text-[9px] font-medium text-muted-foreground mb-1 flex items-center gap-1 mt-2 first:mt-0">
-                        <ZoneIcon className="h-2.5 w-2.5" /> {zoneLabels[zone].label} ({zoneTables.length})
+                      <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2 mt-4 first:mt-0">
+                        <ZoneIcon className="h-4 w-4" /> {zoneLabels[zone].label} ({zoneTables.length})
                       </div>
                       {zoneTables.map((rt, idx) => (
                         <div
                           key={`${rt.tableId}-${idx}`}
-                          className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-muted/50 text-[10px]"
+                          className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg bg-muted/50 text-sm mb-2"
                         >
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-1.5 py-0">
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-3 py-1">
                             {getTableDisplayName({ table_number: rt.tableNumber })}
                           </Badge>
                           <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
