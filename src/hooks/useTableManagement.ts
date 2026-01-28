@@ -4,7 +4,7 @@ import { RestaurantTable, TableZone, TableConflict, DiningStatus } from "@/types
 import { toast } from "sonner";
 
 // Default reservation duration in minutes
-const DEFAULT_DURATION_MINUTES = 90;
+const DEFAULT_DURATION_MINUTES = 120;
 
 export const useTableManagement = () => {
   const [tables, setTables] = useState<RestaurantTable[]>([]);
