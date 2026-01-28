@@ -247,24 +247,6 @@ const Dashboard = () => {
       {/* Header */}
       <header className="premium-header backdrop-blur-md sticky top-0 z-50 shadow-xl">
         <div className="container mx-auto px-4 lg:px-6 h-18 flex items-center justify-between py-3">
-          <div 
-            onClick={() => setResetToToday(prev => prev + 1)} 
-            className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-xl gradient-premium flex items-center justify-center shadow-lg glow-primary">
-              <span className="text-primary-foreground font-display text-xl font-bold">S</span>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="font-display text-xl font-bold text-foreground leading-tight tracking-tight">
-                Stammhaus
-              </h1>
-              <span className="text-xs text-muted-foreground hidden sm:inline font-medium">
-                Restaurant Reservations
-              </span>
-            </div>
-          </div>
-
-
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
               onClick={() => setShowCreateDialog(true)}
