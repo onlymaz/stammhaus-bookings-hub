@@ -11,6 +11,7 @@ import { CreateReservationDialog } from "@/components/dashboard/CreateReservatio
 import { TeamManagement } from "@/components/dashboard/TeamManagement";
 import { CapacitySettings } from "@/components/dashboard/CapacitySettings";
 import { TableManagementPanel } from "@/components/dashboard/TableManagementPanel";
+import { TableStatusSection } from "@/components/dashboard/TableStatusSection";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Popover,
@@ -37,6 +38,8 @@ const Dashboard = () => {
   const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity" | "tables">("preferences");
   const [resetToToday, setResetToToday] = useState(0);
   const [calendarRefresh, setCalendarRefresh] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [tableStatusRefresh, setTableStatusRefresh] = useState(0);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [soundAlerts, setSoundAlerts] = useState(false);
   const [notifPopoverOpen, setNotifPopoverOpen] = useState(false);
@@ -261,6 +264,14 @@ const Dashboard = () => {
                 Restaurant Reservations
               </span>
             </div>
+          </div>
+
+          {/* Table Status Section in Header */}
+          <div className="flex-1 max-w-md mx-4 hidden lg:block">
+            <TableStatusSection 
+              selectedDate={selectedDate} 
+              refreshTrigger={tableStatusRefresh} 
+            />
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -498,7 +509,16 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-6">
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-          <CalendarView onCreateReservation={() => setShowCreateDialog(true)} resetToToday={resetToToday} refreshTrigger={calendarRefresh} />
+          <CalendarView 
+            onCreateReservation={() => setShowCreateDialog(true)} 
+            resetToToday={resetToToday} 
+            refreshTrigger={calendarRefresh}
+            selectedDate={selectedDate}
+            onDateChange={(date) => {
+              setSelectedDate(date);
+              setTableStatusRefresh(prev => prev + 1);
+            }}
+          />
         </div>
       </main>
 
