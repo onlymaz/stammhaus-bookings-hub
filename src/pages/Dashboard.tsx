@@ -13,6 +13,7 @@ import { CreateReservationDialog } from "@/components/dashboard/CreateReservatio
 import { TeamManagement } from "@/components/dashboard/TeamManagement";
 import { CapacitySettings } from "@/components/dashboard/CapacitySettings";
 import { TableManagementPanel } from "@/components/dashboard/TableManagementPanel";
+import { TableStatusSection } from "@/components/dashboard/TableStatusSection";
 
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -54,6 +55,7 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<ActiveTab>("bookings");
   const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
+  const [tablesPopoverOpen, setTablesPopoverOpen] = useState(false);
   const [dailyStats, setDailyStats] = useState({ guests: 0, bookings: 0 });
 
   // Fetch preferences from DB once user is available
@@ -324,6 +326,39 @@ const Dashboard = () => {
                   sideOffset={8}
                 >
                   <p className="text-sm text-muted-foreground text-center py-4">Calendar opens in main view</p>
+                </PopoverContent>
+              </Popover>
+
+              {/* Tables button with dropdown */}
+              <Popover open={tablesPopoverOpen} onOpenChange={setTablesPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={tablesPopoverOpen ? "default" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "gap-1.5 h-8 px-3 text-xs rounded-md",
+                      tablesPopoverOpen && "shadow-sm"
+                    )}
+                  >
+                    <Table2 className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Tables</span>
+                    <ChevronDown className={cn(
+                      "h-3 w-3 transition-transform",
+                      tablesPopoverOpen && "rotate-180"
+                    )} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-[90vw] max-w-[800px] p-0 z-[100] bg-card border border-border shadow-2xl" 
+                  align="start"
+                  sideOffset={8}
+                >
+                  <div className="p-4">
+                    <TableStatusSection 
+                      selectedDate={selectedDate} 
+                      refreshTrigger={calendarRefresh} 
+                    />
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
