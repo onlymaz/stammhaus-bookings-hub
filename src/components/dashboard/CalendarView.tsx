@@ -70,7 +70,6 @@ interface CalendarViewProps {
   refreshTrigger?: number;
   selectedDate: Date;
   onDateChange: (date: Date) => void;
-  activeTab: "bookings" | "calendar";
   calendarPopoverOpen: boolean;
   onCalendarPopoverChange: (open: boolean) => void;
   onStatsChange: (stats: { guests: number; bookings: number }) => void;
@@ -83,7 +82,6 @@ export const CalendarView = ({
   refreshTrigger, 
   selectedDate, 
   onDateChange,
-  activeTab,
   calendarPopoverOpen,
   onCalendarPopoverChange,
   onStatsChange

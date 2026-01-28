@@ -6,7 +6,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { Plus, LogOut, Bell, Settings, X, Users, Gauge, Table2, Clock, CalendarDays, ChevronDown, BookOpen } from "lucide-react";
+import { Plus, LogOut, Bell, Settings, X, Users, Gauge, Table2, Clock, CalendarDays, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
@@ -32,7 +32,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 
-type ActiveTab = "bookings" | "calendar";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +52,6 @@ const Dashboard = () => {
 
   // Lifted state for header
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<ActiveTab>("bookings");
   const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
   const [tablesPopoverOpen, setTablesPopoverOpen] = useState(false);
   const [dailyStats, setDailyStats] = useState({ guests: 0, bookings: 0 });
@@ -286,30 +284,17 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Tabs: Bookings / Calendar */}
+            {/* Tabs: Calendar / Tables */}
             <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-0.5">
-              <Button
-                variant={activeTab === "bookings" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setActiveTab("bookings")}
-                className={cn(
-                  "gap-1.5 h-8 px-3 text-xs rounded-md",
-                  activeTab === "bookings" && "shadow-sm"
-                )}
-              >
-                <BookOpen className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Bookings</span>
-              </Button>
               
               <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={activeTab === "calendar" ? "default" : "ghost"}
+                    variant={calendarPopoverOpen ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setActiveTab("calendar")}
                     className={cn(
                       "gap-1.5 h-8 px-3 text-xs rounded-md",
-                      activeTab === "calendar" && "shadow-sm"
+                      calendarPopoverOpen && "shadow-sm"
                     )}
                   >
                     <CalendarDays className="h-3.5 w-3.5" />
@@ -622,7 +607,6 @@ const Dashboard = () => {
             refreshTrigger={calendarRefresh}
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
-            activeTab={activeTab}
             calendarPopoverOpen={calendarPopoverOpen}
             onCalendarPopoverChange={setCalendarPopoverOpen}
             onStatsChange={setDailyStats}
