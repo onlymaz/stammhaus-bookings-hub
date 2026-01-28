@@ -273,28 +273,28 @@ export const CreateReservationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-4">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="font-display text-lg">
+      <DialogContent className="max-w-lg p-6">
+        <DialogHeader className="pb-3">
+          <DialogTitle className="font-display text-xl">
             New Reservation
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date, Time & Guests Row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Date *</Label>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm">Date *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal h-9 text-sm",
+                      "w-full justify-start text-left font-normal h-10",
                       !date && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "MMM d") : "Pick"}
                   </Button>
                 </PopoverTrigger>
@@ -310,15 +310,15 @@ export const CreateReservationDialog = ({
               </Popover>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Time *</Label>
+            <div className="space-y-1.5">
+              <Label className="text-sm">Time *</Label>
               {loadingSlots ? (
-                <div className="h-9 flex items-center justify-center text-xs text-muted-foreground">
+                <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
                   Loading...
                 </div>
               ) : (
                 <Select value={time} onValueChange={setTime}>
-                  <SelectTrigger className="w-full h-9 text-sm">
+                  <SelectTrigger className="w-full h-10">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px]">
@@ -332,17 +332,17 @@ export const CreateReservationDialog = ({
               )}
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Guests *</Label>
-              <div className="flex items-center gap-1.5 h-9 px-2 border rounded-md bg-muted/50">
-                <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="font-medium text-sm">{guests}</span>
+            <div className="space-y-1.5">
+              <Label className="text-sm">Guests *</Label>
+              <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{guests}</span>
               </div>
             </div>
           </div>
 
-          {/* Guest Selection - Compact */}
-          <div className="flex flex-wrap gap-1">
+          {/* Guest Selection */}
+          <div className="flex flex-wrap gap-1.5">
             {GUEST_OPTIONS.map((num) => (
               <Button
                 key={num}
@@ -350,7 +350,7 @@ export const CreateReservationDialog = ({
                 variant={guests === num && !showCustomGuests ? "default" : "outline"}
                 size="sm"
                 className={cn(
-                  "text-xs h-8 w-8 font-medium p-0",
+                  "h-9 w-9 font-medium p-0",
                   guests === num && !showCustomGuests && "shadow-sm"
                 )}
                 onClick={() => handleGuestSelect(num)}
@@ -363,7 +363,7 @@ export const CreateReservationDialog = ({
               variant={showCustomGuests ? "secondary" : "outline"}
               size="sm"
               className={cn(
-                "text-xs h-8 px-2 font-medium",
+                "h-9 px-3 font-medium",
                 showCustomGuests && "bg-accent text-accent-foreground"
               )}
               onClick={() => setShowCustomGuests(true)}
@@ -378,65 +378,64 @@ export const CreateReservationDialog = ({
                 placeholder="Custom"
                 value={customGuests}
                 onChange={(e) => handleCustomGuestsChange(e.target.value)}
-                className="w-20 h-8 text-xs"
+                className="w-20 h-9"
                 autoFocus
               />
             )}
           </div>
 
-          {/* Customer Details - Compact Grid */}
-          <div className="space-y-2">
-            <h3 className="font-medium text-xs text-muted-foreground">Customer Details</h3>
+          {/* Customer Details */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm text-muted-foreground">Customer Details</h3>
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <div className="relative">
-                <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="name"
                   placeholder="Name *"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="pl-8 h-9 text-sm"
+                  className="pl-10 h-10"
                 />
               </div>
               <div className="relative">
-                <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="Phone"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="pl-8 h-9 text-sm"
+                  className="pl-10 h-10"
                 />
               </div>
             </div>
             
             <div className="relative">
-              <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
                 placeholder="Email (optional)"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
-                className="pl-8 h-9 text-sm"
+                className="pl-10 h-10"
               />
             </div>
           </div>
 
-          {/* Special Requests - Compact */}
+          {/* Special Requests */}
           <Textarea
             id="requests"
             placeholder="Special requests (allergies, occasion...)"
             value={specialRequests}
             onChange={(e) => setSpecialRequests(e.target.value)}
-            rows={2}
-            className="text-sm"
+            rows={3}
           />
 
           {/* Submit */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-3">
             <Button
               type="button"
               variant="outline"
