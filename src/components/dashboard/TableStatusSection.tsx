@@ -78,7 +78,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
   const computeEndTime = (startTime: string, endTime: string | null) => {
     if (endTime) return endTime;
-    return minutesToTimeStr(timeStrToMinutes(startTime) + 90);
+    return minutesToTimeStr(timeStrToMinutes(startTime) + 120);
   };
 
   const fetchTableStatus = async () => {
