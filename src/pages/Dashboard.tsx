@@ -580,25 +580,27 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-4">
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
-          {tablesPopoverOpen ? (
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in space-y-4">
+          {/* Tables Section - shown when Tables toggle is active */}
+          {tablesPopoverOpen && (
             <div className="bg-card border border-border rounded-xl shadow-lg p-6">
               <TableStatusSection 
                 selectedDate={selectedDate} 
                 refreshTrigger={calendarRefresh} 
               />
             </div>
-          ) : (
-            <CalendarView 
-              onCreateReservation={() => setShowCreateDialog(true)} 
-              refreshTrigger={calendarRefresh}
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
-              calendarPopoverOpen={calendarPopoverOpen}
-              onCalendarPopoverChange={setCalendarPopoverOpen}
-              onStatsChange={setDailyStats}
-            />
           )}
+          
+          {/* Bookings/Calendar View - always shown */}
+          <CalendarView 
+            onCreateReservation={() => setShowCreateDialog(true)} 
+            refreshTrigger={calendarRefresh}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            calendarPopoverOpen={calendarPopoverOpen}
+            onCalendarPopoverChange={setCalendarPopoverOpen}
+            onStatsChange={setDailyStats}
+          />
         </div>
       </main>
 
