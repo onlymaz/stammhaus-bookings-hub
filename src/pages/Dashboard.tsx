@@ -286,16 +286,17 @@ const Dashboard = () => {
             </div>
 
             {/* Tabs: Calendar / Tables */}
-            <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-0.5">
+            <div className="flex items-center gap-2">
               
               <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={calendarPopoverOpen ? "default" : "ghost"}
                     size="sm"
                     className={cn(
-                      "gap-1.5 h-8 px-3 text-xs rounded-md",
-                      calendarPopoverOpen && "shadow-sm"
+                      "gap-1.5 h-8 px-3 text-xs rounded-lg shadow-md hover:shadow-lg transition-all duration-300",
+                      calendarPopoverOpen 
+                        ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground" 
+                        : "bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-foreground"
                     )}
                   >
                     <CalendarDays className="h-3.5 w-3.5" />
@@ -319,11 +320,12 @@ const Dashboard = () => {
               <Popover open={tablesPopoverOpen} onOpenChange={setTablesPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={tablesPopoverOpen ? "default" : "ghost"}
                     size="sm"
                     className={cn(
-                      "gap-1.5 h-8 px-3 text-xs rounded-md",
-                      tablesPopoverOpen && "shadow-sm"
+                      "gap-1.5 h-8 px-3 text-xs rounded-lg shadow-md hover:shadow-lg transition-all duration-300",
+                      tablesPopoverOpen 
+                        ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground" 
+                        : "bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-foreground"
                     )}
                   >
                     <Table2 className="h-3.5 w-3.5" />
@@ -351,16 +353,16 @@ const Dashboard = () => {
 
             {/* Stats badges */}
             {dailyStats.bookings > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="flex items-center gap-1 py-1 px-2 rounded-md bg-muted/60 text-xs">
-                  <Users className="h-3 w-3 text-primary" />
-                  <span className="font-semibold">{dailyStats.guests}</span>
-                  <span className="text-muted-foreground hidden sm:inline">guests</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-400/10 border border-amber-500/30 text-xs shadow-sm">
+                  <Users className="h-3.5 w-3.5 text-amber-600" />
+                  <span className="font-bold text-amber-700">{dailyStats.guests}</span>
+                  <span className="text-amber-600/80 hidden sm:inline">guests</span>
                 </div>
-                <div className="flex items-center gap-1 py-1 px-2 rounded-md bg-muted/60 text-xs">
-                  <Clock className="h-3 w-3 text-accent" />
-                  <span className="font-semibold">{dailyStats.bookings}</span>
-                  <span className="text-muted-foreground hidden sm:inline">bookings</span>
+                <div className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-teal-500/20 to-teal-400/10 border border-teal-500/30 text-xs shadow-sm">
+                  <Clock className="h-3.5 w-3.5 text-teal-600" />
+                  <span className="font-bold text-teal-700">{dailyStats.bookings}</span>
+                  <span className="text-teal-600/80 hidden sm:inline">bookings</span>
                 </div>
               </div>
             )}
