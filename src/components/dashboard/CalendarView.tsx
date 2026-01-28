@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { ReservationDetailDialog } from "./ReservationDetailDialog";
 import { EditReservationDialog } from "./EditReservationDialog";
 import { InlineTableAssignment } from "./InlineTableAssignment";
-
+import { TableStatusSection } from "./TableStatusSection";
 
 interface Reservation {
   id: string;
@@ -70,14 +70,13 @@ interface CalendarViewProps {
   onCreateReservation: () => void;
   resetToToday?: number;
   refreshTrigger?: number;
-  selectedDate: Date;
-  onDateChange: (date: Date) => void;
 }
 
 type ViewMode = "week" | "month";
 type ActiveTab = "bookings" | "calendar";
 
-export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger, selectedDate, onDateChange }: CalendarViewProps) => {
+export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger }: CalendarViewProps) => {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("month");
@@ -237,11 +236,11 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   useEffect(() => {
     if (resetToToday && resetToToday > 0) {
       const today = new Date();
-      onDateChange(today);
+      setSelectedDate(today);
       setCurrentMonth(today);
       setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
     }
-  }, [resetToToday, onDateChange]);
+  }, [resetToToday]);
 
   // Refresh when new reservation comes in
   useEffect(() => {
@@ -405,7 +404,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               } else {
                 setCurrentMonth(today);
               }
-              onDateChange(today);
+              setSelectedDate(today);
             }}
           >
             Today
@@ -440,7 +439,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               <button
                 key={day.toISOString()}
                 onClick={() => {
-                  onDateChange(day);
+                  setSelectedDate(day);
                   setActiveTab("bookings");
                   setCalendarPopoverOpen(false);
                 }}
@@ -512,7 +511,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 <button
                   key={day.toISOString()}
                   onClick={() => {
-                    onDateChange(day);
+                    setSelectedDate(day);
                     setActiveTab("bookings");
                     setCalendarPopoverOpen(false);
                   }}
@@ -647,6 +646,12 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               );
             })()}
           </div>
+          
+          {/* Table Status Section */}
+          <TableStatusSection 
+            selectedDate={selectedDate} 
+            refreshTrigger={0} 
+          />
         </CardHeader>
 
         <CardContent className="pt-5 pb-6 px-4 sm:px-6 min-h-0 flex-1 overflow-y-auto">
