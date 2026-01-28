@@ -602,7 +602,16 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
       {/* Full Width Reservation Panel */}
       <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)] overflow-hidden">
         <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10">
-          <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => {
+              const today = new Date();
+              setSelectedDate(today);
+              setCurrentMonth(today);
+              setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
+            }}
+            title="Click to go to today"
+          >
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
               <span className="text-primary-foreground font-bold text-2xl">
                 {format(selectedDate, "d")}
