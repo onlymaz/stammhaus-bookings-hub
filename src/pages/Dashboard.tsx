@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 const Dashboard = () => {
+  // Dashboard component - manages restaurant reservation system
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
