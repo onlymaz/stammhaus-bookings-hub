@@ -609,30 +609,20 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
       {/* Full Width Reservation Panel */}
       <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)] overflow-hidden">
         <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
-                <span className="text-primary-foreground font-bold text-2xl">
-                  {format(selectedDate, "d")}
-                </span>
-              </div>
-              <div>
-                <CardTitle className="font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight">
-                  {format(selectedDate, "EEEE")}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {format(selectedDate, "MMMM yyyy")}
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-primary-foreground font-bold text-2xl">
+                {format(selectedDate, "d")}
+              </span>
             </div>
-            <Button 
-              size="default" 
-              onClick={onCreateReservation} 
-              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-accent to-accent/90 text-accent-foreground hover:from-accent/90 hover:to-accent"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add</span>
-            </Button>
+            <div>
+              <CardTitle className="font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight">
+                {format(selectedDate, "EEEE")}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {format(selectedDate, "MMMM yyyy")}
+              </p>
+            </div>
           </div>
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-3 mt-3">
