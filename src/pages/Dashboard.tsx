@@ -270,16 +270,16 @@ const Dashboard = () => {
               onClick={resetToToday}
               title="Click to go to today"
             >
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md flex-shrink-0">
-                <span className="text-primary-foreground font-bold text-sm">
+              <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md flex-shrink-0">
+                <span className="text-primary-foreground font-bold text-lg">
                   {format(selectedDate, "d")}
                 </span>
               </div>
               <div className="hidden sm:block">
-                <p className="text-sm font-semibold leading-tight">
+                <p className="text-base font-semibold leading-tight">
                   {format(selectedDate, "EEE")}
                 </p>
-                <p className="text-xs text-muted-foreground leading-tight">
+                <p className="text-sm text-muted-foreground leading-tight">
                   {format(selectedDate, "MMM yyyy")}
                 </p>
               </div>
