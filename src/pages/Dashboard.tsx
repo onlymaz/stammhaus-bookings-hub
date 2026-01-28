@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { format, startOfWeek } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-import { Calendar, Plus, LogOut, Bell, Settings, X, Users, Gauge, Table2 } from "lucide-react";
+import { Plus, LogOut, Bell, Settings, X, Users, Gauge, Table2, Clock, CalendarDays, ChevronDown, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { CreateReservationDialog } from "@/components/dashboard/CreateReservationDialog";
@@ -29,6 +31,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 
+type ActiveTab = "bookings" | "calendar";
+
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +40,6 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [websiteNotifCount, setWebsiteNotifCount] = useState(0);
   const [settingsTab, setSettingsTab] = useState<"preferences" | "team" | "capacity" | "tables">("preferences");
-  const [resetToToday, setResetToToday] = useState(0);
   const [calendarRefresh, setCalendarRefresh] = useState(0);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [soundAlerts, setSoundAlerts] = useState(false);
@@ -46,6 +49,12 @@ const Dashboard = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Lifted state for header
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [activeTab, setActiveTab] = useState<ActiveTab>("bookings");
+  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
+  const [dailyStats, setDailyStats] = useState({ guests: 0, bookings: 0 });
 
   // Fetch preferences from DB once user is available
   const fetchPreferences = async (userId: string) => {
@@ -242,18 +251,109 @@ const Dashboard = () => {
     );
   }
 
+  const resetToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Header */}
       <header className="premium-header backdrop-blur-md sticky top-0 z-50 shadow-xl">
-        <div className="container mx-auto px-4 lg:px-6 h-18 flex items-center justify-between py-3">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="container mx-auto px-4 lg:px-6 flex items-center justify-between py-2 gap-2 flex-wrap">
+          {/* Left: Date + Tabs + Stats */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Date badge - clickable to go to today */}
+            <div 
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={resetToToday}
+              title="Click to go to today"
+            >
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md flex-shrink-0">
+                <span className="text-primary-foreground font-bold text-sm">
+                  {format(selectedDate, "d")}
+                </span>
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-sm font-semibold leading-tight">
+                  {format(selectedDate, "EEE")}
+                </p>
+                <p className="text-xs text-muted-foreground leading-tight">
+                  {format(selectedDate, "MMM yyyy")}
+                </p>
+              </div>
+            </div>
+
+            {/* Tabs: Bookings / Calendar */}
+            <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-0.5">
+              <Button
+                variant={activeTab === "bookings" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("bookings")}
+                className={cn(
+                  "gap-1.5 h-8 px-3 text-xs rounded-md",
+                  activeTab === "bookings" && "shadow-sm"
+                )}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Bookings</span>
+              </Button>
+              
+              <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={activeTab === "calendar" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setActiveTab("calendar")}
+                    className={cn(
+                      "gap-1.5 h-8 px-3 text-xs rounded-md",
+                      activeTab === "calendar" && "shadow-sm"
+                    )}
+                  >
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Calendar</span>
+                    <ChevronDown className={cn(
+                      "h-3 w-3 transition-transform",
+                      calendarPopoverOpen && "rotate-180"
+                    )} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-[320px] p-3 z-[100] bg-card border border-border shadow-2xl" 
+                  align="start"
+                  sideOffset={8}
+                >
+                  <p className="text-sm text-muted-foreground text-center py-4">Calendar opens in main view</p>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Stats badges */}
+            {dailyStats.bookings > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 py-1 px-2 rounded-md bg-muted/60 text-xs">
+                  <Users className="h-3 w-3 text-primary" />
+                  <span className="font-semibold">{dailyStats.guests}</span>
+                  <span className="text-muted-foreground hidden sm:inline">guests</span>
+                </div>
+                <div className="flex items-center gap-1 py-1 px-2 rounded-md bg-muted/60 text-xs">
+                  <Clock className="h-3 w-3 text-accent" />
+                  <span className="font-semibold">{dailyStats.bookings}</span>
+                  <span className="text-muted-foreground hidden sm:inline">bookings</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Button
               onClick={() => setShowCreateDialog(true)}
-              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary px-5"
+              size="sm"
+              className="gap-1.5 shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary h-8 px-3"
             >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline font-medium">New Reservation</span>
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs font-medium">New</span>
             </Button>
 
             <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
@@ -480,12 +580,17 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 lg:px-6 py-6">
+      <main className="container mx-auto px-4 lg:px-6 py-4">
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 animate-fade-in">
           <CalendarView 
             onCreateReservation={() => setShowCreateDialog(true)} 
-            resetToToday={resetToToday} 
             refreshTrigger={calendarRefresh}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            activeTab={activeTab}
+            calendarPopoverOpen={calendarPopoverOpen}
+            onCalendarPopoverChange={setCalendarPopoverOpen}
+            onStatsChange={setDailyStats}
           />
         </div>
       </main>

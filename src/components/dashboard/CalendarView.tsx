@@ -68,15 +68,27 @@ interface Reservation {
 
 interface CalendarViewProps {
   onCreateReservation: () => void;
-  resetToToday?: number;
   refreshTrigger?: number;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+  activeTab: "bookings" | "calendar";
+  calendarPopoverOpen: boolean;
+  onCalendarPopoverChange: (open: boolean) => void;
+  onStatsChange: (stats: { guests: number; bookings: number }) => void;
 }
 
 type ViewMode = "week" | "month";
-type ActiveTab = "bookings" | "calendar";
 
-export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger }: CalendarViewProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+export const CalendarView = ({ 
+  onCreateReservation, 
+  refreshTrigger, 
+  selectedDate, 
+  onDateChange,
+  activeTab,
+  calendarPopoverOpen,
+  onCalendarPopoverChange,
+  onStatsChange
+}: CalendarViewProps) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("month");
@@ -89,10 +101,6 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
   const [isDeleting, setIsDeleting] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [reservationToEdit, setReservationToEdit] = useState<Reservation | null>(null);
-  
-  // Active tab state
-  const [activeTab, setActiveTab] = useState<ActiveTab>("bookings");
-  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
   
   // Staff note inline editing state
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -232,15 +240,11 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
     }
   };
 
-  // Reset to today when logo is clicked
+  // Sync currentMonth with selectedDate when it changes externally
   useEffect(() => {
-    if (resetToToday && resetToToday > 0) {
-      const today = new Date();
-      setSelectedDate(today);
-      setCurrentMonth(today);
-      setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
-    }
-  }, [resetToToday]);
+    setCurrentMonth(selectedDate);
+    setWeekStart(startOfWeek(selectedDate, { weekStartsOn: 1 }));
+  }, [selectedDate]);
 
   // Refresh when new reservation comes in
   useEffect(() => {
@@ -346,6 +350,16 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
   const monthDays = getMonthDays();
 
+  // Report stats to parent
+  useEffect(() => {
+    const activeReservations = todayReservations.filter(
+      r => r.status !== 'cancelled' && r.dining_status !== 'cancelled' && r.dining_status !== 'no_show'
+    );
+    const totalGuests = activeReservations.reduce((sum, r) => sum + r.guests, 0);
+    const activeBookings = activeReservations.length;
+    onStatsChange({ guests: totalGuests, bookings: activeBookings });
+  }, [todayReservations, onStatsChange]);
+
   // Calendar content for popover/dropdown
   const renderCalendarContent = () => (
     <div className="w-full">
@@ -404,7 +418,7 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               } else {
                 setCurrentMonth(today);
               }
-              setSelectedDate(today);
+              onDateChange(today);
             }}
           >
             Today
@@ -439,9 +453,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
               <button
                 key={day.toISOString()}
                 onClick={() => {
-                  setSelectedDate(day);
-                  setActiveTab("bookings");
-                  setCalendarPopoverOpen(false);
+                  onDateChange(day);
+                  onCalendarPopoverChange(false);
                 }}
                 className={cn(
                   "p-1.5 rounded-lg text-center transition-all min-h-[70px] border",
@@ -511,9 +524,8 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
                 <button
                   key={day.toISOString()}
                   onClick={() => {
-                    setSelectedDate(day);
-                    setActiveTab("bookings");
-                    setCalendarPopoverOpen(false);
+                    onDateChange(day);
+                    onCalendarPopoverChange(false);
                   }}
                   className={cn(
                     "p-1 rounded-lg text-center transition-all duration-300 min-h-[40px] border bg-gradient-to-br from-card to-card/80 border-border/40 hover:border-primary/50 cursor-pointer relative",
@@ -555,108 +567,17 @@ export const CalendarView = ({ onCreateReservation, resetToToday, refreshTrigger
 
   return (
     <div className="w-full">
-      {/* Tab Navigation - At the top */}
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          variant={activeTab === "bookings" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setActiveTab("bookings")}
-          className={cn(
-            "gap-2 rounded-lg",
-            activeTab === "bookings" && "shadow-md"
-          )}
-        >
-          <BookOpen className="h-4 w-4" />
-          Bookings
-        </Button>
-        
-        <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant={activeTab === "calendar" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab("calendar")}
-              className={cn(
-                "gap-2 rounded-lg",
-                activeTab === "calendar" && "shadow-md"
-              )}
-            >
-              <CalendarDays className="h-4 w-4" />
-              Calendar
-              <ChevronDown className={cn(
-                "h-3 w-3 transition-transform",
-                calendarPopoverOpen && "rotate-180"
-              )} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-[380px] p-4 z-[100] bg-card border border-border shadow-2xl" 
-            align="start"
-            sideOffset={8}
-          >
-            {renderCalendarContent()}
-          </PopoverContent>
-        </Popover>
-      </div>
+      {/* Calendar Popover Content - render when calendar tab is active */}
+      {calendarPopoverOpen && (
+        <div className="mb-4 p-4 bg-card border border-border rounded-xl shadow-lg">
+          {renderCalendarContent()}
+        </div>
+      )}
 
       {/* Full Width Reservation Panel */}
-      <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-140px)] overflow-hidden">
+      <Card className="card-elevated border-0 shadow-2xl flex flex-col min-h-[70vh] lg:min-h-[calc(100vh-120px)] overflow-hidden">
+        {/* Table Status Section in header */}
         <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-card to-accent/10 border-b border-border/30 flex-shrink-0 sticky top-0 z-10">
-          <div 
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => {
-              const today = new Date();
-              setSelectedDate(today);
-              setCurrentMonth(today);
-              setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
-            }}
-            title="Click to go to today"
-          >
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg flex-shrink-0">
-              <span className="text-primary-foreground font-bold text-2xl">
-                {format(selectedDate, "d")}
-              </span>
-            </div>
-            <div>
-              <CardTitle className="font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight">
-                {format(selectedDate, "EEEE")}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {format(selectedDate, "MMMM yyyy")}
-              </p>
-            </div>
-          </div>
-          {/* Stats row */}
-          <div className="flex flex-wrap items-center gap-3 mt-3">
-            {todayReservations.length > 0 && (() => {
-              const activeReservations = todayReservations.filter(
-                r => r.status !== 'cancelled' && r.dining_status !== 'cancelled' && r.dining_status !== 'no_show'
-              );
-              const totalGuests = activeReservations.reduce((sum, r) => sum + r.guests, 0);
-              const activeBookings = activeReservations.length;
-              
-              return (
-                <>
-                  <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
-                    <Users className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-bold text-foreground">
-                      {totalGuests}
-                    </span>
-                    <span className="text-xs text-muted-foreground">total guests</span>
-                  </div>
-                  <div className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-muted/60">
-                    <Clock className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-bold text-foreground">
-                      {activeBookings}
-                    </span>
-                    <span className="text-xs text-muted-foreground">bookings</span>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-          
-          {/* Table Status Section */}
           <TableStatusSection 
             selectedDate={selectedDate} 
             refreshTrigger={0} 
