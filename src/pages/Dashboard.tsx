@@ -288,33 +288,24 @@ const Dashboard = () => {
             {/* Tabs: Calendar / Tables */}
             <div className="flex items-center gap-2">
               
-              <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    size="sm"
-                    className={cn(
-                      "gap-1.5 h-8 px-3 text-xs rounded-lg shadow-md hover:shadow-lg transition-all duration-300",
-                      calendarPopoverOpen 
-                        ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground" 
-                        : "bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-foreground"
-                    )}
-                  >
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Calendar</span>
-                    <ChevronDown className={cn(
-                      "h-3 w-3 transition-transform",
-                      calendarPopoverOpen && "rotate-180"
-                    )} />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[320px] p-3 z-[100] bg-card border border-border shadow-2xl" 
-                  align="start"
-                  sideOffset={8}
-                >
-                  <p className="text-sm text-muted-foreground text-center py-4">Calendar opens in main view</p>
-                </PopoverContent>
-              </Popover>
+              {/* Calendar button - simple toggle */}
+              <Button
+                size="sm"
+                onClick={() => setCalendarPopoverOpen(!calendarPopoverOpen)}
+                className={cn(
+                  "gap-1.5 h-8 px-3 text-xs rounded-lg shadow-md hover:shadow-lg transition-all duration-300",
+                  calendarPopoverOpen 
+                    ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground" 
+                    : "bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-foreground"
+                )}
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Calendar</span>
+                <ChevronDown className={cn(
+                  "h-3 w-3 transition-transform",
+                  calendarPopoverOpen && "rotate-180"
+                )} />
+              </Button>
 
               {/* Tables button - simple toggle */}
               <Button
