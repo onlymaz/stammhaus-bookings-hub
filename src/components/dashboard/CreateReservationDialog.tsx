@@ -273,29 +273,29 @@ export const CreateReservationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[37rem] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+      <DialogContent className="max-w-md p-4">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="font-display text-lg">
             New Reservation
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Date & Time Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Date *</Label>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Date, Time & Guests Row */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Date *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal h-9 text-sm",
                       !date && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "MMM d, yyyy") : "Pick a date"}
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {date ? format(date, "MMM d") : "Pick"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -310,162 +310,133 @@ export const CreateReservationDialog = ({
               </Popover>
             </div>
 
-            <div className="space-y-2">
-              <Label>Selected</Label>
-              <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{guests}</span>
-                <span className="text-muted-foreground text-sm">
-                  {guests === 1 ? "guest" : "guests"}
-                </span>
+            <div className="space-y-1">
+              <Label className="text-xs">Time *</Label>
+              {loadingSlots ? (
+                <div className="h-9 flex items-center justify-center text-xs text-muted-foreground">
+                  Loading...
+                </div>
+              ) : (
+                <Select value={time} onValueChange={setTime}>
+                  <SelectTrigger className="w-full h-9 text-sm">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {timeSlots.filter(slot => slot.available).map((slot) => (
+                      <SelectItem key={slot.time} value={slot.time}>
+                        {slot.time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Guests *</Label>
+              <div className="flex items-center gap-1.5 h-9 px-2 border rounded-md bg-muted/50">
+                <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="font-medium text-sm">{guests}</span>
               </div>
             </div>
           </div>
 
-          {/* Guest Selection */}
-          <div className="space-y-2">
-            <Label>Number of Guests *</Label>
-            
-            <div className="flex flex-wrap gap-1.5">
-              {GUEST_OPTIONS.map((num) => (
-                <Button
-                  key={num}
-                  type="button"
-                  variant={guests === num && !showCustomGuests ? "default" : "outline"}
-                  size="sm"
-                  className={cn(
-                    "text-sm h-10 w-10 font-medium transition-all",
-                    guests === num && !showCustomGuests && "shadow-md"
-                  )}
-                  onClick={() => handleGuestSelect(num)}
-                >
-                  {num}
-                </Button>
-              ))}
+          {/* Guest Selection - Compact */}
+          <div className="flex flex-wrap gap-1">
+            {GUEST_OPTIONS.map((num) => (
               <Button
+                key={num}
                 type="button"
-                variant={showCustomGuests ? "secondary" : "outline"}
+                variant={guests === num && !showCustomGuests ? "default" : "outline"}
                 size="sm"
                 className={cn(
-                  "text-sm h-10 px-3 font-medium transition-all",
-                  showCustomGuests && "bg-accent text-accent-foreground shadow-md"
+                  "text-xs h-8 w-8 font-medium p-0",
+                  guests === num && !showCustomGuests && "shadow-sm"
                 )}
-                onClick={() => setShowCustomGuests(true)}
+                onClick={() => handleGuestSelect(num)}
               >
-                Custom
+                {num}
               </Button>
-            </div>
-            
+            ))}
+            <Button
+              type="button"
+              variant={showCustomGuests ? "secondary" : "outline"}
+              size="sm"
+              className={cn(
+                "text-xs h-8 px-2 font-medium",
+                showCustomGuests && "bg-accent text-accent-foreground"
+              )}
+              onClick={() => setShowCustomGuests(true)}
+            >
+              +
+            </Button>
             {showCustomGuests && (
-              <div className="flex items-center gap-2 mt-2">
-                <Input
-                  type="number"
-                  min={1}
-                  max={500}
-                  placeholder="Enter number"
-                  value={customGuests}
-                  onChange={(e) => handleCustomGuestsChange(e.target.value)}
-                  className="max-w-[140px]"
-                  autoFocus
-                />
-                <span className="text-sm text-muted-foreground">guests</span>
-              </div>
+              <Input
+                type="number"
+                min={1}
+                max={500}
+                placeholder="Custom"
+                value={customGuests}
+                onChange={(e) => handleCustomGuestsChange(e.target.value)}
+                className="w-20 h-8 text-xs"
+                autoFocus
+              />
             )}
           </div>
 
-          {/* Time Slots */}
+          {/* Customer Details - Compact Grid */}
           <div className="space-y-2">
-            <Label>Time *</Label>
-            {loadingSlots ? (
-              <div className="py-4 text-center text-muted-foreground">
-                Loading available times...
-              </div>
-            ) : timeSlots.length === 0 ? (
-              <div className="py-4 text-center text-muted-foreground border rounded-lg">
-                No available times for this date
-              </div>
-            ) : (
-              <Select value={time} onValueChange={setTime}>
-                <SelectTrigger className="w-full">
-                  <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Select a time" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {timeSlots.filter(slot => slot.available).map((slot) => (
-                    <SelectItem key={slot.time} value={slot.time}>
-                      {slot.time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          {/* Customer Details */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground">
-              Customer Details
-            </h3>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+            <h3 className="font-medium text-xs text-muted-foreground">Customer Details</h3>
+            
+            <div className="grid grid-cols-2 gap-2">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   id="name"
-                  placeholder="Customer name"
+                  placeholder="Name *"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="pl-10"
+                  className="pl-8 h-9 text-sm"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+49 123 456 7890"
+                  placeholder="Phone"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="pl-10"
+                  className="pl-8 h-9 text-sm"
                 />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email (optional)</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="customer@email.com"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+            
+            <div className="relative">
+              <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email (optional)"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                className="pl-8 h-9 text-sm"
+              />
             </div>
           </div>
 
-          {/* Special Requests */}
-          <div className="space-y-2">
-            <Label htmlFor="requests">Special Requests</Label>
-            <Textarea
-              id="requests"
-              placeholder="Allergies, occasion, seating preferences..."
-              value={specialRequests}
-              onChange={(e) => setSpecialRequests(e.target.value)}
-              rows={3}
-            />
-          </div>
+          {/* Special Requests - Compact */}
+          <Textarea
+            id="requests"
+            placeholder="Special requests (allergies, occasion...)"
+            value={specialRequests}
+            onChange={(e) => setSpecialRequests(e.target.value)}
+            rows={2}
+            className="text-sm"
+          />
 
           {/* Submit */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
