@@ -740,7 +740,7 @@ export const CalendarView = ({
 
                     {/* Staff Note Section - Inline Editable */}
                     {editingNoteId === res.id ? (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-1.5 space-y-2">
                         <Textarea
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
@@ -772,7 +772,7 @@ export const CalendarView = ({
                       </div>
                     ) : res.notes ? (
                       <div 
-                        className="mt-3 text-sm staff-note-box cursor-pointer group/note relative"
+                        className="mt-1.5 text-sm staff-note-box cursor-pointer group/note relative"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
@@ -809,7 +809,7 @@ export const CalendarView = ({
 
                     {res.special_requests && (
                       <div 
-                        className="mt-3 text-sm request-box cursor-pointer"
+                        className="mt-1.5 text-sm request-box cursor-pointer"
                         onClick={() => {
                           setSelectedReservation(res);
                           setDetailDialogOpen(true);
