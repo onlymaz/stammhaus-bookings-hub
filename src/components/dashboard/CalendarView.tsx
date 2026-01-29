@@ -638,7 +638,7 @@ export const CalendarView = ({
               }
               
               return (
-              <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
                   const slotPast = isReservationPast(res);
@@ -646,7 +646,7 @@ export const CalendarView = ({
                   <div
                     key={res.id}
                     className={cn(
-                      "p-2.5 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-md relative overflow-hidden group",
+                      "p-2 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-md relative overflow-hidden group",
                       slotActive 
                         ? "reservation-in-progress" 
                         : slotPast
@@ -654,7 +654,7 @@ export const CalendarView = ({
                           : "border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50"
                     )}
                   >
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-1">
                       <div 
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => {
@@ -740,7 +740,7 @@ export const CalendarView = ({
 
                     {/* Staff Note Section - Inline Editable */}
                     {editingNoteId === res.id ? (
-                      <div className="mt-1.5 space-y-2">
+                      <div className="mt-1 space-y-1.5">
                         <Textarea
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
@@ -772,7 +772,7 @@ export const CalendarView = ({
                       </div>
                     ) : res.notes ? (
                       <div 
-                        className="mt-1.5 text-sm staff-note-box cursor-pointer group/note relative"
+                        className="mt-1 text-xs staff-note-box cursor-pointer group/note relative py-1.5 px-2"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
@@ -809,7 +809,7 @@ export const CalendarView = ({
 
                     {res.special_requests && (
                       <div 
-                        className="mt-1.5 text-sm request-box cursor-pointer"
+                        className="mt-1 text-xs request-box cursor-pointer py-1.5 px-2"
                         onClick={() => {
                           setSelectedReservation(res);
                           setDetailDialogOpen(true);
