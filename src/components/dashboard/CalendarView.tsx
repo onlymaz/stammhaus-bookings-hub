@@ -772,7 +772,7 @@ export const CalendarView = ({
                       </div>
                     ) : res.notes ? (
                       <div 
-                        className="mt-1 text-xs staff-note-box cursor-pointer group/note relative py-1.5 px-2"
+                        className="mt-1 text-xs staff-note-box cursor-pointer group/note relative py-1 px-2"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditingNote(res);
@@ -783,33 +783,20 @@ export const CalendarView = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 absolute top-1.5 right-1.5 opacity-0 group-hover/note:opacity-100 transition-opacity text-accent-foreground hover:bg-accent/20"
+                          className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover/note:opacity-100 transition-opacity text-accent-foreground hover:bg-accent/20"
                           onClick={(e) => {
                             e.stopPropagation();
                             startEditingNote(res);
                           }}
                         >
-                          <Edit2 className="h-3.5 w-3.5" />
+                          <Edit2 className="h-3 w-3" />
                         </Button>
                       </div>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="mt-2 h-7 px-2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditingNote(res);
-                        }}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add Staff Note
-                      </Button>
-                    )}
+                    ) : null}
 
                     {res.special_requests && (
                       <div 
-                        className="mt-1 text-xs request-box cursor-pointer py-1.5 px-2"
+                        className="mt-1 text-xs request-box cursor-pointer py-1 px-2"
                         onClick={() => {
                           setSelectedReservation(res);
                           setDetailDialogOpen(true);
