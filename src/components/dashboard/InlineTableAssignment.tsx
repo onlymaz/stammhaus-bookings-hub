@@ -464,9 +464,9 @@ export const InlineTableAssignment = ({
   return (
     <div 
       className={cn(
-        "mt-2 sm:mt-3 flex items-center gap-2 cursor-pointer group/table",
+        "mt-1.5 flex items-center gap-2 cursor-pointer group/table",
         hasAssignedTables 
-          ? "px-3 py-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 shadow-sm" 
+          ? "px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 shadow-sm" 
           : ""
       )}
       onClick={(e) => {
