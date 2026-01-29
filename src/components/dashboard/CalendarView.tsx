@@ -638,7 +638,7 @@ export const CalendarView = ({
               }
               
               return (
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {filteredReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
                   const slotPast = isReservationPast(res);
@@ -646,7 +646,7 @@ export const CalendarView = ({
                   <div
                     key={res.id}
                     className={cn(
-                      "p-3 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-md relative overflow-hidden group",
+                      "p-2.5 rounded-lg border transition-all duration-300 cursor-pointer hover:shadow-md relative overflow-hidden group",
                       slotActive 
                         ? "reservation-in-progress" 
                         : slotPast
