@@ -96,7 +96,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
       if (tablesError) throw tablesError;
 
-      // Fetch all reservations for the day with assigned tables (excluding cancelled/no_show)
+      // Fetch all reservations for the day (excluding cancelled/no_show)
       const { data: reservations, error: resError } = await supabase
         .from('reservations')
         .select(`
@@ -107,10 +107,23 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           customer:customers(name)
         `)
         .eq('reservation_date', dateStr)
-        .not('status', 'in', '("cancelled","no_show")')
-        .not('assigned_table_id', 'is', null);
+        .not('status', 'in', '("cancelled","no_show")');
 
       if (resError) throw resError;
+
+      // Fetch multi-table assignments from reservation_tables junction table
+      const reservationIds = (reservations || []).map(r => r.id);
+      let multiTableAssignments: { reservation_id: string; table_id: string }[] = [];
+      
+      if (reservationIds.length > 0) {
+        const { data: assignments, error: assignError } = await supabase
+          .from('reservation_tables')
+          .select('reservation_id, table_id')
+          .in('reservation_id', reservationIds);
+        
+        if (assignError) throw assignError;
+        multiTableAssignments = assignments || [];
+      }
 
       // Sort tables by zone order, then numerically
       const sortedTables = (tables || []).sort((a, b) => {
@@ -122,21 +135,39 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
       setAllTables(sortedTables);
 
-      // Map reserved tables with details
-      const reserved: ReservedTableInfo[] = (reservations || [])
-        .map(res => {
-          const table = sortedTables.find(t => t.id === res.assigned_table_id);
-          if (!table) return null;
-          return {
-            tableId: table.id,
-            tableNumber: table.table_number,
-            zone: table.zone,
-            reservationTime: res.reservation_time,
-            reservationEndTime: computeEndTime(res.reservation_time, res.reservation_end_time),
-            customerName: res.customer?.name || 'Unknown'
-          };
-        })
-        .filter(Boolean) as ReservedTableInfo[];
+      // Map reserved tables with details - include both assigned_table_id AND multi-table assignments
+      const reserved: ReservedTableInfo[] = [];
+      
+      (reservations || []).forEach(res => {
+        const customerName = res.customer?.name || 'Unknown';
+        const reservationTime = res.reservation_time;
+        const reservationEndTime = computeEndTime(res.reservation_time, res.reservation_end_time);
+
+        // Get all table IDs for this reservation (from junction table)
+        const assignedTableIds = multiTableAssignments
+          .filter(a => a.reservation_id === res.id)
+          .map(a => a.table_id);
+
+        // Also include the legacy assigned_table_id if not already in the list
+        if (res.assigned_table_id && !assignedTableIds.includes(res.assigned_table_id)) {
+          assignedTableIds.push(res.assigned_table_id);
+        }
+
+        // Add each assigned table to the reserved list
+        assignedTableIds.forEach(tableId => {
+          const table = sortedTables.find(t => t.id === tableId);
+          if (table) {
+            reserved.push({
+              tableId: table.id,
+              tableNumber: table.table_number,
+              zone: table.zone,
+              reservationTime,
+              reservationEndTime,
+              customerName
+            });
+          }
+        });
+      });
 
       // Sort reserved tables by zone order, then numerically
       reserved.sort((a, b) => {
