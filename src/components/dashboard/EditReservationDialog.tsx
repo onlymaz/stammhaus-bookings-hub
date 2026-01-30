@@ -7,6 +7,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +29,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Phone, Mail, User, Clock } from "lucide-react";
+import { CalendarIcon, Loader2, Phone, Mail, User, Clock, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -53,6 +64,7 @@ interface EditReservationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave?: () => void;
+  onDelete?: () => void;
 }
 
 const GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -62,6 +74,7 @@ export const EditReservationDialog = ({
   open,
   onOpenChange,
   onSave,
+  onDelete,
 }: EditReservationDialogProps) => {
   const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState<string>("");
@@ -75,8 +88,46 @@ export const EditReservationDialog = ({
   const [staffNote, setStaffNote] = useState("");
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const { toast } = useToast();
+
+  const handleDelete = async () => {
+    if (!reservation) return;
+    
+    setIsDeleting(true);
+    try {
+      // First delete related table assignments
+      await supabase
+        .from("reservation_tables")
+        .delete()
+        .eq("reservation_id", reservation.id);
+
+      // Then delete the reservation
+      const { error } = await supabase
+        .from("reservations")
+        .delete()
+        .eq("id", reservation.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reservation deleted",
+        description: "The reservation has been removed",
+      });
+
+      onDelete?.();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete reservation",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Initialize form when reservation changes
   useEffect(() => {
@@ -469,6 +520,40 @@ export const EditReservationDialog = ({
 
           {/* Submit */}
           <div className="flex gap-3 pt-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this reservation for {customerName}? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button
               type="button"
               variant="outline"
