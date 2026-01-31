@@ -488,7 +488,6 @@ export const InlineTableAssignment = ({
   // Display mode - show assigned tables
   const hasAssignedTables = assignedTables.length > 0 || currentTableId;
   const isSeated = diningStatus === 'seated';
-  const showReservedButton = hasAssignedTables && diningStatus === 'reserved';
   
   return (
     <div 
@@ -530,29 +529,26 @@ export const InlineTableAssignment = ({
         </span>
       )}
       
-      {/* Action button - show "Reserved" for staff to mark as seated, or checkmark if already seated */}
+      {/* Action button - checkmark to click, shows "Reserved" label after clicked */}
       {hasAssignedTables && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
-          {showReservedButton ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-[10px] font-medium bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700"
-              onClick={handleMarkReserved}
-              disabled={isMarkingReserved}
-            >
-              {isMarkingReserved ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                "Reserved"
-              )}
-            </Button>
-          ) : isSeated ? (
-            <Badge className="h-6 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-              Seated
+          {isSeated ? (
+            <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+              Reserved
             </Badge>
           ) : (
-            <Check className="h-4 w-4 text-rose-700 dark:text-rose-400" />
+            <button
+              className="p-1 rounded hover:bg-rose-200 dark:hover:bg-rose-800/50 transition-colors"
+              onClick={handleMarkReserved}
+              disabled={isMarkingReserved}
+              title="Click to mark as reserved"
+            >
+              {isMarkingReserved ? (
+                <Loader2 className="h-4 w-4 animate-spin text-rose-700 dark:text-rose-400" />
+              ) : (
+                <Check className="h-4 w-4 text-rose-700 dark:text-rose-400" />
+              )}
+            </button>
           )}
         </div>
       )}
