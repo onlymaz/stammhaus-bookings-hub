@@ -25,7 +25,9 @@ interface InlineTableAssignmentProps {
   currentTableId: string | null;
   currentTableNumber?: string | null;
   guests: number;
+  diningStatus?: string;
   onTableAssigned: () => void;
+  onDiningStatusChange?: () => void;
 }
 
 export const InlineTableAssignment = ({
@@ -36,7 +38,9 @@ export const InlineTableAssignment = ({
   currentTableId,
   currentTableNumber,
   guests,
+  diningStatus,
   onTableAssigned,
+  onDiningStatusChange,
 }: InlineTableAssignmentProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTableIds, setSelectedTableIds] = useState<Set<string>>(new Set());
@@ -44,6 +48,7 @@ export const InlineTableAssignment = ({
   const [assignedTables, setAssignedTables] = useState<RestaurantTable[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isMarkingReserved, setIsMarkingReserved] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<'all' | TableZone>('all');
   
@@ -170,6 +175,28 @@ export const InlineTableAssignment = ({
   const handleCancel = () => {
     setIsEditing(false);
     setSearchQuery("");
+  };
+
+  // Mark reservation as "Reserved" (staff action taken)
+  const handleMarkReserved = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMarkingReserved(true);
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .update({ dining_status: 'seated' })
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      toast.success('Marked as seated');
+      onDiningStatusChange?.();
+    } catch (error: any) {
+      console.error('Error marking reservation:', error);
+      toast.error('Failed to update status');
+    } finally {
+      setIsMarkingReserved(false);
+    }
   };
 
   // Table names now include prefix (T01, R37, G47, M01) - use directly
@@ -460,6 +487,8 @@ export const InlineTableAssignment = ({
 
   // Display mode - show assigned tables
   const hasAssignedTables = assignedTables.length > 0 || currentTableId;
+  const isSeated = diningStatus === 'seated';
+  const showReservedButton = hasAssignedTables && diningStatus === 'reserved';
   
   return (
     <div 
@@ -500,8 +529,32 @@ export const InlineTableAssignment = ({
           + Assign Tables
         </span>
       )}
+      
+      {/* Action button - show "Reserved" for staff to mark as seated, or checkmark if already seated */}
       {hasAssignedTables && (
-        <Check className="h-4 w-4 text-rose-700 dark:text-rose-400 ml-auto flex-shrink-0" />
+        <div className="ml-auto flex items-center gap-1 flex-shrink-0">
+          {showReservedButton ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[10px] font-medium bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700"
+              onClick={handleMarkReserved}
+              disabled={isMarkingReserved}
+            >
+              {isMarkingReserved ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                "Reserved"
+              )}
+            </Button>
+          ) : isSeated ? (
+            <Badge className="h-6 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+              Seated
+            </Badge>
+          ) : (
+            <Check className="h-4 w-4 text-rose-700 dark:text-rose-400" />
+          )}
+        </div>
       )}
     </div>
   );

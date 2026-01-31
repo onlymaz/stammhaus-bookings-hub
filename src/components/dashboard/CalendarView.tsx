@@ -723,7 +723,9 @@ export const CalendarView = ({
                       currentTableId={res.assigned_table_id}
                       currentTableNumber={res.assigned_table?.table_number}
                       guests={res.guests}
+                      diningStatus={res.dining_status}
                       onTableAssigned={fetchReservations}
+                      onDiningStatusChange={fetchReservations}
                     />
 
                     {/* Staff Note Section - Inline Editable */}
