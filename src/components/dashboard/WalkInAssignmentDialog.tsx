@@ -50,10 +50,12 @@ export const WalkInAssignmentDialog = ({
   const [guests, setGuests] = useState(2);
   const [saving, setSaving] = useState(false);
   
-  // Time state - initialize with current time
+  // Time state - initialize with current time rounded to nearest 15-minute slot
   const getDefaultStartTime = () => {
     const d = new Date();
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    const hours = d.getHours();
+    const minutes = Math.floor(d.getMinutes() / 15) * 15;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
   const [startTimeInput, setStartTimeInput] = useState(getDefaultStartTime);
   const [endTimeInput, setEndTimeInput] = useState("");
