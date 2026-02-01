@@ -64,7 +64,7 @@ export const InlineTableAssignment = ({
     fetchAssignedTablesData();
   }, [fetchAssignedTablesData]);
 
-  // Calculate end time if not provided (default 1.5 hours)
+  // Calculate end time if not provided (default 2 hours)
   const getEndTime = () => {
     if (reservationEndTime) return reservationEndTime;
     return calculateEndTime(reservationTime);
