@@ -42,11 +42,22 @@ export const WalkInAssignmentDialog = ({
   const [phone, setPhone] = useState("");
   const [guests, setGuests] = useState(2);
   const [saving, setSaving] = useState(false);
+  
+  // Time state - initialize with current time
+  const getDefaultStartTime = () => {
+    const d = new Date();
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  };
+  const [startTimeInput, setStartTimeInput] = useState(getDefaultStartTime);
+  const [endTimeInput, setEndTimeInput] = useState("");
 
   const resetForm = () => {
     setCustomerName("Walk-in Customer");
     setPhone("");
     setGuests(2);
+    const currentTime = new Date();
+    setStartTimeInput(`${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`);
+    setEndTimeInput("");
   };
 
   const handleClose = () => {
@@ -71,10 +82,9 @@ export const WalkInAssignmentDialog = ({
     setSaving(true);
 
     try {
-      // Current time as start time
-      const now = new Date();
-      const startTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`;
-      const endTime = calculateEndTime(startTime);
+      // Use selected times
+      const finalStartTime = `${startTimeInput}:00`;
+      const finalEndTime = endTimeInput ? `${endTimeInput}:00` : calculateEndTime(finalStartTime);
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       
       // Use default name if empty
@@ -135,8 +145,8 @@ export const WalkInAssignmentDialog = ({
         .insert({
           customer_id: customerId,
           reservation_date: dateStr,
-          reservation_time: startTime,
-          reservation_end_time: endTime,
+          reservation_time: finalStartTime,
+          reservation_end_time: finalEndTime,
           guests: guests,
           source: "walk-in",
           status: "confirmed",
@@ -177,10 +187,8 @@ export const WalkInAssignmentDialog = ({
     return `${m[1]}${parseInt(m[2], 10)}`;
   };
 
-  // Current time display
-  const now = new Date();
-  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  const endTimeDisplay = calculateEndTime(currentTime + ':00').slice(0, 5);
+  // Calculate end time for display
+  const endTimeDisplay = endTimeInput || calculateEndTime(startTimeInput + ':00').slice(0, 5);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -197,16 +205,31 @@ export const WalkInAssignmentDialog = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Time info */}
-          <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              <strong>{currentTime}</strong> → <strong>{endTimeDisplay}</strong>
-              <span className="text-muted-foreground ml-2">(2 hours)</span>
-            </span>
+          {/* Time Selection */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+            <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex items-center gap-2 flex-1">
+              <Input
+                type="time"
+                value={startTimeInput}
+                onChange={(e) => {
+                  setStartTimeInput(e.target.value);
+                  // Auto-update end time to maintain 2 hour duration
+                  setEndTimeInput(calculateEndTime(e.target.value + ':00').slice(0, 5));
+                }}
+                className="h-8 w-24 text-sm"
+              />
+              <span className="text-muted-foreground">→</span>
+              <Input
+                type="time"
+                value={endTimeDisplay}
+                onChange={(e) => setEndTimeInput(e.target.value)}
+                className="h-8 w-24 text-sm"
+              />
+            </div>
             {table && (
-              <Badge variant="outline" className="ml-auto text-xs">
-                Capacity: {table.capacity}
+              <Badge variant="outline" className="text-xs flex-shrink-0">
+                Cap: {table.capacity}
               </Badge>
             )}
           </div>
