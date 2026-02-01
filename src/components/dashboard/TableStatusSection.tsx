@@ -1,11 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Table2, CheckCircle, Clock, Home, Building, TreePine, Layers } from "lucide-react";
+import { Table2, CheckCircle, Clock, Home, Building, TreePine, Layers, UserPlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableZone } from "@/types/table";
+import { WalkInAssignmentDialog } from "./WalkInAssignmentDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TableWithZone {
   id: string;
@@ -30,6 +36,7 @@ interface TableReservationInfo {
 interface TableStatusSectionProps {
   selectedDate: Date;
   refreshTrigger?: number;
+  onRefresh?: () => void;
 }
 
 // Zone order for sorting: T, R, G, M
@@ -43,12 +50,14 @@ const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> 
   mezz: { label: 'Mezz (M)', icon: Layers },
 };
 
-export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatusSectionProps) => {
+export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: TableStatusSectionProps) => {
   const [allTables, setAllTables] = useState<TableWithZone[]>([]);
   const [tableReservations, setTableReservations] = useState<Map<string, TableReservationInfo>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'free' | 'reserved'>('free');
   const [nowTick, setNowTick] = useState(0);
+  const [walkInDialogOpen, setWalkInDialogOpen] = useState(false);
+  const [selectedTableForWalkIn, setSelectedTableForWalkIn] = useState<TableWithZone | null>(null);
 
   // Display without leading zeros: T01 -> T1, M01 -> M1 (keeps R37/G47 as-is)
   const getTableDisplayName = (table: { table_number: string }) => {
@@ -347,20 +356,39 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
                           // Check if this table has any reservations today
                           const tableInfo = tableReservations.get(table.id);
                           const hasReservations = tableInfo && tableInfo.reservations.length > 0;
+                          const isToday = isSameDay(selectedDate, new Date());
                           
                           return (
-                            <Badge
-                              key={table.id}
-                              variant="outline"
-                              className={`text-sm px-3 py-1 ${
-                                hasReservations 
-                                  ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700'
-                                  : 'bg-success/10 text-success border-success/30'
-                              }`}
-                              title={hasReservations ? 'Has reservations - available between bookings' : 'No reservations today'}
-                            >
-                              {getTableDisplayName(table)}
-                            </Badge>
+                            <Tooltip key={table.id}>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className={`text-sm px-3 py-1 cursor-pointer transition-all hover:scale-105 ${
+                                    hasReservations 
+                                      ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700 hover:bg-amber-100'
+                                      : 'bg-success/10 text-success border-success/30 hover:bg-success/20'
+                                  }`}
+                                  onClick={() => {
+                                    if (isToday) {
+                                      setSelectedTableForWalkIn(table);
+                                      setWalkInDialogOpen(true);
+                                    }
+                                  }}
+                                >
+                                  {getTableDisplayName(table)}
+                                  {isToday && (
+                                    <UserPlus className="h-3 w-3 ml-1 opacity-60" />
+                                  )}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {isToday ? (
+                                  <p>Click to seat walk-in customer</p>
+                                ) : (
+                                  <p>{hasReservations ? 'Has reservations - available between bookings' : 'No reservations'}</p>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
                           );
                         })}
                       </div>
@@ -415,6 +443,18 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      {/* Walk-in Assignment Dialog */}
+      <WalkInAssignmentDialog
+        open={walkInDialogOpen}
+        onOpenChange={setWalkInDialogOpen}
+        table={selectedTableForWalkIn}
+        selectedDate={selectedDate}
+        onSuccess={() => {
+          fetchTableStatus();
+          onRefresh?.();
+        }}
+      />
     </div>
   );
 };
