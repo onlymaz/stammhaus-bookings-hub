@@ -38,13 +38,13 @@ export const WalkInAssignmentDialog = ({
   selectedDate,
   onSuccess
 }: WalkInAssignmentDialogProps) => {
-  const [customerName, setCustomerName] = useState("");
+  const [customerName, setCustomerName] = useState("Walk-in Customer");
   const [phone, setPhone] = useState("");
   const [guests, setGuests] = useState(2);
   const [saving, setSaving] = useState(false);
 
   const resetForm = () => {
-    setCustomerName("");
+    setCustomerName("Walk-in Customer");
     setPhone("");
     setGuests(2);
   };
@@ -63,8 +63,8 @@ export const WalkInAssignmentDialog = ({
   };
 
   const handleAssign = async () => {
-    if (!table || !customerName.trim()) {
-      toast.error("Please enter customer name");
+    if (!table) {
+      toast.error("No table selected");
       return;
     }
 
@@ -76,6 +76,9 @@ export const WalkInAssignmentDialog = ({
       const startTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`;
       const endTime = calculateEndTime(startTime);
       const dateStr = format(selectedDate, "yyyy-MM-dd");
+      
+      // Use default name if empty
+      const finalName = customerName.trim() || "Walk-in Customer";
 
       // Create or find customer
       let customerId: string;
@@ -90,17 +93,19 @@ export const WalkInAssignmentDialog = ({
 
         if (existingCustomer) {
           customerId = existingCustomer.id;
-          // Update name if different
-          await supabase
-            .from("customers")
-            .update({ name: customerName.trim() })
-            .eq("id", customerId);
+          // Update name if different and not default
+          if (finalName !== "Walk-in Customer") {
+            await supabase
+              .from("customers")
+              .update({ name: finalName })
+              .eq("id", customerId);
+          }
         } else {
           // Create new customer
           const { data: newCustomer, error: customerError } = await supabase
             .from("customers")
             .insert({
-              name: customerName.trim(),
+              name: finalName,
               phone: phone.trim() || "walk-in"
             })
             .select("id")
@@ -114,7 +119,7 @@ export const WalkInAssignmentDialog = ({
         const { data: newCustomer, error: customerError } = await supabase
           .from("customers")
           .insert({
-            name: customerName.trim(),
+            name: finalName,
             phone: `walk-in-${Date.now()}`
           })
           .select("id")
@@ -206,11 +211,11 @@ export const WalkInAssignmentDialog = ({
             )}
           </div>
 
-          {/* Customer Name */}
+          {/* Customer Name (optional) */}
           <div className="space-y-2">
             <Label htmlFor="customer-name" className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              Customer Name *
+              Customer Name <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
             <Input
               id="customer-name"
@@ -283,7 +288,7 @@ export const WalkInAssignmentDialog = ({
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleAssign} disabled={saving || !customerName.trim()}>
+          <Button onClick={handleAssign} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             Seat Customer
           </Button>
