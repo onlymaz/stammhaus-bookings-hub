@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -12,6 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Users, Phone, User, Loader2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { TableZone } from "@/types/table";
@@ -187,6 +194,17 @@ export const WalkInAssignmentDialog = ({
     return `${m[1]}${parseInt(m[2], 10)}`;
   };
 
+  // Generate time slots (every 15 minutes from 08:00 to 23:45)
+  const timeSlots = useMemo(() => {
+    const slots: string[] = [];
+    for (let h = 8; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      }
+    }
+    return slots;
+  }, []);
+
   // Calculate end time for display
   const endTimeDisplay = endTimeInput || calculateEndTime(startTimeInput + ':00').slice(0, 5);
 
@@ -209,23 +227,41 @@ export const WalkInAssignmentDialog = ({
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
             <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="flex items-center gap-2 flex-1">
-              <Input
-                type="time"
+              <Select
                 value={startTimeInput}
-                onChange={(e) => {
-                  setStartTimeInput(e.target.value);
+                onValueChange={(value) => {
+                  setStartTimeInput(value);
                   // Auto-update end time to maintain 2 hour duration
-                  setEndTimeInput(calculateEndTime(e.target.value + ':00').slice(0, 5));
+                  setEndTimeInput(calculateEndTime(value + ':00').slice(0, 5));
                 }}
-                className="h-8 w-24 text-sm"
-              />
+              >
+                <SelectTrigger className="h-9 w-[100px] text-sm">
+                  <SelectValue placeholder="Start" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50 max-h-[200px]">
+                  {timeSlots.map((slot) => (
+                    <SelectItem key={`start-${slot}`} value={slot}>
+                      {slot}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <span className="text-muted-foreground">→</span>
-              <Input
-                type="time"
+              <Select
                 value={endTimeDisplay}
-                onChange={(e) => setEndTimeInput(e.target.value)}
-                className="h-8 w-24 text-sm"
-              />
+                onValueChange={(value) => setEndTimeInput(value)}
+              >
+                <SelectTrigger className="h-9 w-[100px] text-sm">
+                  <SelectValue placeholder="End" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50 max-h-[200px]">
+                  {timeSlots.map((slot) => (
+                    <SelectItem key={`end-${slot}`} value={slot}>
+                      {slot}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {table && (
               <Badge variant="outline" className="text-xs flex-shrink-0">
