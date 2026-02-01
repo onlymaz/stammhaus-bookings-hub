@@ -12,8 +12,8 @@ interface AssignedTable {
 export const useMultiTableAssignment = () => {
   const [loading, setLoading] = useState(false);
 
-  // Calculate end time (default 90 minutes)
-  const calculateEndTime = (startTime: string, durationMinutes: number = 90): string => {
+  // Calculate end time (default 120 minutes / 2 hours)
+  const calculateEndTime = (startTime: string, durationMinutes: number = 120): string => {
     const [hours, minutes] = startTime.split(':').map(Number);
     const totalMinutes = hours * 60 + minutes + durationMinutes;
     const endHours = Math.floor(totalMinutes / 60) % 24;
