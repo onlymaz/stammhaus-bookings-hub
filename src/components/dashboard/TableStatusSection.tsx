@@ -14,13 +14,17 @@ interface TableWithZone {
   capacity: number;
 }
 
-interface ReservedTableInfo {
+interface ReservationSlot {
+  reservationTime: string;
+  reservationEndTime: string;
+  customerName: string;
+}
+
+interface TableReservationInfo {
   tableId: string;
   tableNumber: string;
   zone: TableZone;
-  reservationTime: string;
-  reservationEndTime: string; // always computed (fallback to start + 90min)
-  customerName: string;
+  reservations: ReservationSlot[];
 }
 
 interface TableStatusSectionProps {
@@ -41,7 +45,7 @@ const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> 
 
 export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatusSectionProps) => {
   const [allTables, setAllTables] = useState<TableWithZone[]>([]);
-  const [reservedTables, setReservedTables] = useState<ReservedTableInfo[]>([]);
+  const [tableReservations, setTableReservations] = useState<Map<string, TableReservationInfo>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'free' | 'reserved'>('free');
   const [nowTick, setNowTick] = useState(0);
@@ -135,13 +139,30 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
       setAllTables(sortedTables);
 
-      // Map reserved tables with details - include both assigned_table_id AND multi-table assignments
-      const reserved: ReservedTableInfo[] = [];
+      // Build a map of table -> all its reservations for the day
+      const tableResMap = new Map<string, TableReservationInfo>();
       
+      // Initialize all tables in the map
+      sortedTables.forEach(table => {
+        tableResMap.set(table.id, {
+          tableId: table.id,
+          tableNumber: table.table_number,
+          zone: table.zone,
+          reservations: []
+        });
+      });
+
+      // Add reservations to their tables
       (reservations || []).forEach(res => {
         const customerName = res.customer?.name || 'Unknown';
         const reservationTime = res.reservation_time;
         const reservationEndTime = computeEndTime(res.reservation_time, res.reservation_end_time);
+
+        const slot: ReservationSlot = {
+          reservationTime,
+          reservationEndTime,
+          customerName
+        };
 
         // Get all table IDs for this reservation (from junction table)
         const assignedTableIds = multiTableAssignments
@@ -153,31 +174,23 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           assignedTableIds.push(res.assigned_table_id);
         }
 
-        // Add each assigned table to the reserved list
+        // Add this reservation slot to each assigned table
         assignedTableIds.forEach(tableId => {
-          const table = sortedTables.find(t => t.id === tableId);
-          if (table) {
-            reserved.push({
-              tableId: table.id,
-              tableNumber: table.table_number,
-              zone: table.zone,
-              reservationTime,
-              reservationEndTime,
-              customerName
-            });
+          const tableInfo = tableResMap.get(tableId);
+          if (tableInfo) {
+            tableInfo.reservations.push(slot);
           }
         });
       });
 
-      // Sort reserved tables by zone order, then numerically
-      reserved.sort((a, b) => {
-        const zoneA = zoneOrder[a.zone] ?? 99;
-        const zoneB = zoneOrder[b.zone] ?? 99;
-        if (zoneA !== zoneB) return zoneA - zoneB;
-        return getTableNumeric(a.tableNumber) - getTableNumeric(b.tableNumber);
+      // Sort reservations by time for each table
+      tableResMap.forEach(tableInfo => {
+        tableInfo.reservations.sort((a, b) => 
+          timeStrToMinutes(a.reservationTime) - timeStrToMinutes(b.reservationTime)
+        );
       });
 
-      setReservedTables(reserved);
+      setTableReservations(tableResMap);
     } catch (error) {
       console.error('Error fetching table status:', error);
     } finally {
@@ -196,30 +209,72 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
     return () => window.clearInterval(id);
   }, [selectedDate]);
 
-  const effectiveReservedTables = useMemo(() => {
-    // keep hook dependency explicit
+  // Calculate current availability based on time
+  const { freeTables, reservedTables } = useMemo(() => {
     void nowTick;
 
     const today = new Date();
     const selectedDay = startOfDay(selectedDate);
     const todayDay = startOfDay(today);
-
-    // past day => everything ended => all tables free
-    if (isBefore(selectedDay, todayDay)) return [];
-
-    // future day => keep "whole day" behavior (show upcoming reservations)
-    if (!isSameDay(selectedDate, today)) return reservedTables;
-
-    // today => table is reserved only if reservation has not ended yet
     const nowMinutes = today.getHours() * 60 + today.getMinutes();
-    return reservedTables.filter((rt) => timeStrToMinutes(rt.reservationEndTime) > nowMinutes);
-  }, [reservedTables, selectedDate, nowTick]);
 
-  // Get unique reserved table IDs
-  const reservedTableIds = new Set(effectiveReservedTables.map(rt => rt.tableId));
+    const free: TableWithZone[] = [];
+    const reserved: Array<{ table: TableWithZone; slots: ReservationSlot[] }> = [];
 
-  // Free tables = all tables - reserved
-  const freeTables = allTables.filter(t => !reservedTableIds.has(t.id));
+    allTables.forEach(table => {
+      const tableInfo = tableReservations.get(table.id);
+      
+      if (!tableInfo || tableInfo.reservations.length === 0) {
+        // No reservations - table is free
+        free.push(table);
+        return;
+      }
+
+      // Filter reservations based on date context
+      let activeReservations = tableInfo.reservations;
+      
+      if (isBefore(selectedDay, todayDay)) {
+        // Past day - all reservations ended, table is free
+        free.push(table);
+        return;
+      } else if (isSameDay(selectedDate, today)) {
+        // Today - only show reservations that haven't ended yet
+        activeReservations = tableInfo.reservations.filter(
+          slot => timeStrToMinutes(slot.reservationEndTime) > nowMinutes
+        );
+        
+        if (activeReservations.length === 0) {
+          // All reservations for today have ended
+          free.push(table);
+          return;
+        }
+      }
+
+      // Table has active reservations - add to reserved list
+      reserved.push({ table, slots: activeReservations });
+
+      // Check if table is currently free (between reservations or before first booking)
+      if (isSameDay(selectedDate, today)) {
+        // Check if we're currently in a gap between reservations
+        const isCurrentlyOccupied = activeReservations.some(slot => {
+          const startMin = timeStrToMinutes(slot.reservationTime);
+          const endMin = timeStrToMinutes(slot.reservationEndTime);
+          return nowMinutes >= startMin && nowMinutes < endMin;
+        });
+
+        if (!isCurrentlyOccupied) {
+          // Table is not currently occupied - also show in free list
+          free.push(table);
+        }
+      } else {
+        // Future day - table has reservations but could have free slots too
+        // Show in free if there's potential for more bookings (always true for future days)
+        free.push(table);
+      }
+    });
+
+    return { freeTables: free, reservedTables: reserved };
+  }, [allTables, tableReservations, selectedDate, nowTick]);
 
   // Group by zone for display
   const freeByZone = {
@@ -228,12 +283,14 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
     garden: freeTables.filter(t => t.zone === 'garden'),
     mezz: freeTables.filter(t => t.zone === 'mezz'),
   };
+
   const reservedByZone = {
-    inside: effectiveReservedTables.filter(t => t.zone === 'inside'),
-    room: effectiveReservedTables.filter(t => t.zone === 'room'),
-    garden: effectiveReservedTables.filter(t => t.zone === 'garden'),
-    mezz: effectiveReservedTables.filter(t => t.zone === 'mezz'),
+    inside: reservedTables.filter(rt => rt.table.zone === 'inside'),
+    room: reservedTables.filter(rt => rt.table.zone === 'room'),
+    garden: reservedTables.filter(rt => rt.table.zone === 'garden'),
+    mezz: reservedTables.filter(rt => rt.table.zone === 'mezz'),
   };
+
   const allZones: TableZone[] = ['inside', 'room', 'garden', 'mezz'];
 
   if (loading) {
@@ -264,7 +321,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           </TabsTrigger>
           <TabsTrigger value="reserved" className="flex-1 h-8 text-sm gap-2">
             <Clock className="h-4 w-4" />
-            Reserved ({effectiveReservedTables.length})
+            Reserved ({reservedTables.length})
           </TabsTrigger>
         </TabsList>
 
@@ -272,7 +329,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
           <ScrollArea className="h-auto max-h-[60vh] rounded-lg border bg-card p-4">
             {freeTables.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-8">
-                No free tables for this day
+                No free tables for this time
               </div>
             ) : (
               <div className="space-y-4">
@@ -286,15 +343,26 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
                         <ZoneIcon className="h-4 w-4" /> {zoneLabels[zone].label} ({zoneTables.length})
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {zoneTables.map(table => (
-                          <Badge
-                            key={table.id}
-                            variant="outline"
-                            className="text-sm bg-success/10 text-success border-success/30 px-3 py-1"
-                          >
-                            {getTableDisplayName(table)}
-                          </Badge>
-                        ))}
+                        {zoneTables.map(table => {
+                          // Check if this table has any reservations today
+                          const tableInfo = tableReservations.get(table.id);
+                          const hasReservations = tableInfo && tableInfo.reservations.length > 0;
+                          
+                          return (
+                            <Badge
+                              key={table.id}
+                              variant="outline"
+                              className={`text-sm px-3 py-1 ${
+                                hasReservations 
+                                  ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700'
+                                  : 'bg-success/10 text-success border-success/30'
+                              }`}
+                              title={hasReservations ? 'Has reservations - available between bookings' : 'No reservations today'}
+                            >
+                              {getTableDisplayName(table)}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -306,33 +374,37 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger }: TableStatus
 
         <TabsContent value="reserved" className="mt-4">
           <ScrollArea className="h-auto max-h-[60vh] rounded-lg border bg-card p-4">
-            {effectiveReservedTables.length === 0 ? (
+            {reservedTables.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-8">
                 No reserved tables for this day
               </div>
             ) : (
               <div className="space-y-4">
                 {allZones.map(zone => {
-                  const zoneTables = reservedByZone[zone];
-                  if (zoneTables.length === 0) return null;
+                  const zoneReserved = reservedByZone[zone];
+                  if (zoneReserved.length === 0) return null;
                   const ZoneIcon = zoneLabels[zone].icon;
                   return (
                     <div key={zone}>
                       <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2 mt-4 first:mt-0">
-                        <ZoneIcon className="h-4 w-4" /> {zoneLabels[zone].label} ({zoneTables.length})
+                        <ZoneIcon className="h-4 w-4" /> {zoneLabels[zone].label} ({zoneReserved.length})
                       </div>
-                      {zoneTables.map((rt, idx) => (
-                        <div
-                          key={`${rt.tableId}-${idx}`}
-                          className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg bg-muted/50 text-sm mb-2"
-                        >
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-3 py-1">
-                            {getTableDisplayName({ table_number: rt.tableNumber })}
-                          </Badge>
-                          <span className="text-muted-foreground truncate flex-1">{rt.customerName}</span>
-                          <span className="text-muted-foreground whitespace-nowrap">
-                            {rt.reservationTime.slice(0, 5)} - {rt.reservationEndTime.slice(0, 5)}
-                          </span>
+                      {zoneReserved.map((rt) => (
+                        <div key={rt.table.id} className="mb-3">
+                          {rt.slots.map((slot, idx) => (
+                            <div
+                              key={`${rt.table.id}-${idx}`}
+                              className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg bg-muted/50 text-sm mb-1"
+                            >
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-3 py-1">
+                                {getTableDisplayName({ table_number: rt.table.table_number })}
+                              </Badge>
+                              <span className="text-muted-foreground truncate flex-1">{slot.customerName}</span>
+                              <span className="text-muted-foreground whitespace-nowrap">
+                                {slot.reservationTime.slice(0, 5)} - {slot.reservationEndTime.slice(0, 5)}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
