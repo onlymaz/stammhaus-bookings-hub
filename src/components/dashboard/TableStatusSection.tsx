@@ -401,7 +401,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
         </TabsContent>
 
         <TabsContent value="reserved" className="mt-4">
-          <ScrollArea className="h-auto max-h-[60vh] rounded-lg border bg-card p-4">
+          <ScrollArea className="h-[400px] rounded-lg border bg-card p-4">
             {reservedTables.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-8">
                 No reserved tables for this day
