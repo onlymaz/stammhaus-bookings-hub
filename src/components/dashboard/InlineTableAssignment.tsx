@@ -529,19 +529,19 @@ export const InlineTableAssignment = ({
         </span>
       )}
       
-      {/* Action button - checkmark to click, shows "Reserved" label after clicked */}
+      {/* Action button - checkmark to seat customer, shows "Seated" label after clicked */}
       {hasAssignedTables && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
           {isSeated ? (
             <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-              Reserved
+              Seated
             </Badge>
           ) : (
             <button
               className="p-1 rounded hover:bg-rose-200 dark:hover:bg-rose-800/50 transition-colors"
               onClick={handleMarkReserved}
               disabled={isMarkingReserved}
-              title="Click to mark as reserved"
+              title="Click to seat customer"
             >
               {isMarkingReserved ? (
                 <Loader2 className="h-4 w-4 animate-spin text-rose-700 dark:text-rose-400" />
