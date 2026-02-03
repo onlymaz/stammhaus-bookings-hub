@@ -310,7 +310,14 @@ const Dashboard = () => {
               {/* Tables button - simple toggle */}
               <Button
                 size="sm"
-                onClick={() => setTablesPopoverOpen(!tablesPopoverOpen)}
+                onClick={() => {
+                  const willOpen = !tablesPopoverOpen;
+                  setTablesPopoverOpen(willOpen);
+                  if (willOpen) {
+                    // Scroll to top so the Tables section is visible
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className={cn(
                   "gap-1.5 h-8 px-3 text-xs rounded-lg shadow-md hover:shadow-lg transition-all duration-300",
                   tablesPopoverOpen 
