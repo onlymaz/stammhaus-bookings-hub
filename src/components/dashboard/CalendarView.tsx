@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   format, 
   startOfWeek, 
@@ -132,6 +132,8 @@ export const CalendarView = ({
     if (reservation.dining_status === "completed" ||
         reservation.dining_status === "cancelled" ||
         reservation.dining_status === "no_show" ||
+        reservation.status === "completed" ||
+        reservation.status === "no_show" ||
         reservation.status === "cancelled") {
       return false;
     }
@@ -160,6 +162,18 @@ export const CalendarView = ({
 
   // Check if reservation is in the past (for graying out)
   const isReservationPast = (reservation: Reservation): boolean => {
+    // Manually finished/cancelled/no-show should always be treated as past
+    if (
+      reservation.dining_status === "completed" ||
+      reservation.dining_status === "cancelled" ||
+      reservation.dining_status === "no_show" ||
+      reservation.status === "completed" ||
+      reservation.status === "cancelled" ||
+      reservation.status === "no_show"
+    ) {
+      return true;
+    }
+
     const today = format(new Date(), "yyyy-MM-dd");
     
     // Past date = always gray
@@ -329,7 +343,11 @@ export const CalendarView = ({
   };
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const todayReservations = getReservationsForDate(selectedDate);
+  // Memoize to avoid recreating the array on every render (prevents render loops)
+  const todayReservations = useMemo(
+    () => getReservationsForDate(selectedDate),
+    [reservations, selectedDate]
+  );
 
   // Generate month calendar days
   const getMonthDays = () => {
