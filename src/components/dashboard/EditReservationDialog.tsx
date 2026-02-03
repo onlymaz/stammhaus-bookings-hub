@@ -352,7 +352,7 @@ export const EditReservationDialog = ({
                     {date ? format(date, "MMM d, yyyy") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-[100] bg-background" align="start" sideOffset={4}>
                   <Calendar
                     mode="single"
                     selected={date}
@@ -380,7 +380,7 @@ export const EditReservationDialog = ({
                     <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                     <SelectValue placeholder="Select time" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
+                  <SelectContent className="max-h-[200px] z-[100] bg-background" position="popper" sideOffset={4}>
                     {timeSlots.filter(slot => slot.available).map((slot) => (
                       <SelectItem key={slot.time} value={slot.time}>
                         {slot.time}
@@ -536,7 +536,7 @@ export const EditReservationDialog = ({
                   )}
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="z-[110]">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
                   <AlertDialogDescription>
