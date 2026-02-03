@@ -321,7 +321,11 @@ export const CreateReservationDialog = ({
                   <SelectTrigger className="w-full h-10">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
+                  <SelectContent 
+                    className="max-h-[200px] bg-background border shadow-lg z-[100]"
+                    position="popper"
+                    sideOffset={4}
+                  >
                     {timeSlots.filter(slot => slot.available).map((slot) => (
                       <SelectItem key={slot.time} value={slot.time}>
                         {slot.time}
