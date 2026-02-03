@@ -119,11 +119,6 @@ export const CalendarView = ({
   }, []);
 
   // Check if reservation time slot is currently active (LIVE)
-  // A reservation is LIVE if:
-  // 1. It's for today
-  // 2. It's not completed/cancelled/no_show
-  // 3. EITHER the dining_status is 'seated' (customer is currently dining) 
-  //    OR the current time is within the reservation time slot
   const isTimeSlotActive = (reservation: Reservation): boolean => {
     const today = format(new Date(), "yyyy-MM-dd");
     if (reservation.reservation_date !== today) return false;
@@ -136,23 +131,18 @@ export const CalendarView = ({
       return false;
     }
     
-    // If customer is already seated (e.g., arrived early), show as LIVE
-    if (reservation.dining_status === "seated") {
-      return true;
-    }
-    
     const [startHours, startMinutes] = reservation.reservation_time.split(":").map(Number);
     const reservationStart = new Date();
     reservationStart.setHours(startHours, startMinutes, 0, 0);
     
-    // Calculate end time (use explicit end_time or default 120 min)
+    // Calculate end time (use explicit end_time or default 90 min)
     let reservationEnd: Date;
     if (reservation.reservation_end_time) {
       const [endHours, endMinutes] = reservation.reservation_end_time.split(":").map(Number);
       reservationEnd = new Date();
       reservationEnd.setHours(endHours, endMinutes, 0, 0);
     } else {
-      reservationEnd = new Date(reservationStart.getTime() + 120 * 60 * 1000);
+      reservationEnd = new Date(reservationStart.getTime() + 90 * 60 * 1000);
     }
     
     return currentTime >= reservationStart && currentTime < reservationEnd;
