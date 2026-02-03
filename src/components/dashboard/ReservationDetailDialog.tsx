@@ -108,9 +108,20 @@ export const ReservationDetailDialog = ({
 
   const updateStatus = async (newStatus: string) => {
     setUpdating(true);
+    
+    // When completing or cancelling, also update dining_status to match
+    const updates: { status: string; dining_status?: DiningStatus } = { status: newStatus };
+    if (newStatus === "completed") {
+      updates.dining_status = "completed";
+    } else if (newStatus === "cancelled") {
+      updates.dining_status = "cancelled";
+    } else if (newStatus === "no_show") {
+      updates.dining_status = "no_show";
+    }
+    
     const { error } = await supabase
       .from("reservations")
-      .update({ status: newStatus })
+      .update(updates)
       .eq("id", reservation.id);
 
     setUpdating(false);
