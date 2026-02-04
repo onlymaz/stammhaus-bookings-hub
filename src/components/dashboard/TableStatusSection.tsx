@@ -135,7 +135,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
           reservation_time: startTime,
           reservation_end_time: endTime,
           guests: 2,
-          source: "walk-in",
+          source: "phone",
           status: "confirmed",
           dining_status: "seated",
           assigned_table_id: table.id,
