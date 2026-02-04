@@ -122,13 +122,12 @@ export const CalendarView = ({
   // A reservation is LIVE if:
   // 1. It's for today
   // 2. It's not completed/cancelled/no_show
-  // 3. The current time is within the reservation time slot (start time <= now <= end time)
-  // Note: "Seated" badge shows dining_status but doesn't make it LIVE until time starts
+  // 3. EITHER: dining_status is 'seated' (manual) OR current time is within reservation time slot (automatic)
   const isTimeSlotActive = (reservation: Reservation): boolean => {
     const today = format(new Date(), "yyyy-MM-dd");
     if (reservation.reservation_date !== today) return false;
     
-    // Skip if already completed/cancelled
+    // Skip if already completed/cancelled/no_show - never show LIVE
     if (reservation.dining_status === "completed" ||
         reservation.dining_status === "cancelled" ||
         reservation.dining_status === "no_show" ||
@@ -138,8 +137,12 @@ export const CalendarView = ({
       return false;
     }
     
-    // LIVE is purely time-based - only show when reservation time has actually started
+    // MANUAL: If staff marked as seated, show LIVE immediately
+    if (reservation.dining_status === "seated") {
+      return true;
+    }
     
+    // AUTOMATIC: Show LIVE when current time is within reservation time slot
     const [startHours, startMinutes] = reservation.reservation_time.split(":").map(Number);
     const reservationStart = new Date();
     reservationStart.setHours(startHours, startMinutes, 0, 0);
