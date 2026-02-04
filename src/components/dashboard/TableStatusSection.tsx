@@ -102,8 +102,32 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
     return minutesToTimeStr(timeStrToMinutes(startTime) + 120);
   };
 
+  // Check if table is available at a given time (no overlapping reservations)
+  const isTableAvailableNow = (table: TableWithZone): boolean => {
+    const tableInfo = tableReservations.get(table.id);
+    if (!tableInfo || tableInfo.reservations.length === 0) return true;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const endMinutes = currentMinutes + 120; // 2 hour duration
+
+    // Check for any overlapping reservation
+    return !tableInfo.reservations.some(slot => {
+      const slotStart = timeStrToMinutes(slot.reservationTime);
+      const slotEnd = timeStrToMinutes(slot.reservationEndTime);
+      // Overlap if: new start < existing end AND new end > existing start
+      return currentMinutes < slotEnd && endMinutes > slotStart;
+    });
+  };
+
   // Quick-seat a walk-in customer on a table (no dialog)
   const quickSeatWalkIn = async (table: TableWithZone) => {
+    // First check if table is actually available at this time
+    if (!isTableAvailableNow(table)) {
+      toast.error(`${getTableDisplayName(table)} is already occupied at this time`);
+      return;
+    }
+
     setSeatLoading(table.id);
     
     try {
@@ -113,6 +137,22 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
       const startTime = `${currentHours.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}:00`;
       const endTime = calculateEndTime(startTime);
       const dateStr = format(selectedDate, "yyyy-MM-dd");
+
+      // Double-check availability via database function
+      const { data: isAvailable, error: availError } = await supabase.rpc('is_table_available', {
+        _table_id: table.id,
+        _date: dateStr,
+        _start_time: startTime,
+        _end_time: endTime,
+        _exclude_reservation_id: null
+      });
+
+      if (availError) throw availError;
+      if (!isAvailable) {
+        toast.error(`${getTableDisplayName(table)} has a conflicting reservation`);
+        setSeatLoading(null);
+        return;
+      }
       
       // Create a generic walk-in customer
       const { data: newCustomer, error: customerError } = await supabase
