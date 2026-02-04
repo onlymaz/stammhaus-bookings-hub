@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Table2, CheckCircle, Clock, Home, Building, TreePine, Layers, UserPlus } from "lucide-react";
+import { Table2, CheckCircle, Clock, Home, Building, TreePine, Layers, UserPlus, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableZone } from "@/types/table";
-import { WalkInAssignmentDialog } from "./WalkInAssignmentDialog";
+import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -50,14 +50,22 @@ const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> 
   mezz: { label: 'Mezz (M)', icon: Layers },
 };
 
+// Calculate end time (default 2 hours)
+const calculateEndTime = (startTime: string): string => {
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const totalMinutes = hours * 60 + minutes + 120;
+  const endHours = Math.floor(totalMinutes / 60) % 24;
+  const endMins = totalMinutes % 60;
+  return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}:00`;
+};
+
 export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: TableStatusSectionProps) => {
   const [allTables, setAllTables] = useState<TableWithZone[]>([]);
   const [tableReservations, setTableReservations] = useState<Map<string, TableReservationInfo>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'free' | 'reserved'>('free');
   const [nowTick, setNowTick] = useState(0);
-  const [walkInDialogOpen, setWalkInDialogOpen] = useState(false);
-  const [selectedTableForWalkIn, setSelectedTableForWalkIn] = useState<TableWithZone | null>(null);
+  const [seatLoading, setSeatLoading] = useState<string | null>(null); // Track which table is being seated
 
   // Display without leading zeros: T01 -> T1, M01 -> M1 (keeps R37/G47 as-is)
   const getTableDisplayName = (table: { table_number: string }) => {
@@ -92,6 +100,70 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
   const computeEndTime = (startTime: string, endTime: string | null) => {
     if (endTime) return endTime;
     return minutesToTimeStr(timeStrToMinutes(startTime) + 120);
+  };
+
+  // Quick-seat a walk-in customer on a table (no dialog)
+  const quickSeatWalkIn = async (table: TableWithZone) => {
+    setSeatLoading(table.id);
+    
+    try {
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = Math.floor(now.getMinutes() / 15) * 15;
+      const startTime = `${currentHours.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}:00`;
+      const endTime = calculateEndTime(startTime);
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      
+      // Create a generic walk-in customer
+      const { data: newCustomer, error: customerError } = await supabase
+        .from("customers")
+        .insert({
+          name: "Walk-in",
+          phone: `walk-in-${Date.now()}`
+        })
+        .select("id")
+        .single();
+
+      if (customerError) throw customerError;
+
+      // Create reservation with dining_status 'seated'
+      const { data: reservation, error: resError } = await supabase
+        .from("reservations")
+        .insert({
+          customer_id: newCustomer.id,
+          reservation_date: dateStr,
+          reservation_time: startTime,
+          reservation_end_time: endTime,
+          guests: 2,
+          source: "walk-in",
+          status: "confirmed",
+          dining_status: "seated",
+          assigned_table_id: table.id,
+          notes: "Walk-in customer"
+        })
+        .select("id")
+        .single();
+
+      if (resError) throw resError;
+
+      // Add to reservation_tables junction
+      await supabase
+        .from("reservation_tables")
+        .insert({
+          reservation_id: reservation.id,
+          table_id: table.id
+        });
+
+      const displayName = getTableDisplayName(table);
+      toast.success(`Walk-in seated at ${displayName}`);
+      fetchTableStatus();
+      onRefresh?.();
+    } catch (error: any) {
+      console.error("Error seating walk-in:", error);
+      toast.error(error.message || "Failed to seat customer");
+    } finally {
+      setSeatLoading(null);
+    }
   };
 
   const fetchTableStatus = async () => {
@@ -357,6 +429,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
                           const tableInfo = tableReservations.get(table.id);
                           const hasReservations = tableInfo && tableInfo.reservations.length > 0;
                           const isToday = isSameDay(selectedDate, new Date());
+                          const isSeating = seatLoading === table.id;
                           
                           return (
                             <Tooltip key={table.id}>
@@ -364,26 +437,29 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
                                 <Badge
                                   variant="outline"
                                   className={`text-sm px-3 py-1 cursor-pointer transition-all hover:scale-105 ${
-                                    hasReservations 
-                                      ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700 hover:bg-amber-100'
-                                      : 'bg-success/10 text-success border-success/30 hover:bg-success/20'
+                                    isSeating
+                                      ? 'bg-primary/20 text-primary border-primary/50'
+                                      : hasReservations 
+                                        ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700 hover:bg-amber-100'
+                                        : 'bg-success/10 text-success border-success/30 hover:bg-success/20'
                                   }`}
                                   onClick={() => {
-                                    if (isToday) {
-                                      setSelectedTableForWalkIn(table);
-                                      setWalkInDialogOpen(true);
+                                    if (isToday && !isSeating) {
+                                      quickSeatWalkIn(table);
                                     }
                                   }}
                                 >
                                   {getTableDisplayName(table)}
-                                  {isToday && (
+                                  {isSeating ? (
+                                    <Loader2 className="h-3 w-3 ml-1 animate-spin" />
+                                  ) : isToday ? (
                                     <UserPlus className="h-3 w-3 ml-1 opacity-60" />
-                                  )}
+                                  ) : null}
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
                                 {isToday ? (
-                                  <p>Click to seat walk-in customer</p>
+                                  <p>Click to seat walk-in</p>
                                 ) : (
                                   <p>{hasReservations ? 'Has reservations - available between bookings' : 'No reservations'}</p>
                                 )}
@@ -444,17 +520,6 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
         </TabsContent>
       </Tabs>
 
-      {/* Walk-in Assignment Dialog */}
-      <WalkInAssignmentDialog
-        open={walkInDialogOpen}
-        onOpenChange={setWalkInDialogOpen}
-        table={selectedTableForWalkIn}
-        selectedDate={selectedDate}
-        onSuccess={() => {
-          fetchTableStatus();
-          onRefresh?.();
-        }}
-      />
     </div>
   );
 };
