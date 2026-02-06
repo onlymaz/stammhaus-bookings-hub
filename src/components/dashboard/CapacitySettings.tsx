@@ -44,7 +44,7 @@ export function CapacitySettings() {
       }
     } catch (error) {
       console.error("Error fetching capacity settings:", error);
-      toast({ title: "Error", description: "Failed to load settings", variant: "destructive" });
+      toast({ title: "Fehler", description: "Einstellungen konnten nicht geladen werden", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -78,11 +78,11 @@ export function CapacitySettings() {
         if (error) throw error;
       }
 
-      toast({ title: "Saved", description: "Capacity settings updated" });
+      toast({ title: "Gespeichert", description: "Kapazitätseinstellungen aktualisiert" });
       fetchSettings();
     } catch (error) {
       console.error("Error saving capacity settings:", error);
-      toast({ title: "Error", description: "Failed to save settings", variant: "destructive" });
+      toast({ title: "Fehler", description: "Einstellungen konnten nicht gespeichert werden", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -105,11 +105,11 @@ export function CapacitySettings() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Configure maximum capacity limits for reservations
+          Maximale Kapazitätsgrenzen für Reservierungen konfigurieren
         </p>
         <Button size="sm" onClick={handleSave} disabled={saving} className="gap-2">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Save
+          Speichern
         </Button>
       </div>
 
@@ -118,10 +118,10 @@ export function CapacitySettings() {
         <div className="p-4 rounded-lg bg-muted/20 border border-border/50 space-y-3">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
-            <Label className="font-medium">Max Guests Per Time Slot</Label>
+            <Label className="font-medium">Max. Gäste pro Zeitfenster</Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Maximum number of guests that can be seated in a single time slot
+            Maximale Anzahl der Gäste, die in einem Zeitfenster platziert werden können
           </p>
           <Input
             type="number"
@@ -137,10 +137,10 @@ export function CapacitySettings() {
         <div className="p-4 rounded-lg bg-muted/20 border border-border/50 space-y-3">
           <div className="flex items-center gap-2">
             <LayoutGrid className="h-4 w-4 text-primary" />
-            <Label className="font-medium">Max Tables Per Time Slot</Label>
+            <Label className="font-medium">Max. Tische pro Zeitfenster</Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Maximum number of reservations that can be made for a single time slot
+            Maximale Anzahl der Reservierungen für ein einzelnes Zeitfenster
           </p>
           <Input
             type="number"
@@ -156,10 +156,10 @@ export function CapacitySettings() {
         <div className="p-4 rounded-lg bg-muted/20 border border-border/50 space-y-3">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-primary" />
-            <Label className="font-medium">Time Slot Duration</Label>
+            <Label className="font-medium">Zeitfensterdauer</Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Duration of each time slot in minutes (e.g., 15, 30, 60)
+            Dauer jedes Zeitfensters in Minuten (z.B. 15, 30, 60)
           </p>
           <div className="flex items-center gap-2">
             <Input
@@ -171,7 +171,7 @@ export function CapacitySettings() {
               onChange={(e) => handleChange("slot_duration_minutes", e.target.value)}
               className="w-32"
             />
-            <span className="text-sm text-muted-foreground">minutes</span>
+            <span className="text-sm text-muted-foreground">Minuten</span>
           </div>
         </div>
 
@@ -179,10 +179,10 @@ export function CapacitySettings() {
         <div className="p-4 rounded-lg bg-muted/20 border border-border/50 space-y-3">
           <div className="flex items-center gap-2">
             <Building className="h-4 w-4 text-primary" />
-            <Label className="font-medium">Total Restaurant Capacity</Label>
+            <Label className="font-medium">Gesamtkapazität Restaurant</Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Maximum total number of guests the restaurant can accommodate at once
+            Maximale Gesamtzahl der Gäste, die das Restaurant gleichzeitig aufnehmen kann
           </p>
           <Input
             type="number"

@@ -162,8 +162,8 @@ export const CreateReservationDialog = ({
 
     if (!date || !time || !customerName) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
+        title: "Fehlende Informationen",
+        description: "Bitte füllen Sie alle erforderlichen Felder aus",
         variant: "destructive",
       });
       return;
@@ -246,8 +246,8 @@ export const CreateReservationDialog = ({
       if (reservationError) throw reservationError;
 
       toast({
-        title: "Reservation created",
-        description: `Booking confirmed for ${customerName} on ${format(date, "MMM d")} at ${time}`,
+        title: "Reservierung erstellt",
+        description: `Buchung bestätigt für ${customerName} am ${format(date, "d. MMM")} um ${time}`,
       });
 
       // Reset form
@@ -262,8 +262,8 @@ export const CreateReservationDialog = ({
       onOpenChange(false);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create reservation",
+        title: "Fehler",
+        description: error.message || "Reservierung konnte nicht erstellt werden",
         variant: "destructive",
       });
     } finally {
@@ -276,7 +276,7 @@ export const CreateReservationDialog = ({
       <DialogContent className="max-w-lg p-6">
         <DialogHeader className="pb-3">
           <DialogTitle className="font-display text-xl">
-            New Reservation
+            Neue Reservierung
           </DialogTitle>
         </DialogHeader>
 
@@ -284,7 +284,7 @@ export const CreateReservationDialog = ({
           {/* Date, Time & Guests Row */}
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-sm">Date *</Label>
+              <Label className="text-sm">Datum *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -293,9 +293,9 @@ export const CreateReservationDialog = ({
                       "w-full justify-start text-left font-normal h-10",
                       !date && "text-muted-foreground"
                     )}
-                  >
+                    >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "MMM d") : "Pick"}
+                    {date ? format(date, "d. MMM") : "Wählen"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 z-[100] bg-background" align="start" sideOffset={4}>
@@ -311,15 +311,15 @@ export const CreateReservationDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-sm">Time *</Label>
+              <Label className="text-sm">Zeit *</Label>
               {loadingSlots ? (
                 <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                  Loading...
+                  Laden...
                 </div>
               ) : (
                 <Select value={time} onValueChange={setTime}>
                   <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="Select" />
+                    <SelectValue placeholder="Wählen" />
                   </SelectTrigger>
                   <SelectContent 
                     className="max-h-[200px] bg-background border shadow-lg z-[100]"
@@ -337,7 +337,7 @@ export const CreateReservationDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-sm">Guests *</Label>
+              <Label className="text-sm">Gäste *</Label>
               <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-muted/50">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">{guests}</span>
@@ -390,7 +390,7 @@ export const CreateReservationDialog = ({
 
           {/* Customer Details */}
           <div className="space-y-3">
-            <h3 className="font-medium text-sm text-muted-foreground">Customer Details</h3>
+            <h3 className="font-medium text-sm text-muted-foreground">Kundendetails</h3>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="relative">
@@ -408,7 +408,7 @@ export const CreateReservationDialog = ({
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Phone"
+                  placeholder="Telefon"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   className="pl-10 h-10"
@@ -421,7 +421,7 @@ export const CreateReservationDialog = ({
               <Input
                 id="email"
                 type="email"
-                placeholder="Email (optional)"
+                placeholder="E-Mail (optional)"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
                 className="pl-10 h-10"
@@ -432,7 +432,7 @@ export const CreateReservationDialog = ({
           {/* Special Requests */}
           <Textarea
             id="requests"
-            placeholder="Special requests (allergies, occasion...)"
+            placeholder="Sonderwünsche (Allergien, Anlass...)"
             value={specialRequests}
             onChange={(e) => setSpecialRequests(e.target.value)}
             rows={3}
@@ -446,16 +446,16 @@ export const CreateReservationDialog = ({
               className="flex-1"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              Abbrechen
             </Button>
             <Button type="submit" className="flex-1" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Erstellen...
                 </>
               ) : (
-                "Create Reservation"
+                "Reservierung erstellen"
               )}
             </Button>
           </div>

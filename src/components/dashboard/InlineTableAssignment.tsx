@@ -101,7 +101,7 @@ export const InlineTableAssignment = ({
       setAvailableTables(tables);
     } catch (error) {
       console.error('Error fetching available tables:', error);
-      toast.error('Failed to load available tables');
+      toast.error('Verfügbare Tische konnten nicht geladen werden');
     } finally {
       setIsLoading(false);
     }
@@ -136,15 +136,15 @@ export const InlineTableAssignment = ({
       if (!result.success) throw new Error(result.error);
 
       toast.success(tableIds.length > 0 
-        ? `${tableIds.length} table${tableIds.length > 1 ? 's' : ''} assigned` 
-        : 'Tables cleared'
+        ? `${tableIds.length} Tisch${tableIds.length > 1 ? 'e' : ''} zugewiesen` 
+        : 'Tische entfernt'
       );
       setIsEditing(false);
       fetchAssignedTablesData();
       onTableAssigned();
     } catch (error: any) {
       console.error('Error assigning tables:', error);
-      toast.error(error.message || 'Failed to assign tables');
+      toast.error(error.message || 'Tische konnten nicht zugewiesen werden');
     } finally {
       setIsSaving(false);
     }
@@ -189,11 +189,11 @@ export const InlineTableAssignment = ({
 
       if (error) throw error;
 
-      toast.success('Marked as seated');
+      toast.success('Als platziert markiert');
       onDiningStatusChange?.();
     } catch (error: any) {
       console.error('Error marking reservation:', error);
-      toast.error('Failed to update status');
+      toast.error('Status konnte nicht aktualisiert werden');
     } finally {
       setIsMarkingReserved(false);
     }
@@ -244,10 +244,10 @@ export const InlineTableAssignment = ({
         <div className="flex items-center justify-between gap-1.5 mb-2">
           <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
             <Table2 className="h-3 w-3" />
-            Assign Table ({guests} guests)
+            Tisch zuweisen ({guests} Gäste)
           </div>
           <div className="text-[10px] text-muted-foreground">
-            {availableTables.length} available
+            {availableTables.length} verfügbar
           </div>
         </div>
         
@@ -262,7 +262,7 @@ export const InlineTableAssignment = ({
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
-                  placeholder="Search table..."
+                  placeholder="Tisch suchen..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-7 text-xs pl-7 bg-background"
@@ -318,7 +318,7 @@ export const InlineTableAssignment = ({
             <ScrollArea className="h-[150px] rounded border bg-background">
               {filteredTables.length === 0 ? (
                 <div className="py-4 px-3 text-xs text-muted-foreground text-center">
-                  {searchQuery ? 'No tables match your search' : 'No tables available'}
+                  {searchQuery ? 'Keine passenden Tische' : 'Keine Tische verfügbar'}
                 </div>
               ) : (
                 <div className="p-1 space-y-0.5">
@@ -452,7 +452,7 @@ export const InlineTableAssignment = ({
                   onClick={handleClear}
                   disabled={isSaving}
                 >
-                  Clear All
+                  Alle entfernen
                 </Button>
               )}
               <Button
@@ -463,7 +463,7 @@ export const InlineTableAssignment = ({
                 disabled={isSaving}
               >
                 <X className="h-2.5 w-2.5 mr-0.5" />
-                Cancel
+                Abbrechen
               </Button>
               <Button
                 size="sm"
@@ -476,7 +476,7 @@ export const InlineTableAssignment = ({
                 ) : (
                   <Check className="h-2.5 w-2.5 mr-0.5" />
                 )}
-                Assign {selectedTableIds.size > 0 ? `(${selectedTableIds.size})` : ''}
+                Zuweisen {selectedTableIds.size > 0 ? `(${selectedTableIds.size})` : ''}
               </Button>
             </div>
           </>
@@ -525,7 +525,7 @@ export const InlineTableAssignment = ({
         </Badge>
       ) : (
         <span className="text-xs text-muted-foreground group-hover/table:text-primary transition-colors">
-          + Assign Tables
+          + Tische zuweisen
         </span>
       )}
       

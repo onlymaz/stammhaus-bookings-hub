@@ -11,19 +11,19 @@ import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const authSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Ungültige E-Mail-Adresse"),
+  password: z.string().min(6, "Passwort muss mindestens 6 Zeichen haben"),
 });
 
 const emailSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("Ungültige E-Mail-Adresse"),
 });
 
 const passwordSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(6, "Passwort muss mindestens 6 Zeichen haben"),
+  confirmPassword: z.string().min(6, "Passwort muss mindestens 6 Zeichen haben"),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Passwörter stimmen nicht überein",
   path: ["confirmPassword"],
 });
 
@@ -93,7 +93,7 @@ const Auth = () => {
   const validateEmail = () => {
     const result = emailSchema.safeParse({ email });
     if (!result.success) {
-      setErrors({ email: "Please enter a valid email address" });
+      setErrors({ email: "Bitte geben Sie eine gültige E-Mail-Adresse ein" });
       return false;
     }
     setErrors({});
@@ -110,9 +110,9 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: "Sign in failed",
+        title: "Anmeldung fehlgeschlagen",
         description: error.message === "Invalid login credentials" 
-          ? "Email or password is incorrect" 
+          ? "E-Mail oder Passwort ist falsch" 
           : error.message,
         variant: "destructive",
       });
@@ -139,21 +139,21 @@ const Auth = () => {
     if (error) {
       if (error.message.includes("already registered")) {
         toast({
-          title: "Account exists",
-          description: "This email is already registered. Please sign in instead.",
+          title: "Konto existiert bereits",
+          description: "Diese E-Mail ist bereits registriert. Bitte melden Sie sich an.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Sign up failed",
+          title: "Registrierung fehlgeschlagen",
           description: error.message,
           variant: "destructive",
         });
       }
     } else {
       toast({
-        title: "Account created",
-        description: "You can now sign in with your credentials.",
+        title: "Konto erstellt",
+        description: "Sie können sich jetzt mit Ihren Zugangsdaten anmelden.",
       });
     }
   };
@@ -172,14 +172,14 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: "Error",
+        title: "Fehler",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Reset link sent",
-        description: "Check your email for a password reset link.",
+        title: "Link gesendet",
+        description: "Prüfen Sie Ihre E-Mails für den Passwort-Reset-Link.",
       });
       setShowForgotPassword(false);
     }
@@ -195,14 +195,14 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: "Error",
+        title: "Fehler",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Password updated",
-        description: "Your password has been successfully updated.",
+        title: "Passwort aktualisiert",
+        description: "Ihr Passwort wurde erfolgreich aktualisiert.",
       });
       setIsPasswordRecovery(false);
       setPassword("");
@@ -220,18 +220,18 @@ const Auth = () => {
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
               Stammhaus
             </h1>
-            <p className="text-muted-foreground">Staff Reservation System</p>
+            <p className="text-muted-foreground">Mitarbeiter-Reservierungssystem</p>
           </div>
 
           <Card className="card-elevated">
             <CardHeader className="text-center">
-              <CardTitle className="font-display text-xl">Set New Password</CardTitle>
-              <CardDescription>Enter your new password below</CardDescription>
+              <CardTitle className="font-display text-xl">Neues Passwort festlegen</CardTitle>
+              <CardDescription>Geben Sie unten Ihr neues Passwort ein</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
+                  <Label htmlFor="new-password">Neues Passwort</Label>
                   <div className="relative">
                     <Input
                       id="new-password"
@@ -255,7 +255,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Label htmlFor="confirm-password">Passwort bestätigen</Label>
                   <div className="relative">
                     <Input
                       id="confirm-password"
@@ -275,10 +275,10 @@ const Auth = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
+                      Aktualisiere...
                     </>
                   ) : (
-                    "Update Password"
+                    "Passwort aktualisieren"
                   )}
                 </Button>
               </form>
@@ -297,22 +297,22 @@ const Auth = () => {
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
               Stammhaus
             </h1>
-            <p className="text-muted-foreground">Staff Reservation System</p>
+            <p className="text-muted-foreground">Mitarbeiter-Reservierungssystem</p>
           </div>
 
           <Card className="card-elevated">
             <CardHeader className="text-center">
-              <CardTitle className="font-display text-xl">Reset Password</CardTitle>
-              <CardDescription>Enter your email to receive a reset link</CardDescription>
+              <CardTitle className="font-display text-xl">Passwort zurücksetzen</CardTitle>
+              <CardDescription>Geben Sie Ihre E-Mail ein, um einen Reset-Link zu erhalten</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email</Label>
+                  <Label htmlFor="reset-email">E-Mail</Label>
                   <Input
                     id="reset-email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="ihre@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className={errors.email ? "border-destructive" : ""}
@@ -326,10 +326,10 @@ const Auth = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
+                      Sende...
                     </>
                   ) : (
-                    "Send Reset Link"
+                    "Reset-Link senden"
                   )}
                 </Button>
 
@@ -343,7 +343,7 @@ const Auth = () => {
                   }}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Sign In
+                  Zurück zur Anmeldung
                 </Button>
               </form>
             </CardContent>
@@ -360,29 +360,29 @@ const Auth = () => {
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">
             Stammhaus
           </h1>
-          <p className="text-muted-foreground">Staff Reservation System</p>
+          <p className="text-muted-foreground">Mitarbeiter-Reservierungssystem</p>
         </div>
 
         <Card className="card-elevated">
           <CardHeader className="text-center">
-            <CardTitle className="font-display text-xl">Welcome</CardTitle>
-            <CardDescription>Sign in to manage reservations</CardDescription>
+            <CardTitle className="font-display text-xl">Willkommen</CardTitle>
+            <CardDescription>Melden Sie sich an, um Reservierungen zu verwalten</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin">Anmelden</TabsTrigger>
+                <TabsTrigger value="signup">Registrieren</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">E-Mail</Label>
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="staff@stammhaus.com"
+                      placeholder="mitarbeiter@stammhaus.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={errors.email ? "border-destructive" : ""}
@@ -393,7 +393,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password">Passwort</Label>
                     <div className="relative">
                       <Input
                         id="signin-password"
@@ -420,10 +420,10 @@ const Auth = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
+                        Anmelden...
                       </>
                     ) : (
-                      "Sign In"
+                      "Anmelden"
                     )}
                   </Button>
 
@@ -435,7 +435,7 @@ const Auth = () => {
                     }}
                     className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Forgot your password?
+                    Passwort vergessen?
                   </button>
                 </form>
               </TabsContent>
@@ -443,22 +443,22 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Display Name</Label>
+                    <Label htmlFor="signup-name">Anzeigename</Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="Your name"
+                      placeholder="Ihr Name"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">E-Mail</Label>
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="staff@stammhaus.com"
+                      placeholder="mitarbeiter@stammhaus.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={errors.email ? "border-destructive" : ""}
@@ -469,7 +469,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">Passwort</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -496,10 +496,10 @@ const Auth = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
+                        Konto wird erstellt...
                       </>
                     ) : (
-                      "Create Account"
+                      "Konto erstellen"
                     )}
                   </Button>
                 </form>

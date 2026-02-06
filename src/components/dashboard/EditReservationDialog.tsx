@@ -112,16 +112,16 @@ export const EditReservationDialog = ({
       if (error) throw error;
 
       toast({
-        title: "Reservation deleted",
-        description: "The reservation has been removed",
+        title: "Reservierung gelöscht",
+        description: "Die Reservierung wurde entfernt",
       });
 
       onDelete?.();
       onOpenChange(false);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete reservation",
+        title: "Fehler",
+        description: error.message || "Reservierung konnte nicht gelöscht werden",
         variant: "destructive",
       });
     } finally {
@@ -250,8 +250,8 @@ export const EditReservationDialog = ({
 
     if (!reservation || !date || !time || !customerName) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
+        title: "Fehlende Informationen",
+        description: "Bitte füllen Sie alle erforderlichen Felder aus",
         variant: "destructive",
       });
       return;
@@ -306,16 +306,16 @@ export const EditReservationDialog = ({
       if (reservationError) throw reservationError;
 
       toast({
-        title: "Reservation updated",
-        description: `Booking updated for ${customerName} on ${format(date, "MMM d")} at ${time}`,
+        title: "Reservierung aktualisiert",
+        description: `Buchung aktualisiert für ${customerName} am ${format(date, "d. MMM")} um ${time}`,
       });
 
       onSave?.();
       onOpenChange(false);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update reservation",
+        title: "Fehler",
+        description: error.message || "Reservierung konnte nicht aktualisiert werden",
         variant: "destructive",
       });
     } finally {
@@ -330,7 +330,7 @@ export const EditReservationDialog = ({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Edit Reservation
+            Reservierung bearbeiten
           </DialogTitle>
         </DialogHeader>
 
@@ -338,7 +338,7 @@ export const EditReservationDialog = ({
           {/* Date & Time Selection */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date *</Label>
+              <Label>Datum *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -349,7 +349,7 @@ export const EditReservationDialog = ({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "MMM d, yyyy") : "Select date"}
+                    {date ? format(date, "d. MMM yyyy") : "Datum wählen"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 z-[100] bg-background" align="start" sideOffset={4}>
@@ -365,20 +365,20 @@ export const EditReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Time *</Label>
+              <Label>Zeit *</Label>
               {loadingSlots ? (
                 <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                  Loading...
+                  Laden...
                 </div>
               ) : timeSlots.length === 0 ? (
                 <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                  Closed
+                  Geschlossen
                 </div>
               ) : (
                 <Select value={time} onValueChange={setTime}>
                   <SelectTrigger className="w-full">
                     <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Select time" />
+                    <SelectValue placeholder="Zeit wählen" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] z-[100] bg-background" position="popper" sideOffset={4}>
                     {timeSlots.filter(slot => slot.available).map((slot) => (
@@ -394,7 +394,7 @@ export const EditReservationDialog = ({
 
           {/* Guest Selection */}
           <div className="space-y-2">
-            <Label>Number of Guests *</Label>
+            <Label>Anzahl Gäste *</Label>
             
             <div className="flex flex-wrap gap-1.5">
               {GUEST_OPTIONS.map((num) => (
@@ -422,7 +422,7 @@ export const EditReservationDialog = ({
                 )}
                 onClick={() => setShowCustomGuests(true)}
               >
-                Custom
+              Individuell
               </Button>
             </div>
             
@@ -432,13 +432,13 @@ export const EditReservationDialog = ({
                   type="number"
                   min={1}
                   max={500}
-                  placeholder="Enter number"
+                  placeholder="Anzahl eingeben"
                   value={customGuests}
                   onChange={(e) => handleCustomGuestsChange(e.target.value)}
                   className="max-w-[140px]"
                   autoFocus
                 />
-                <span className="text-sm text-muted-foreground">guests</span>
+                <span className="text-sm text-muted-foreground">Gäste</span>
               </div>
             )}
           </div>
@@ -446,7 +446,7 @@ export const EditReservationDialog = ({
           {/* Customer Details */}
           <div className="space-y-4">
             <h3 className="font-medium text-sm text-muted-foreground">
-              Customer Details
+              Kundendetails
             </h3>
 
             <div className="space-y-2">
@@ -455,7 +455,7 @@ export const EditReservationDialog = ({
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="edit-name"
-                  placeholder="Customer name"
+                  placeholder="Kundenname"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="pl-10"
@@ -464,7 +464,7 @@ export const EditReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-phone">Phone (optional)</Label>
+              <Label htmlFor="edit-phone">Telefon (optional)</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -479,7 +479,7 @@ export const EditReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email (optional)</Label>
+              <Label htmlFor="edit-email">E-Mail (optional)</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -496,10 +496,10 @@ export const EditReservationDialog = ({
 
           {/* Special Requests */}
           <div className="space-y-2">
-            <Label htmlFor="edit-requests">Special Requests</Label>
+            <Label htmlFor="edit-requests">Sonderwünsche</Label>
             <Textarea
               id="edit-requests"
-              placeholder="Allergies, occasion, seating preferences..."
+              placeholder="Allergien, Anlass, Sitzplatzwünsche..."
               value={specialRequests}
               onChange={(e) => setSpecialRequests(e.target.value)}
               rows={2}
@@ -508,10 +508,10 @@ export const EditReservationDialog = ({
 
           {/* Staff Note */}
           <div className="space-y-2">
-            <Label htmlFor="edit-note">Staff Note</Label>
+            <Label htmlFor="edit-note">Mitarbeiternotiz</Label>
             <Textarea
               id="edit-note"
-              placeholder="Internal notes for staff..."
+              placeholder="Interne Notizen für Mitarbeiter..."
               value={staffNote}
               onChange={(e) => setStaffNote(e.target.value)}
               rows={2}
@@ -538,18 +538,18 @@ export const EditReservationDialog = ({
               </AlertDialogTrigger>
               <AlertDialogContent className="z-[110]">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
+                  <AlertDialogTitle>Reservierung löschen</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this reservation for {customerName}? This action cannot be undone.
+                    Sind Sie sicher, dass Sie diese Reservierung für {customerName} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>Abbrechen</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDelete}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Delete
+                    Löschen
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -560,16 +560,16 @@ export const EditReservationDialog = ({
               className="flex-1"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              Abbrechen
             </Button>
             <Button type="submit" className="flex-1" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  Speichern...
                 </>
               ) : (
-                "Save Changes"
+                "Änderungen speichern"
               )}
             </Button>
           </div>

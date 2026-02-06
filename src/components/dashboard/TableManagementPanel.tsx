@@ -128,7 +128,7 @@ export const TableManagementPanel = () => {
             {table.table_number}
           </Badge>
           {!table.is_active && (
-            <Badge variant="secondary" className="text-[10px]">Inactive</Badge>
+            <Badge variant="secondary" className="text-[10px]">Inaktiv</Badge>
           )}
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -155,7 +155,7 @@ export const TableManagementPanel = () => {
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Users className="h-3.5 w-3.5" />
-        <span>{table.capacity} seats</span>
+        <span>{table.capacity} Plätze</span>
       </div>
     </div>
   );
@@ -175,20 +175,20 @@ export const TableManagementPanel = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
             <Home className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-600">{insideTables.length} Inside</span>
+            <span className="text-sm font-medium text-blue-600">{insideTables.length} Innen</span>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
             <TreePine className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium text-green-600">{gardenTables.length} Garden</span>
+            <span className="text-sm font-medium text-green-600">{gardenTables.length} Garten</span>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{totalCapacity} Total Capacity</span>
+            <span className="text-sm font-medium">{totalCapacity} Gesamtkapazität</span>
           </div>
         </div>
         <Button onClick={openAddDialog} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Table
+          Tisch hinzufügen
         </Button>
       </div>
 
@@ -199,13 +199,13 @@ export const TableManagementPanel = () => {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Home className="h-5 w-5 text-blue-600" />
-              <CardTitle className="text-lg">Inside Tables</CardTitle>
+              <CardTitle className="text-lg">Innentische</CardTitle>
               <Badge variant="secondary" className="ml-auto">{insideTables.length}</Badge>
             </div>
           </CardHeader>
           <CardContent>
             {insideTables.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No inside tables yet</p>
+              <p className="text-sm text-muted-foreground text-center py-6">Noch keine Innentische</p>
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {tables.filter(t => t.zone === 'inside').map(table => (
@@ -221,13 +221,13 @@ export const TableManagementPanel = () => {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <TreePine className="h-5 w-5 text-green-600" />
-              <CardTitle className="text-lg">Garden Tables</CardTitle>
+              <CardTitle className="text-lg">Gartentische</CardTitle>
               <Badge variant="secondary" className="ml-auto">{gardenTables.length}</Badge>
             </div>
           </CardHeader>
           <CardContent>
             {gardenTables.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No garden tables yet</p>
+              <p className="text-sm text-muted-foreground text-center py-6">Noch keine Gartentische</p>
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {tables.filter(t => t.zone === 'garden').map(table => (
@@ -243,20 +243,20 @@ export const TableManagementPanel = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingTable ? "Edit Table" : "Add New Table"}</DialogTitle>
+            <DialogTitle>{editingTable ? "Tisch bearbeiten" : "Neuen Tisch hinzufügen"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="tableNumber">Table Number / Name</Label>
+              <Label htmlFor="tableNumber">Tischnummer / Name</Label>
               <Input
                 id="tableNumber"
                 value={tableNumber}
                 onChange={(e) => setTableNumber(e.target.value)}
-                placeholder="e.g., T1, A1, Garden-1"
+                placeholder="z.B. T1, A1, Garten-1"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="capacity">Capacity (Seats)</Label>
+              <Label htmlFor="capacity">Kapazität (Plätze)</Label>
               <Input
                 id="capacity"
                 type="number"
@@ -267,7 +267,7 @@ export const TableManagementPanel = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Zone</Label>
+              <Label>Bereich</Label>
               <Select value={zone} onValueChange={(v) => setZone(v as TableZone)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -276,13 +276,13 @@ export const TableManagementPanel = () => {
                   <SelectItem value="inside">
                     <div className="flex items-center gap-2">
                       <Home className="h-4 w-4 text-blue-600" />
-                      Inside
+                      Innen
                     </div>
                   </SelectItem>
                   <SelectItem value="garden">
                     <div className="flex items-center gap-2">
                       <TreePine className="h-4 w-4 text-green-600" />
-                      Garden
+                      Garten
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -290,7 +290,7 @@ export const TableManagementPanel = () => {
             </div>
             {editingTable && (
               <div className="flex items-center justify-between">
-                <Label htmlFor="isActive">Active</Label>
+                <Label htmlFor="isActive">Aktiv</Label>
                 <Switch
                   id="isActive"
                   checked={isActive}
@@ -301,11 +301,11 @@ export const TableManagementPanel = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
-              Cancel
+              Abbrechen
             </Button>
             <Button onClick={handleSave} disabled={!tableNumber.trim() || saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {editingTable ? "Save Changes" : "Add Table"}
+              {editingTable ? "Änderungen speichern" : "Tisch hinzufügen"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -315,19 +315,19 @@ export const TableManagementPanel = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Table</AlertDialogTitle>
+            <AlertDialogTitle>Tisch löschen</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete table <strong>{tableToDelete?.table_number}</strong>?
-              This will remove the table from all future reservations.
+              Sind Sie sicher, dass Sie Tisch <strong>{tableToDelete?.table_number}</strong> löschen möchten?
+              Der Tisch wird aus allen zukünftigen Reservierungen entfernt.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              Löschen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

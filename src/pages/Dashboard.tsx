@@ -241,13 +241,13 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Signed out successfully" });
+    toast({ title: "Erfolgreich abgemeldet" });
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
       </div>
     );
   }
@@ -300,7 +300,7 @@ const Dashboard = () => {
                 )}
               >
                 <CalendarDays className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Calendar</span>
+                <span className="hidden sm:inline">Kalender</span>
                 <ChevronDown className={cn(
                   "h-3 w-3 transition-transform",
                   calendarPopoverOpen && "rotate-180"
@@ -326,7 +326,7 @@ const Dashboard = () => {
                 )}
               >
                 <Table2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Tables</span>
+                <span className="hidden sm:inline">Tische</span>
                 <ChevronDown className={cn(
                   "h-3 w-3 transition-transform",
                   tablesPopoverOpen && "rotate-180"
@@ -340,12 +340,12 @@ const Dashboard = () => {
                 <div className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-400/10 border border-amber-500/30 text-xs shadow-sm">
                   <Users className="h-3.5 w-3.5 text-amber-600" />
                   <span className="font-bold text-amber-700">{dailyStats.guests}</span>
-                  <span className="text-amber-600/80 hidden sm:inline">guests</span>
+                  <span className="text-amber-600/80 hidden sm:inline">Gäste</span>
                 </div>
                 <div className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-teal-500/20 to-teal-400/10 border border-teal-500/30 text-xs shadow-sm">
                   <Clock className="h-3.5 w-3.5 text-teal-600" />
                   <span className="font-bold text-teal-700">{dailyStats.bookings}</span>
-                  <span className="text-teal-600/80 hidden sm:inline">bookings</span>
+                  <span className="text-teal-600/80 hidden sm:inline">Buchungen</span>
                 </div>
               </div>
             )}
@@ -359,7 +359,7 @@ const Dashboard = () => {
               className="gap-1.5 shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary h-8 px-3"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline text-xs font-medium">New</span>
+              <span className="hidden sm:inline text-xs font-medium">Neu</span>
             </Button>
 
             <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
@@ -386,7 +386,7 @@ const Dashboard = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0 z-[100]" align="end" sideOffset={8}>
                   <div className="p-4 border-b border-border flex items-center justify-between">
-                    <h4 className="font-semibold">Notifications</h4>
+                    <h4 className="font-semibold">Benachrichtigungen</h4>
                     {notifications.length > 0 && (
                       <Button
                         variant="ghost"
@@ -397,7 +397,7 @@ const Dashboard = () => {
                           setNotifPopoverOpen(false);
                         }}
                       >
-                        Mark all read
+                        Alle als gelesen markieren
                       </Button>
                     )}
                   </div>
@@ -405,7 +405,7 @@ const Dashboard = () => {
                     {notifications.length === 0 ? (
                       <div className="p-6 text-center text-muted-foreground">
                         <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No new notifications</p>
+                        <p className="text-sm">Keine neuen Benachrichtigungen</p>
                       </div>
                     ) : (
                       notifications.map((notif) => (
@@ -415,7 +415,7 @@ const Dashboard = () => {
                               <div className="flex items-center gap-2">
                                 <p className="font-medium text-sm">{notif.title}</p>
                                 {notif.title?.toLowerCase().includes("website") && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">Website</Badge>
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">Webseite</Badge>
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
@@ -445,7 +445,7 @@ const Dashboard = () => {
                 </SheetTrigger>
                 <SheetContent className="w-[400px] sm:w-[450px]">
                   <SheetHeader>
-                    <SheetTitle className="font-display">Settings</SheetTitle>
+                    <SheetTitle className="font-display">Einstellungen</SheetTitle>
                   </SheetHeader>
                   
                   {isAdmin && (
@@ -457,7 +457,7 @@ const Dashboard = () => {
                         className="gap-2"
                       >
                         <Settings className="h-4 w-4" />
-                        Preferences
+                        Einstellungen
                       </Button>
                       <Button
                         variant={settingsTab === "team" ? "default" : "ghost"}
@@ -475,7 +475,7 @@ const Dashboard = () => {
                         className="gap-2"
                       >
                         <Gauge className="h-4 w-4" />
-                        Capacity
+                        Kapazität
                       </Button>
                       <Button
                         variant={settingsTab === "tables" ? "default" : "ghost"}
@@ -484,7 +484,7 @@ const Dashboard = () => {
                         className="gap-2"
                       >
                         <Table2 className="h-4 w-4" />
-                        Tables
+                        Tische
                       </Button>
                     </div>
                   )}
@@ -493,13 +493,13 @@ const Dashboard = () => {
                     <div className="py-6 space-y-6">
                       <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          Notifications
+                          Benachrichtigungen
                         </h3>
                         <div className="flex items-center justify-between">
                           <Label htmlFor="email-notif" className="flex-1">
-                            Email notifications
+                            E-Mail-Benachrichtigungen
                             <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                              Receive email for new reservations
+                              E-Mail bei neuen Reservierungen erhalten
                             </p>
                           </Label>
                           <Switch 
@@ -513,9 +513,9 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <Label htmlFor="sound-notif" className="flex-1">
-                            Sound alerts
+                            Ton-Benachrichtigungen
                             <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                              Play sound for new bookings
+                              Ton bei neuen Buchungen abspielen
                             </p>
                           </Label>
                           <Switch 
@@ -531,12 +531,12 @@ const Dashboard = () => {
 
                       <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          Account
+                          Konto
                         </h3>
                         <div className="p-4 rounded-xl bg-muted/50 border border-border">
                           <p className="text-sm font-medium">{user?.email}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Logged in as {isAdmin ? "admin" : "staff"}
+                            Angemeldet als {isAdmin ? "Admin" : "Mitarbeiter"}
                           </p>
                         </div>
                       </div>
@@ -547,27 +547,27 @@ const Dashboard = () => {
                         onClick={handleSignOut}
                       >
                         <LogOut className="h-4 w-4" />
-                        Sign Out
+                        Abmelden
                       </Button>
                     </div>
                   ) : settingsTab === "team" ? (
                     <div className="py-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                        Team Management
+                        Team-Verwaltung
                       </h3>
                       <TeamManagement />
                     </div>
                   ) : settingsTab === "capacity" ? (
                     <div className="py-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                        Capacity Settings
+                        Kapazitätseinstellungen
                       </h3>
                       <CapacitySettings />
                     </div>
                   ) : (
                     <div className="py-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                        Table Management
+                        Tischverwaltung
                       </h3>
                       <TableManagementPanel />
                     </div>

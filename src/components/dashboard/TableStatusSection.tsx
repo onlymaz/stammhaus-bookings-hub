@@ -124,7 +124,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
   const quickSeatWalkIn = async (table: TableWithZone) => {
     // First check if table is actually available at this time
     if (!isTableAvailableNow(table)) {
-      toast.error(`${getTableDisplayName(table)} is already occupied at this time`);
+      toast.error(`${getTableDisplayName(table)} ist zu dieser Zeit bereits belegt`);
       return;
     }
 
@@ -149,7 +149,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
 
       if (availError) throw availError;
       if (!isAvailable) {
-        toast.error(`${getTableDisplayName(table)} has a conflicting reservation`);
+        toast.error(`${getTableDisplayName(table)} hat eine überschneidende Reservierung`);
         setSeatLoading(null);
         return;
       }
@@ -179,7 +179,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
           status: "confirmed",
           dining_status: "seated",
           assigned_table_id: table.id,
-          notes: "Walk-in customer"
+          notes: "Laufkunde"
         })
         .select("id")
         .single();
@@ -195,12 +195,12 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
         });
 
       const displayName = getTableDisplayName(table);
-      toast.success(`Walk-in seated at ${displayName}`);
+      toast.success(`Laufkunde an ${displayName} platziert`);
       fetchTableStatus();
       onRefresh?.();
     } catch (error: any) {
       console.error("Error seating walk-in:", error);
-      toast.error(error.message || "Failed to seat customer");
+      toast.error(error.message || "Kunde konnte nicht platziert werden");
     } finally {
       setSeatLoading(null);
     }
@@ -419,9 +419,9 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
       <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/40">
         <div className="flex items-center gap-1.5">
           <Table2 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground font-medium">Table Status:</span>
+          <span className="text-[10px] text-muted-foreground font-medium">Tischstatus:</span>
         </div>
-        <div className="text-[10px] text-muted-foreground animate-pulse">Loading...</div>
+        <div className="text-[10px] text-muted-foreground animate-pulse">Laden...</div>
       </div>
     );
   }
@@ -430,19 +430,19 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
         <Table2 className="h-5 w-5 text-primary" />
-        <span className="text-base font-semibold">Table Status</span>
-        <span className="text-sm text-muted-foreground">({allTables.length} tables)</span>
+        <span className="text-base font-semibold">Tischstatus</span>
+        <span className="text-sm text-muted-foreground">({allTables.length} Tische)</span>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'free' | 'reserved')}>
         <TabsList className="w-full h-10 p-1">
           <TabsTrigger value="free" className="flex-1 h-8 text-sm gap-2">
             <CheckCircle className="h-4 w-4" />
-            Free ({freeTables.length})
+            Frei ({freeTables.length})
           </TabsTrigger>
           <TabsTrigger value="reserved" className="flex-1 h-8 text-sm gap-2">
             <Clock className="h-4 w-4" />
-            Reserved ({reservedTables.length})
+            Reserviert ({reservedTables.length})
           </TabsTrigger>
         </TabsList>
 
@@ -450,7 +450,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
           <ScrollArea className="h-auto max-h-[60vh] rounded-lg border bg-card p-4">
             {freeTables.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-8">
-                No free tables for this time
+                Keine freien Tische zu dieser Zeit
               </div>
             ) : (
               <div className="space-y-4">
@@ -499,9 +499,9 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
                               </TooltipTrigger>
                               <TooltipContent>
                                 {isToday ? (
-                                  <p>Click to seat walk-in</p>
+                                  <p>Klicken um Laufkunde zu platzieren</p>
                                 ) : (
-                                  <p>{hasReservations ? 'Has reservations - available between bookings' : 'No reservations'}</p>
+                                  <p>{hasReservations ? 'Hat Reservierungen - verfügbar zwischen Buchungen' : 'Keine Reservierungen'}</p>
                                 )}
                               </TooltipContent>
                             </Tooltip>
@@ -520,7 +520,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
           <ScrollArea className="h-[400px] rounded-lg border bg-card p-4">
             {reservedTables.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-8">
-                No reserved tables for this day
+                Keine reservierten Tische für diesen Tag
               </div>
             ) : (
               <div className="space-y-4">
