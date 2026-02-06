@@ -210,12 +210,12 @@ export const CalendarView = ({
 
       if (error) throw error;
 
-      toast.success("Staff note saved");
+      toast.success("Mitarbeiternotiz gespeichert");
       setEditingNoteId(null);
       setNoteText("");
       fetchReservations();
     } catch (error: any) {
-      toast.error("Failed to save note: " + error.message);
+      toast.error("Notiz konnte nicht gespeichert werden: " + error.message);
     } finally {
       setIsSavingNote(false);
     }
@@ -250,12 +250,12 @@ export const CalendarView = ({
 
       if (error) throw error;
 
-      toast.success("Reservation deleted successfully");
+      toast.success("Reservierung erfolgreich gelöscht");
       setDeleteDialogOpen(false);
       setReservationToDelete(null);
       fetchReservations();
     } catch (error: any) {
-      toast.error("Failed to delete reservation: " + error.message);
+      toast.error("Reservierung konnte nicht gelöscht werden: " + error.message);
     } finally {
       setIsDeleting(false);
     }
@@ -401,7 +401,7 @@ export const CalendarView = ({
             onClick={() => setViewMode("week")}
           >
             <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-            Week
+            Woche
           </Button>
           <Button
             variant={viewMode === "month" ? "default" : "ghost"}
@@ -413,7 +413,7 @@ export const CalendarView = ({
             onClick={() => setViewMode("month")}
           >
             <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
-            Month
+            Monat
           </Button>
         </div>
 
@@ -446,7 +446,7 @@ export const CalendarView = ({
               onDateChange(today);
             }}
           >
-            Today
+            Heute
           </Button>
           <Button
             variant="ghost"
@@ -609,7 +609,7 @@ export const CalendarView = ({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search customer..."
+                placeholder="Kunde suchen..."
                 value={customerSearch}
                 onChange={(e) => setCustomerSearch(e.target.value)}
                 className="pl-10 h-10"
@@ -632,21 +632,21 @@ export const CalendarView = ({
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
                   <Clock className="h-7 w-7 text-primary" />
                 </div>
-                <p className="text-base text-muted-foreground">Loading reservations...</p>
+                <p className="text-base text-muted-foreground">Reservierungen werden geladen...</p>
               </div>
             ) : todayReservations.length === 0 ? (
               <div className="py-16 text-center">
                 <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <CalendarDays className="h-12 w-12 text-muted-foreground/60" />
                 </div>
-                <p className="text-lg text-muted-foreground mb-6 font-medium">No reservations yet</p>
+                <p className="text-lg text-muted-foreground mb-6 font-medium">Noch keine Reservierungen</p>
                 <Button 
                   variant="outline" 
                   onClick={onCreateReservation} 
                   className="gap-2 px-8 shadow-md hover:shadow-lg transition-all duration-300 border-2"
                 >
                   <Plus className="h-4 w-4" />
-                  Create First Reservation
+                  Erste Reservierung erstellen
                 </Button>
               </div>
             ) : (() => {
@@ -660,7 +660,7 @@ export const CalendarView = ({
               if (filteredReservations.length === 0) {
                 return (
                   <div className="py-8 text-center">
-                    <p className="text-base text-muted-foreground">No matching customers found</p>
+                    <p className="text-base text-muted-foreground">Keine passenden Kunden gefunden</p>
                   </div>
                 );
               }
@@ -692,7 +692,7 @@ export const CalendarView = ({
                       >
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-base text-foreground group-hover:text-primary transition-colors truncate">
-                            {res.customer?.name || "Guest"}
+                            {res.customer?.name || "Gast"}
                           </span>
                           {slotActive && (
                             <Badge className="badge-in-progress text-[10px] px-1.5 py-0.5">
@@ -738,7 +738,7 @@ export const CalendarView = ({
                       </span>
                       <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded text-xs">
                         <Users className="h-3 w-3" />
-                        {res.guests} guests
+                        {res.guests} Gäste
                       </span>
                     </div>
 
@@ -762,7 +762,7 @@ export const CalendarView = ({
                         <Textarea
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
-                          placeholder="Add staff note..."
+                          placeholder="Mitarbeiternotiz hinzufügen..."
                           className="text-xs min-h-[60px] resize-none"
                           autoFocus
                         />
@@ -775,7 +775,7 @@ export const CalendarView = ({
                             disabled={isSavingNote}
                           >
                             <X className="h-3 w-3 mr-1" />
-                            Cancel
+                            Abbrechen
                           </Button>
                           <Button
                             size="sm"
@@ -784,7 +784,7 @@ export const CalendarView = ({
                             disabled={isSavingNote}
                           >
                             <Save className="h-3 w-3 mr-1" />
-                            {isSavingNote ? "Saving..." : "Save"}
+                            {isSavingNote ? "Speichern..." : "Speichern"}
                           </Button>
                         </div>
                       </div>
@@ -796,7 +796,7 @@ export const CalendarView = ({
                           startEditingNote(res);
                         }}
                       >
-                        <span className="staff-note-label">Staff Note:</span>{" "}
+                        <span className="staff-note-label">Notiz:</span>{" "}
                         <span className="staff-note-text">{res.notes}</span>
                         <Button
                           variant="ghost"
@@ -820,7 +820,7 @@ export const CalendarView = ({
                           setDetailDialogOpen(true);
                         }}
                       >
-                        <span className="request-label">Request:</span>{" "}
+                        <span className="request-label">Anfrage:</span>{" "}
                         <span className="request-text">{res.special_requests}</span>
                       </div>
                     )}
@@ -853,24 +853,24 @@ export const CalendarView = ({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
+            <AlertDialogTitle>Reservierung löschen</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the reservation for{" "}
-              <strong>{reservationToDelete?.customer?.name || "Guest"}</strong> on{" "}
-              {reservationToDelete && format(parseISO(reservationToDelete.reservation_date), "MMMM d, yyyy")} at{" "}
-              {reservationToDelete?.reservation_time.slice(0, 5)}?
+              Sind Sie sicher, dass Sie die Reservierung für{" "}
+              <strong>{reservationToDelete?.customer?.name || "Gast"}</strong> am{" "}
+              {reservationToDelete && format(parseISO(reservationToDelete.reservation_date), "d. MMMM yyyy")} um{" "}
+              {reservationToDelete?.reservation_time.slice(0, 5)} löschen möchten?
               <br /><br />
-              This action cannot be undone.
+              Diese Aktion kann nicht rückgängig gemacht werden.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Abbrechen</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteReservation}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? "Löschen..." : "Löschen"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

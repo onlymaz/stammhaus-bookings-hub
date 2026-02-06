@@ -45,7 +45,7 @@ export const WalkInAssignmentDialog = ({
   selectedDate,
   onSuccess
 }: WalkInAssignmentDialogProps) => {
-  const [customerName, setCustomerName] = useState("Walk-in Customer");
+  const [customerName, setCustomerName] = useState("Laufkunde");
   const [phone, setPhone] = useState("");
   const [guests, setGuests] = useState(2);
   const [saving, setSaving] = useState(false);
@@ -61,7 +61,7 @@ export const WalkInAssignmentDialog = ({
   const [endTimeInput, setEndTimeInput] = useState("");
 
   const resetForm = () => {
-    setCustomerName("Walk-in Customer");
+    setCustomerName("Laufkunde");
     setPhone("");
     setGuests(2);
     const currentTime = new Date();
@@ -84,7 +84,7 @@ export const WalkInAssignmentDialog = ({
 
   const handleAssign = async () => {
     if (!table) {
-      toast.error("No table selected");
+      toast.error("Kein Tisch ausgewählt");
       return;
     }
 
@@ -97,7 +97,7 @@ export const WalkInAssignmentDialog = ({
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       
       // Use default name if empty
-      const finalName = customerName.trim() || "Walk-in Customer";
+      const finalName = customerName.trim() || "Laufkunde";
 
       // Create or find customer
       let customerId: string;
@@ -113,7 +113,7 @@ export const WalkInAssignmentDialog = ({
         if (existingCustomer) {
           customerId = existingCustomer.id;
           // Update name if different and not default
-          if (finalName !== "Walk-in Customer") {
+          if (finalName !== "Laufkunde") {
             await supabase
               .from("customers")
               .update({ name: finalName })
@@ -157,11 +157,11 @@ export const WalkInAssignmentDialog = ({
           reservation_time: finalStartTime,
           reservation_end_time: finalEndTime,
           guests: guests,
-          source: "walk-in",
+          source: "phone",
           status: "confirmed",
           dining_status: "seated",
           assigned_table_id: table.id,
-          notes: "Walk-in customer"
+          notes: "Laufkunde"
         })
         .select("id")
         .single();
@@ -176,12 +176,12 @@ export const WalkInAssignmentDialog = ({
           table_id: table.id
         });
 
-      toast.success(`${customerName} seated at ${table.table_number}`);
+      toast.success(`${customerName} an ${table.table_number} platziert`);
       handleClose();
       onSuccess?.();
     } catch (error: any) {
       console.error("Error creating walk-in:", error);
-      toast.error(error.message || "Failed to seat customer");
+      toast.error(error.message || "Kunde konnte nicht platziert werden");
     } finally {
       setSaving(false);
     }
@@ -215,7 +215,7 @@ export const WalkInAssignmentDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Seat Walk-In Customer
+            Laufkunde platzieren
             {table && (
               <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">
                 {getTableDisplayName()}
@@ -254,7 +254,7 @@ export const WalkInAssignmentDialog = ({
                 onValueChange={(value) => setEndTimeInput(value)}
               >
                 <SelectTrigger className="h-9 w-[100px] text-sm">
-                  <SelectValue placeholder="End" />
+                  <SelectValue placeholder="Ende" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50 max-h-[200px]">
                   {timeSlots.map((slot) => (
@@ -267,7 +267,7 @@ export const WalkInAssignmentDialog = ({
             </div>
             {table && (
               <Badge variant="outline" className="text-xs flex-shrink-0">
-                Cap: {table.capacity}
+                Kap: {table.capacity}
               </Badge>
             )}
           </div>
@@ -276,13 +276,13 @@ export const WalkInAssignmentDialog = ({
           <div className="space-y-2">
             <Label htmlFor="customer-name" className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              Customer Name <span className="text-muted-foreground text-xs">(optional)</span>
+              Kundenname <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
             <Input
               id="customer-name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Enter customer name"
+              placeholder="Kundenname eingeben"
               autoFocus
             />
           </div>
@@ -291,14 +291,14 @@ export const WalkInAssignmentDialog = ({
           <div className="space-y-2">
             <Label htmlFor="phone" className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-              Phone <span className="text-muted-foreground text-xs">(optional)</span>
+              Telefon <span className="text-muted-foreground text-xs">(optional)</span>
             </Label>
             <Input
               id="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="Phone number"
+              placeholder="Telefonnummer"
             />
           </div>
 
@@ -306,7 +306,7 @@ export const WalkInAssignmentDialog = ({
           <div className="space-y-2">
             <Label htmlFor="guests" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Number of Guests
+              Anzahl Gäste
             </Label>
             <div className="flex items-center gap-2">
               <Button
@@ -338,7 +338,7 @@ export const WalkInAssignmentDialog = ({
               </Button>
               {table && guests > table.capacity && (
                 <span className="text-xs text-warning">
-                  Exceeds capacity ({table.capacity})
+                  Überschreitet Kapazität ({table.capacity})
                 </span>
               )}
             </div>
@@ -347,11 +347,11 @@ export const WalkInAssignmentDialog = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            Abbrechen
           </Button>
           <Button onClick={handleAssign} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            Seat Customer
+            Kunde platzieren
           </Button>
         </DialogFooter>
       </DialogContent>

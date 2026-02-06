@@ -86,8 +86,8 @@ export function TeamManagement() {
     } catch (error) {
       console.error("Error fetching team members:", error);
       toast({
-        title: "Error",
-        description: "Failed to load team members",
+        title: "Fehler",
+        description: "Team-Mitglieder konnten nicht geladen werden",
         variant: "destructive",
       });
     } finally {
@@ -129,16 +129,16 @@ export function TeamManagement() {
       }
 
       toast({
-        title: "Role updated",
-        description: `User role has been ${newRole === "none" ? "removed" : `changed to ${newRole}`}`,
+        title: "Rolle aktualisiert",
+        description: `Benutzerrolle wurde ${newRole === "none" ? "entfernt" : `zu ${newRole} geändert`}`,
       });
 
       fetchTeamMembers();
     } catch (error) {
       console.error("Error updating role:", error);
       toast({
-        title: "Error",
-        description: "Failed to update role",
+        title: "Fehler",
+        description: "Rolle konnte nicht aktualisiert werden",
         variant: "destructive",
       });
     } finally {
@@ -164,16 +164,16 @@ export function TeamManagement() {
       if (error) throw error;
 
       toast({
-        title: "User removed",
-        description: "User has been removed from the system",
+        title: "Benutzer entfernt",
+        description: "Benutzer wurde aus dem System entfernt",
       });
 
       fetchTeamMembers();
     } catch (error) {
       console.error("Error removing user:", error);
       toast({
-        title: "Error",
-        description: "Failed to remove user. They may need to be removed from authentication separately.",
+        title: "Fehler",
+        description: "Benutzer konnte nicht entfernt werden. Möglicherweise muss die Authentifizierung separat entfernt werden.",
         variant: "destructive",
       });
     } finally {
@@ -183,7 +183,7 @@ export function TeamManagement() {
 
   const handleInviteUser = async () => {
     if (!newUser.email || !newUser.password) {
-      toast({ title: "Error", description: "Email and password are required", variant: "destructive" });
+      toast({ title: "Fehler", description: "E-Mail und Passwort sind erforderlich", variant: "destructive" });
       return;
     }
     
@@ -203,12 +203,12 @@ export function TeamManagement() {
       if (response.error) throw new Error(response.error.message);
       if (response.data?.error) throw new Error(response.data.error);
 
-      toast({ title: "User invited", description: `${newUser.email} has been added` });
+      toast({ title: "Benutzer eingeladen", description: `${newUser.email} wurde hinzugefügt` });
       setNewUser({ email: "", password: "", displayName: "", role: "staff" });
       setInviteOpen(false);
       fetchTeamMembers();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to invite user", variant: "destructive" });
+      toast({ title: "Fehler", description: error.message || "Benutzer konnte nicht eingeladen werden", variant: "destructive" });
     } finally {
       setInviting(false);
     }
@@ -226,35 +226,35 @@ export function TeamManagement() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Manage team members and their access levels
+          Team-Mitglieder und Zugriffsrechte verwalten
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
               <UserPlus className="h-4 w-4" />
-              Invite User
+              Benutzer einladen
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Invite New User</DialogTitle>
+              <DialogTitle>Neuen Benutzer einladen</DialogTitle>
               <DialogDescription>
-                Create a new account for a team member
+                Konto für ein Team-Mitglied erstellen
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">E-Mail</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="user@example.com"
+                  placeholder="benutzer@beispiel.com"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Passwort</Label>
                 <Input
                   id="password"
                   type="password"
@@ -264,32 +264,32 @@ export function TeamManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name (optional)</Label>
+                <Label htmlFor="displayName">Anzeigename (optional)</Label>
                 <Input
                   id="displayName"
-                  placeholder="John Doe"
+                  placeholder="Max Mustermann"
                   value={newUser.displayName}
                   onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>Rolle</Label>
                 <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="staff">Mitarbeiter</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setInviteOpen(false)}>Abbrechen</Button>
               <Button onClick={handleInviteUser} disabled={inviting}>
                 {inviting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Create User
+                Benutzer erstellen
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -299,7 +299,7 @@ export function TeamManagement() {
       {members.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>No team members found</p>
+          <p>Keine Team-Mitglieder gefunden</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -332,12 +332,12 @@ export function TeamManagement() {
                   onValueChange={(value) => handleRoleChange(member.user_id, value)}
                   disabled={updating === member.user_id}
                 >
-                  <SelectTrigger className="w-24 h-8 text-xs">
+                  <SelectTrigger className="w-28 h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No role</SelectItem>
-                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="none">Keine Rolle</SelectItem>
+                    <SelectItem value="staff">Mitarbeiter</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
@@ -355,19 +355,19 @@ export function TeamManagement() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Remove user?</AlertDialogTitle>
+                      <AlertDialogTitle>Benutzer entfernen?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will remove {member.display_name} from the system.
-                        They will lose access to all reservations and data.
+                        {member.display_name} wird aus dem System entfernt.
+                        Der Zugriff auf alle Reservierungen und Daten wird entzogen.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleRemoveUser(member.user_id)}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Remove
+                        Entfernen
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
