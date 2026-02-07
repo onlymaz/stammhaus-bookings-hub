@@ -485,7 +485,7 @@ export const EditReservationDialog = ({
                 <Input
                   id="edit-email"
                   type="email"
-                  placeholder="customer@email.com"
+                  placeholder="kunde@email.com"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   className="pl-10"

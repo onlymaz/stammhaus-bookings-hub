@@ -127,9 +127,9 @@ export const ReservationDetailDialog = ({
     setUpdating(false);
 
     if (error) {
-      toast({ title: "Error updating status", variant: "destructive" });
+      toast({ title: "Fehler beim Aktualisieren des Status", variant: "destructive" });
     } else {
-      toast({ title: `Reservation ${newStatus}` });
+      toast({ title: `Reservierung ${newStatus === 'confirmed' ? 'bestätigt' : newStatus === 'completed' ? 'abgeschlossen' : newStatus === 'cancelled' ? 'storniert' : newStatus}` });
       onStatusChange?.();
       onOpenChange(false);
     }
@@ -149,10 +149,10 @@ export const ReservationDetailDialog = ({
     setUpdating(false);
 
     if (error) {
-      toast({ title: "Error updating guests", variant: "destructive" });
+      toast({ title: "Fehler beim Aktualisieren der Gäste", variant: "destructive" });
       setGuestCount(reservation.guests); // Revert on error
     } else {
-      toast({ title: `Updated to ${newCount} guests` });
+      toast({ title: `Auf ${newCount} Gäste aktualisiert` });
       onStatusChange?.();
     }
   };
@@ -170,10 +170,10 @@ export const ReservationDetailDialog = ({
                 </div>
                 <div>
                   <DialogTitle className="text-xl font-display font-bold">
-                    {reservation.customer?.name || "Guest"}
+                    {reservation.customer?.name || "Gast"}
                   </DialogTitle>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    Reservation Details
+                    Reservierungsdetails
                   </p>
                 </div>
               </div>
@@ -196,7 +196,7 @@ export const ReservationDetailDialog = ({
                   <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-xs text-muted-foreground">Telefon</p>
                   <p className="font-medium text-sm">{reservation.customer.phone}</p>
                 </div>
               </a>
@@ -210,7 +210,7 @@ export const ReservationDetailDialog = ({
                   <Mail className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground">E-Mail</p>
                   <p className="font-medium text-sm truncate">{reservation.customer.email}</p>
                 </div>
               </a>
@@ -221,17 +221,17 @@ export const ReservationDetailDialog = ({
           <div className="grid grid-cols-4 gap-3">
             <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-center">
               <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">Date</p>
-              <p className="font-bold text-sm">{format(new Date(reservation.reservation_date), "MMM d")}</p>
+              <p className="text-xs text-muted-foreground">Datum</p>
+              <p className="font-bold text-sm">{format(new Date(reservation.reservation_date), "d. MMM")}</p>
             </div>
             <div className="p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 text-center">
               <Clock className="h-5 w-5 text-accent mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">Time</p>
+              <p className="text-xs text-muted-foreground">Zeit</p>
               <p className="font-bold text-sm">{reservation.reservation_time.slice(0, 5)}</p>
             </div>
             <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 text-center">
               <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">Guests</p>
+              <p className="text-xs text-muted-foreground">Gäste</p>
               <div className="flex items-center justify-center gap-2 mt-1">
                 <Button
                   variant="ghost"
@@ -256,7 +256,7 @@ export const ReservationDetailDialog = ({
             </div>
             <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 text-center">
               <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">Source</p>
+              <p className="text-xs text-muted-foreground">Quelle</p>
               <p className="font-bold text-sm capitalize">{reservation.source}</p>
             </div>
           </div>
@@ -270,7 +270,7 @@ export const ReservationDetailDialog = ({
                   <Table2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Assigned Tables</p>
+                  <p className="text-xs text-muted-foreground">Zugewiesene Tische</p>
                   {assignedTables.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {assignedTables.map(t => (
@@ -281,10 +281,10 @@ export const ReservationDetailDialog = ({
                     </div>
                   ) : reservation.assigned_table_id ? (
                     <p className="font-semibold text-sm">
-                      {tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unknown"}
+                      {tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unbekannt"}
                     </p>
                   ) : (
-                    <p className="text-sm text-muted-foreground italic">Not assigned</p>
+                    <p className="text-sm text-muted-foreground italic">Nicht zugewiesen</p>
                   )}
                 </div>
               </div>
@@ -295,7 +295,7 @@ export const ReservationDetailDialog = ({
                 className="gap-1.5"
               >
                 <Table2 className="h-3.5 w-3.5" />
-                {(assignedTables.length > 0 || reservation.assigned_table_id) ? "Change" : "Assign"}
+                {(assignedTables.length > 0 || reservation.assigned_table_id) ? "Ändern" : "Zuweisen"}
               </Button>
             </div>
 
@@ -307,7 +307,7 @@ export const ReservationDetailDialog = ({
                     <Timer className="h-5 w-5 text-accent" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Time Range</p>
+                    <p className="text-xs text-muted-foreground">Zeitraum</p>
                     <p className="font-semibold text-sm">
                       {reservation.reservation_time.slice(0, 5)} - {(reservation.reservation_end_time || calculateEndTime(reservation.reservation_time)).slice(0, 5)}
                     </p>
@@ -320,7 +320,7 @@ export const ReservationDetailDialog = ({
                   className="gap-1.5"
                 >
                   <Timer className="h-3.5 w-3.5" />
-                  Extend
+                  Verlängern
                 </Button>
               </div>
             )}
@@ -332,7 +332,7 @@ export const ReservationDetailDialog = ({
                   <Armchair className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Dining Status</p>
+                  <p className="text-xs text-muted-foreground">Speisestatus</p>
                   <DiningStatusBadge status={reservation.dining_status || 'reserved'} className="mt-1" />
                 </div>
               </div>
@@ -348,7 +348,7 @@ export const ReservationDetailDialog = ({
                     className="gap-1.5 text-xs border-success/30 text-success hover:bg-success/10"
                   >
                     <Armchair className="h-3.5 w-3.5" />
-                    Seat
+                    Platzieren
                   </Button>
                 )}
                 {reservation.dining_status === 'seated' && (
@@ -362,7 +362,7 @@ export const ReservationDetailDialog = ({
                     className="gap-1.5 text-xs"
                   >
                     <CheckCircle className="h-3.5 w-3.5" />
-                    Complete
+                    Abschließen
                   </Button>
                 )}
               </div>
@@ -373,7 +373,7 @@ export const ReservationDetailDialog = ({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-sm font-semibold text-muted-foreground">Staff Note</h4>
+                <h4 className="text-sm font-semibold text-muted-foreground">Mitarbeiternotiz</h4>
               </div>
               {!isEditingNote ? (
                 <Button
@@ -383,7 +383,7 @@ export const ReservationDetailDialog = ({
                   onClick={() => setIsEditingNote(true)}
                 >
                   <Edit2 className="h-3 w-3" />
-                  {staffNote ? "Edit" : "Add"}
+                  {staffNote ? "Bearbeiten" : "Hinzufügen"}
                 </Button>
               ) : (
                 <Button
@@ -398,9 +398,9 @@ export const ReservationDetailDialog = ({
                       .eq("id", reservation.id);
                     setUpdating(false);
                     if (error) {
-                      toast({ title: "Error saving note", variant: "destructive" });
+                      toast({ title: "Fehler beim Speichern der Notiz", variant: "destructive" });
                     } else {
-                      toast({ title: "Note saved" });
+                      toast({ title: "Notiz gespeichert" });
                       setIsEditingNote(false);
                       onStatusChange?.();
                     }
@@ -408,7 +408,7 @@ export const ReservationDetailDialog = ({
                   disabled={updating}
                 >
                   <Save className="h-3 w-3" />
-                  Save
+                  Speichern
                 </Button>
               )}
             </div>
@@ -416,12 +416,12 @@ export const ReservationDetailDialog = ({
               <Textarea
                 value={staffNote}
                 onChange={(e) => setStaffNote(e.target.value)}
-                placeholder="Add a note for this reservation..."
+                placeholder="Notiz für diese Reservierung hinzufügen..."
                 className="min-h-[80px] text-sm resize-none"
               />
             ) : (
               <p className="text-sm text-foreground">
-                {staffNote || <span className="text-muted-foreground italic">No note added</span>}
+                {staffNote || <span className="text-muted-foreground italic">Keine Notiz hinzugefügt</span>}
               </p>
             )}
           </div>
@@ -431,7 +431,7 @@ export const ReservationDetailDialog = ({
             <div className="p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
               <div className="flex items-center gap-2 mb-2">
                 <MessageSquare className="h-4 w-4 text-accent" />
-                <h4 className="text-sm font-semibold text-accent">Special Requests</h4>
+                <h4 className="text-sm font-semibold text-accent">Sonderwünsche</h4>
               </div>
               <p className="text-sm text-foreground">{reservation.special_requests}</p>
             </div>
@@ -439,7 +439,7 @@ export const ReservationDetailDialog = ({
 
           {/* Status Actions */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Change Status</h4>
+            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Status ändern</h4>
             <div className="grid grid-cols-2 gap-2">
               {reservation.status !== "confirmed" && (
                 <Button
@@ -449,7 +449,7 @@ export const ReservationDetailDialog = ({
                   disabled={updating}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  Confirm
+                  Bestätigen
                 </Button>
               )}
               {reservation.status !== "completed" && (
@@ -460,7 +460,7 @@ export const ReservationDetailDialog = ({
                   disabled={updating}
                 >
                   <CheckCircle className="h-4 w-4" />
-                  Complete
+                  Abschließen
                 </Button>
               )}
               {reservation.status !== "cancelled" && (
@@ -471,7 +471,7 @@ export const ReservationDetailDialog = ({
                   disabled={updating}
                 >
                   <XCircle className="h-4 w-4" />
-                  Cancel
+                  Stornieren
                 </Button>
               )}
               {reservation.status !== "no_show" && (
@@ -482,7 +482,7 @@ export const ReservationDetailDialog = ({
                   disabled={updating}
                 >
                   <UserX className="h-4 w-4" />
-                  No Show
+                  Nicht erschienen
                 </Button>
               )}
             </div>
@@ -491,7 +491,7 @@ export const ReservationDetailDialog = ({
           {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t border-border/30">
             <p className="text-xs text-muted-foreground">
-              Created {format(new Date(reservation.created_at), "MMM d, yyyy 'at' h:mm a")}
+              Erstellt am {format(new Date(reservation.created_at), "d. MMM yyyy 'um' HH:mm")}
             </p>
             <div className="flex items-center gap-2">
               <Button 
@@ -500,13 +500,13 @@ export const ReservationDetailDialog = ({
                 className="gap-2"
               >
                 <Pencil className="h-4 w-4" />
-                Edit
+                Bearbeiten
               </Button>
               <Button 
                 onClick={() => onOpenChange(false)}
                 className="px-6 shadow-md hover:shadow-lg transition-all duration-300"
               >
-                Close
+                Schließen
               </Button>
             </div>
           </div>
@@ -545,7 +545,7 @@ export const ReservationDetailDialog = ({
             onOpenChange={setExtendDialogOpen}
             reservationId={reservation.id}
             tableId={reservation.assigned_table_id}
-            tableName={tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unknown"}
+            tableName={tables.find(t => t.id === reservation.assigned_table_id)?.table_number || "Unbekannt"}
             date={reservation.reservation_date}
             currentStartTime={reservation.reservation_time}
             currentEndTime={reservation.reservation_end_time || calculateEndTime(reservation.reservation_time)}

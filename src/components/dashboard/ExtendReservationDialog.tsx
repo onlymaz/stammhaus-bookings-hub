@@ -73,7 +73,7 @@ export const ExtendReservationDialog = ({
 
   const handleExtend = async () => {
     if (!newEndTime || newEndTime <= currentEndTime.slice(0, 5)) {
-      toast.error("New end time must be later than current end time");
+      toast.error("Neue Endzeit muss später als aktuelle Endzeit sein");
       return;
     }
 
@@ -89,14 +89,14 @@ export const ExtendReservationDialog = ({
     setExtending(false);
 
     if (result.success) {
-      toast.success("Reservation extended successfully");
+      toast.success("Reservierung erfolgreich verlängert");
       onExtended?.();
       onOpenChange(false);
     } else if (result.conflict) {
-      setConflictMessage(result.error || "Cannot extend due to a conflict.");
+      setConflictMessage(result.error || "Verlängerung nicht möglich aufgrund eines Konflikts.");
       setConflictDialog(true);
     } else {
-      toast.error(result.error || "Failed to extend reservation");
+      toast.error(result.error || "Reservierung konnte nicht verlängert werden");
     }
   };
 
@@ -105,17 +105,17 @@ export const ExtendReservationDialog = ({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Extend Reservation</DialogTitle>
+            <DialogTitle>Reservierung verlängern</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="p-4 rounded-lg bg-muted/50 space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Table</span>
+                <span className="text-muted-foreground">Tisch</span>
                 <span className="font-medium">{tableName}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Current Time</span>
+                <span className="text-muted-foreground">Aktuelle Zeit</span>
                 <span className="font-medium flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" />
                   {currentStartTime.slice(0, 5)} - {currentEndTime.slice(0, 5)}
@@ -124,7 +124,7 @@ export const ExtendReservationDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label>New End Time</Label>
+              <Label>Neue Endzeit</Label>
               <div className="flex gap-2">
                 <Input
                   type="time"
@@ -152,14 +152,14 @@ export const ExtendReservationDialog = ({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Abbrechen
             </Button>
             <Button 
               onClick={handleExtend} 
               disabled={extending || newEndTime <= currentEndTime.slice(0, 5)}
             >
               {extending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Extend to {newEndTime}
+              Verlängern bis {newEndTime}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -171,7 +171,7 @@ export const ExtendReservationDialog = ({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
               <AlertTriangle className="h-5 w-5" />
-              Extension Not Possible
+              Verlängerung nicht möglich
             </AlertDialogTitle>
             <AlertDialogDescription>
               {conflictMessage}
@@ -179,7 +179,7 @@ export const ExtendReservationDialog = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setConflictDialog(false)}>
-              Understood
+              Verstanden
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
