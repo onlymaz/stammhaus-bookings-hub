@@ -277,7 +277,7 @@ export const InlineTableAssignment = ({
                   className="h-6 px-2 text-[10px] flex-1"
                   onClick={() => setZoneFilter('all')}
                 >
-                  All
+                  Alle
                 </Button>
                 <Button
                   variant={zoneFilter === 'inside' ? 'default' : 'outline'}
@@ -327,7 +327,7 @@ export const InlineTableAssignment = ({
                     <>
                       {zoneFilter === 'all' && (
                         <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
-                          <Home className="h-2.5 w-2.5" /> Inside ({insideTables.length})
+                          <Home className="h-2.5 w-2.5" /> Innen ({insideTables.length})
                         </div>
                       )}
                       {insideTables.map((table) => (
@@ -351,7 +351,7 @@ export const InlineTableAssignment = ({
                     <>
                       {zoneFilter === 'all' && (
                         <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
-                          <Building className="h-2.5 w-2.5" /> Room ({roomTables.length})
+                          <Building className="h-2.5 w-2.5" /> Raum ({roomTables.length})
                         </div>
                       )}
                       {roomTables.map((table) => (
@@ -375,7 +375,7 @@ export const InlineTableAssignment = ({
                     <>
                       {zoneFilter === 'all' && (
                         <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
-                          <TreePine className="h-2.5 w-2.5" /> Garden ({gardenTables.length})
+                          <TreePine className="h-2.5 w-2.5" /> Garten ({gardenTables.length})
                         </div>
                       )}
                       {gardenTables.map((table) => (
@@ -399,7 +399,7 @@ export const InlineTableAssignment = ({
                     <>
                       {zoneFilter === 'all' && (
                         <div className="px-2 py-1 mt-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded flex items-center gap-1">
-                          <Layers className="h-2.5 w-2.5" /> Mezz ({mezzTables.length})
+                          <Layers className="h-2.5 w-2.5" /> Empore ({mezzTables.length})
                         </div>
                       )}
                       {mezzTables.map((table) => (
@@ -426,10 +426,10 @@ export const InlineTableAssignment = ({
               <div className="mt-2 px-2 py-1.5 rounded bg-primary/10 text-xs space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">
-                    {selectedTablesData.length} table{selectedTablesData.length > 1 ? 's' : ''} selected
+                    {selectedTablesData.length} Tisch{selectedTablesData.length > 1 ? 'e' : ''} ausgewählt
                   </span>
                   <span className="text-muted-foreground">
-                    Capacity: {totalSelectedCapacity}
+                    Kapazität: {totalSelectedCapacity}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
@@ -534,14 +534,14 @@ export const InlineTableAssignment = ({
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
           {isSeated ? (
             <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-              Reserved
+              Reserviert
             </Badge>
           ) : (
             <button
               className="p-1 rounded hover:bg-rose-200 dark:hover:bg-rose-800/50 transition-colors"
               onClick={handleMarkReserved}
               disabled={isMarkingReserved}
-              title="Click to seat customer"
+              title="Klicken zum Platzieren"
             >
               {isMarkingReserved ? (
                 <Loader2 className="h-4 w-4 animate-spin text-rose-700 dark:text-rose-400" />

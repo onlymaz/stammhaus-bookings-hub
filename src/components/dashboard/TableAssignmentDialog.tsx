@@ -118,14 +118,14 @@ export const TableAssignmentDialog = ({
     setAssigning(false);
 
     if (result.success) {
-      toast.success("Table assigned successfully");
+      toast.success("Tisch erfolgreich zugewiesen");
       onAssigned?.();
       onOpenChange(false);
     } else if (result.conflict) {
-      setConflictMessage(result.error || "This table has a conflicting reservation.");
+      setConflictMessage(result.error || "Dieser Tisch hat eine überschneidende Reservierung.");
       setConflictDialog(true);
     } else {
-      toast.error(result.error || "Failed to assign table");
+      toast.error(result.error || "Tisch konnte nicht zugewiesen werden");
     }
   };
 
@@ -188,10 +188,10 @@ export const TableAssignmentDialog = ({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              Assign Table
+              Tisch zuweisen
               {currentTableId && (
                 <Badge variant="outline" className="ml-2">
-                  Currently: {(() => {
+                  Aktuell: {(() => {
                     const t = tables.find(t => t.id === currentTableId);
                     return t ? getTableDisplayName(t) : '';
                   })()}
@@ -218,7 +218,7 @@ export const TableAssignmentDialog = ({
               </div>
               <div className="flex items-center gap-1.5 text-sm">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span>{guests} guests</span>
+                <span>{guests} Gäste</span>
               </div>
             </div>
 
@@ -226,7 +226,7 @@ export const TableAssignmentDialog = ({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search table (e.g. T5, TG12)"
+                placeholder="Tisch suchen (z.B. T5, G12)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-9"
@@ -236,7 +236,7 @@ export const TableAssignmentDialog = ({
             {/* Zone Tabs */}
             <Tabs value={activeZone} onValueChange={(v) => setActiveZone(v as "all" | TableZone)}>
               <TabsList className="w-full grid grid-cols-5">
-                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs">Alle</TabsTrigger>
                 <TabsTrigger value="inside" className="text-xs gap-1">
                   <Home className="h-3 w-3" />
                   T
@@ -303,7 +303,7 @@ export const TableAssignmentDialog = ({
                             </Badge>
                           </div>
                           {isCurrent && (
-                            <Badge className="mt-1.5 text-[9px]" variant="secondary">Current</Badge>
+                            <Badge className="mt-1.5 text-[9px]" variant="secondary">Aktuell</Badge>
                           )}
                         </button>
                       );
@@ -317,7 +317,7 @@ export const TableAssignmentDialog = ({
             {selectedTable && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm">
-                  <strong>Selected:</strong> {getTableDisplayName(selectedTable)}
+                  <strong>Ausgewählt:</strong> {getTableDisplayName(selectedTable)}
                 </p>
               </div>
             )}
@@ -326,18 +326,18 @@ export const TableAssignmentDialog = ({
           <DialogFooter className="gap-2">
             {currentTableId && (
               <Button variant="outline" onClick={handleRelease} className="mr-auto">
-                Release Table
+                Tisch freigeben
               </Button>
             )}
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Abbrechen
             </Button>
             <Button 
               onClick={handleAssign} 
               disabled={!selectedTableId || assigning || (selectedTableId === currentTableId)}
             >
               {assigning && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Assign Table
+              Tisch zuweisen
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -349,7 +349,7 @@ export const TableAssignmentDialog = ({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
               <AlertTriangle className="h-5 w-5" />
-              Table Conflict
+              Tischkonflikt
             </AlertDialogTitle>
             <AlertDialogDescription>
               {conflictMessage}
@@ -357,7 +357,7 @@ export const TableAssignmentDialog = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setConflictDialog(false)}>
-              Select Another Table
+              Anderen Tisch wählen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

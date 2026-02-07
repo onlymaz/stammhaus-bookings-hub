@@ -44,10 +44,10 @@ const zoneOrder: Record<string, number> = { inside: 0, room: 1, garden: 2, mezz:
 
 // Zone labels
 const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> = {
-  inside: { label: 'Inside (T)', icon: Home },
-  room: { label: 'Room (R)', icon: Building },
-  garden: { label: 'Garden (G)', icon: TreePine },
-  mezz: { label: 'Mezz (M)', icon: Layers },
+  inside: { label: 'Innen (T)', icon: Home },
+  room: { label: 'Raum (R)', icon: Building },
+  garden: { label: 'Garten (G)', icon: TreePine },
+  mezz: { label: 'Empore (M)', icon: Layers },
 };
 
 // Calculate end time (default 2 hours)
@@ -275,7 +275,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
 
       // Add reservations to their tables
       (reservations || []).forEach(res => {
-        const customerName = res.customer?.name || 'Unknown';
+        const customerName = res.customer?.name || 'Unbekannt';
         const reservationTime = res.reservation_time;
         const reservationEndTime = computeEndTime(res.reservation_time, res.reservation_end_time);
 

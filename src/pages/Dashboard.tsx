@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, startOfWeek } from "date-fns";
+import { de } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -268,7 +269,7 @@ const Dashboard = () => {
             <div 
               className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={resetToToday}
-              title="Click to go to today"
+              title="Klicken, um zu Heute zu springen"
             >
               <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md flex-shrink-0">
                 <span className="text-primary-foreground font-bold text-lg">
@@ -276,11 +277,11 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="hidden sm:block">
-                <p className="text-base font-semibold leading-tight">
-                  {format(selectedDate, "EEE")}
+                <p className="text-base font-semibold leading-tight capitalize">
+                  {format(selectedDate, "EEE", { locale: de })}
                 </p>
-                <p className="text-sm text-muted-foreground leading-tight">
-                  {format(selectedDate, "MMM yyyy")}
+                <p className="text-sm text-muted-foreground leading-tight capitalize">
+                  {format(selectedDate, "MMM yyyy", { locale: de })}
                 </p>
               </div>
             </div>

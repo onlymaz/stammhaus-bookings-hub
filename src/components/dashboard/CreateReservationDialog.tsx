@@ -379,7 +379,7 @@ export const CreateReservationDialog = ({
                 type="number"
                 min={1}
                 max={500}
-                placeholder="Custom"
+                placeholder="Anzahl"
                 value={customGuests}
                 onChange={(e) => handleCustomGuestsChange(e.target.value)}
                 className="w-20 h-9"
