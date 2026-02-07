@@ -11,6 +11,7 @@ import {
   parseISO,
   getDay 
 } from "date-fns";
+import { de } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -489,8 +490,8 @@ export const CalendarView = ({
                   isToday && !isSelected && "ring-2 ring-accent ring-offset-1"
                 )}
               >
-                <div className="text-[10px] text-muted-foreground">
-                  {format(day, "EEE")}
+                <div className="text-[10px] text-muted-foreground capitalize">
+                  {format(day, "EEE", { locale: de })}
                 </div>
                 <div
                   className={cn(
@@ -520,13 +521,13 @@ export const CalendarView = ({
         /* Month View */
         <div>
           {/* Month title */}
-          <div className="text-center font-semibold text-sm mb-2">
-            {format(currentMonth, "MMMM yyyy")}
+          <div className="text-center font-semibold text-sm mb-2 capitalize">
+            {format(currentMonth, "MMMM yyyy", { locale: de })}
           </div>
           {/* Weekday headers */}
           <div className="grid grid-cols-7 gap-1 mb-1">
-            {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
-              <div key={i} className="text-center text-[10px] font-semibold text-muted-foreground py-1 uppercase">
+            {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((day, i) => (
+              <div key={i} className="text-center text-[10px] font-semibold text-muted-foreground py-1">
                 {day}
               </div>
             ))}
