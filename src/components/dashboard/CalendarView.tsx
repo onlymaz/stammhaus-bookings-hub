@@ -138,27 +138,8 @@ export const CalendarView = ({
       return false;
     }
     
-    // MANUAL: If staff marked as seated, show LIVE immediately
-    if (reservation.dining_status === "seated") {
-      return true;
-    }
-    
-    // AUTOMATIC: Show LIVE when current time is within reservation time slot
-    const [startHours, startMinutes] = reservation.reservation_time.split(":").map(Number);
-    const reservationStart = new Date();
-    reservationStart.setHours(startHours, startMinutes, 0, 0);
-    
-    // Calculate end time (use explicit end_time or default 90 min)
-    let reservationEnd: Date;
-    if (reservation.reservation_end_time) {
-      const [endHours, endMinutes] = reservation.reservation_end_time.split(":").map(Number);
-      reservationEnd = new Date();
-      reservationEnd.setHours(endHours, endMinutes, 0, 0);
-    } else {
-      reservationEnd = new Date(reservationStart.getTime() + 90 * 60 * 1000);
-    }
-    
-    return currentTime >= reservationStart && currentTime < reservationEnd;
+    // ONLY show LIVE when staff manually marked as seated
+    return reservation.dining_status === "seated";
   };
 
   // Check if reservation is in the past (for graying out)
