@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Table2, Loader2, Search, Home, TreePine, Building, Layers } from "lucide-react";
+import { Check, X, Table2, Loader2, Search, Home, TreePine, Building, Layers, Radio } from "lucide-react";
 import { TableZone, RestaurantTable } from "@/types/table";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -177,8 +177,8 @@ export const InlineTableAssignment = ({
     setSearchQuery("");
   };
 
-  // Mark reservation as "Reserved" (staff action taken)
-  const handleMarkReserved = async (e: React.MouseEvent) => {
+  // Mark reservation as LIVE (seated)
+  const handleMarkLive = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMarkingReserved(true);
     try {
@@ -189,7 +189,7 @@ export const InlineTableAssignment = ({
 
       if (error) throw error;
 
-      toast.success('Als platziert markiert');
+      toast.success('Als LIVE markiert');
       onDiningStatusChange?.();
     } catch (error: any) {
       console.error('Error marking reservation:', error);
@@ -529,24 +529,23 @@ export const InlineTableAssignment = ({
         </span>
       )}
       
-      {/* Action button - checkmark to seat customer, shows "Seated" label after clicked */}
+      {/* Reserviert badge + LIVE button */}
       {hasAssignedTables && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
-          {isSeated ? (
-            <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-              Reserviert
-            </Badge>
-          ) : (
+          <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+            Reserviert
+          </Badge>
+          {!isSeated && (
             <button
-              className="p-1 rounded hover:bg-rose-200 dark:hover:bg-rose-800/50 transition-colors"
-              onClick={handleMarkReserved}
+              className="p-1 rounded hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-colors"
+              onClick={handleMarkLive}
               disabled={isMarkingReserved}
-              title="Klicken zum Platzieren"
+              title="Als LIVE markieren"
             >
               {isMarkingReserved ? (
-                <Loader2 className="h-4 w-4 animate-spin text-rose-700 dark:text-rose-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-700 dark:text-emerald-400" />
               ) : (
-                <Check className="h-4 w-4 text-rose-700 dark:text-rose-400" />
+                <Radio className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
               )}
             </button>
           )}
