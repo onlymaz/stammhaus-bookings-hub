@@ -534,7 +534,7 @@ export const InlineTableAssignment = ({
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
           {isSeated ? (
             <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-              Reservierung
+              Reserviert
             </Badge>
           ) : (
             <button
