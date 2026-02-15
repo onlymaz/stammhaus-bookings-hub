@@ -177,6 +177,28 @@ export const InlineTableAssignment = ({
     setSearchQuery("");
   };
 
+  // Mark reservation as Reserved (manual)
+  const handleMarkReserved = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMarkingReserved(true);
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .update({ dining_status: 'reserved' })
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      toast.success('Als Reserviert markiert');
+      onDiningStatusChange?.();
+    } catch (error: any) {
+      console.error('Error marking reservation:', error);
+      toast.error('Status konnte nicht aktualisiert werden');
+    } finally {
+      setIsMarkingReserved(false);
+    }
+  };
+
   // Mark reservation as LIVE (seated)
   const handleMarkLive = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -529,13 +551,31 @@ export const InlineTableAssignment = ({
         </span>
       )}
       
-      {/* Reserviert badge + LIVE button */}
+      {/* Manual Reserviert + LIVE buttons */}
       {hasAssignedTables && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
-          <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-            Reserviert
-          </Badge>
-          {!isSeated && (
+          {diningStatus === 'reserved' && (
+            <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+              Reserviert
+            </Badge>
+          )}
+          {/* Reserviert button - only show when not yet reserved or seated */}
+          {diningStatus !== 'reserved' && !isSeated && (
+            <button
+              className="p-1 rounded hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors"
+              onClick={handleMarkReserved}
+              disabled={isMarkingReserved}
+              title="Als Reserviert markieren"
+            >
+              {isMarkingReserved ? (
+                <Loader2 className="h-4 w-4 animate-spin text-green-700 dark:text-green-400" />
+              ) : (
+                <Check className="h-4 w-4 text-green-700 dark:text-green-400" />
+              )}
+            </button>
+          )}
+          {/* LIVE button - show when reserved but not yet seated */}
+          {diningStatus === 'reserved' && !isSeated && (
             <button
               className="p-1 rounded hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-colors"
               onClick={handleMarkLive}

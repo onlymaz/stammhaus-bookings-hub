@@ -47,7 +47,7 @@ interface Reservation {
   reservation_end_time: string | null;
   guests: number;
   status: string;
-  dining_status: 'reserved' | 'seated' | 'completed' | 'cancelled' | 'no_show';
+  dining_status: 'pending' | 'reserved' | 'seated' | 'completed' | 'cancelled' | 'no_show';
   notes: string | null;
   special_requests: string | null;
   source: string;
@@ -676,6 +676,11 @@ export const CalendarView = ({
                           <span className="font-semibold text-base text-foreground group-hover:text-primary transition-colors truncate">
                             {res.customer?.name || "Gast"}
                           </span>
+                          {res.dining_status === 'reserved' && (
+                            <Badge className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+                              Reserviert
+                            </Badge>
+                          )}
                           {slotActive && (
                             <Badge className="badge-in-progress text-[10px] px-1.5 py-0.5">
                               LIVE

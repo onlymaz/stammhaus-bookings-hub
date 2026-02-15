@@ -1,5 +1,5 @@
 export type TableZone = 'inside' | 'garden' | 'room' | 'mezz';
-export type DiningStatus = 'reserved' | 'seated' | 'completed' | 'cancelled' | 'no_show';
+export type DiningStatus = 'pending' | 'reserved' | 'seated' | 'completed' | 'cancelled' | 'no_show';
 
 export interface RestaurantTable {
   id: string;
