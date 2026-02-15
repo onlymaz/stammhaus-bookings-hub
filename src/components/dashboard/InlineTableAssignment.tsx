@@ -551,44 +551,45 @@ export const InlineTableAssignment = ({
         </span>
       )}
       
-      {/* Manual Reserviert + LIVE buttons */}
+      {/* Manual Reserviert + LIVE buttons - always visible when tables assigned */}
       {hasAssignedTables && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
-          {diningStatus === 'reserved' && (
-            <Badge className="h-5 px-2 text-[10px] font-medium bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-              Reserviert
-            </Badge>
-          )}
-          {/* Reserviert button - only show when not yet reserved or seated */}
-          {diningStatus !== 'reserved' && !isSeated && (
-            <button
-              className="p-1 rounded hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors"
-              onClick={handleMarkReserved}
-              disabled={isMarkingReserved}
-              title="Als Reserviert markieren"
-            >
-              {isMarkingReserved ? (
-                <Loader2 className="h-4 w-4 animate-spin text-green-700 dark:text-green-400" />
-              ) : (
-                <Check className="h-4 w-4 text-green-700 dark:text-green-400" />
-              )}
-            </button>
-          )}
-          {/* LIVE button - show when reserved but not yet seated */}
-          {diningStatus === 'reserved' && !isSeated && (
-            <button
-              className="p-1 rounded hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition-colors"
-              onClick={handleMarkLive}
-              disabled={isMarkingReserved}
-              title="Als LIVE markieren"
-            >
-              {isMarkingReserved ? (
-                <Loader2 className="h-4 w-4 animate-spin text-emerald-700 dark:text-emerald-400" />
-              ) : (
-                <Radio className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
-              )}
-            </button>
-          )}
+          {/* Reserviert button */}
+          <button
+            className={cn(
+              "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
+              diningStatus === 'reserved' || isSeated
+                ? "bg-green-600 text-white border-green-700"
+                : "bg-green-100 text-green-800 border-green-300 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700 dark:hover:bg-green-800/50"
+            )}
+            onClick={handleMarkReserved}
+            disabled={isMarkingReserved}
+            title="Als Reserviert markieren"
+          >
+            {isMarkingReserved ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              "Reserviert"
+            )}
+          </button>
+          {/* LIVE button */}
+          <button
+            className={cn(
+              "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
+              isSeated
+                ? "bg-emerald-600 text-white border-emerald-700"
+                : "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-800/50"
+            )}
+            onClick={handleMarkLive}
+            disabled={isMarkingReserved}
+            title="Als LIVE markieren"
+          >
+            {isMarkingReserved ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              "LIVE"
+            )}
+          </button>
         </div>
       )}
     </div>
