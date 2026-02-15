@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { DiningStatus } from "@/types/table";
-import { Armchair, UtensilsCrossed, CheckCircle, XCircle, UserX } from "lucide-react";
+import { Armchair, UtensilsCrossed, CheckCircle, XCircle, UserX, Clock } from "lucide-react";
 
 interface DiningStatusBadgeProps {
   status: DiningStatus;
@@ -13,6 +13,11 @@ const statusConfig: Record<DiningStatus, {
   icon: typeof Armchair;
   className: string;
 }> = {
+  pending: {
+    label: "Ausstehend",
+    icon: Clock,
+    className: "bg-gray-500/10 text-gray-600 border-gray-500/30"
+  },
   reserved: {
     label: "Reserviert",
     icon: UtensilsCrossed,
