@@ -645,7 +645,7 @@ export const InlineTableAssignment = ({
       )}
       
       {/* Manual Reserviert + LIVE buttons - always visible when tables assigned */}
-      {hasAssignedTables && (
+      {(hasAssignedTables || undoData) && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
           {/* Reserviert button */}
           <button
