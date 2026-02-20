@@ -221,6 +221,41 @@ export const InlineTableAssignment = ({
     }
   };
 
+  // Mark reservation as completed and free all tables
+  const handleComplete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMarkingReserved(true);
+    try {
+      // Update status to completed and dining_status to completed
+      const { error } = await supabase
+        .from('reservations')
+        .update({ 
+          dining_status: 'completed',
+          status: 'completed',
+          assigned_table_id: null
+        })
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      // Release all tables from junction table
+      await supabase
+        .from('reservation_tables')
+        .delete()
+        .eq('reservation_id', reservationId);
+
+      toast.success('Reservierung abgeschlossen, Tische freigegeben');
+      fetchAssignedTablesData();
+      onTableAssigned();
+      onDiningStatusChange?.();
+    } catch (error: any) {
+      console.error('Error completing reservation:', error);
+      toast.error('Reservierung konnte nicht abgeschlossen werden');
+    } finally {
+      setIsMarkingReserved(false);
+    }
+  };
+
   // Table names now include prefix (T01, R37, G47, M01) - use directly
   const getTableDisplayName = (table: Table) => table.table_number;
 
@@ -588,6 +623,24 @@ export const InlineTableAssignment = ({
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
               "LIVE"
+            )}
+          </button>
+          {/* Fertig button - completes reservation and frees tables */}
+          <button
+            className={cn(
+              "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
+              diningStatus === 'completed'
+                ? "bg-gray-600 text-white border-gray-700"
+                : "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800/50"
+            )}
+            onClick={handleComplete}
+            disabled={isMarkingReserved}
+            title="Abschließen und Tische freigeben"
+          >
+            {isMarkingReserved ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              "Fertig"
             )}
           </button>
         </div>
