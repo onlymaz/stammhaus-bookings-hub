@@ -224,6 +224,11 @@ export const InlineTableAssignment = ({
   // Mark reservation as completed and free all tables
   const handleComplete = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Confirmation dialog to prevent accidental clicks
+    const confirmed = window.confirm('Reservierung abschließen und Tische freigeben?');
+    if (!confirmed) return;
+    
     setIsMarkingReserved(true);
     try {
       // Update status to completed and dining_status to completed
