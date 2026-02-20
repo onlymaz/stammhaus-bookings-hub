@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Table2, Loader2, Search, Home, TreePine, Building, Layers, Radio } from "lucide-react";
+import { Check, X, Table2, Loader2, Search, Home, TreePine, Building, Layers, Radio, Undo2 } from "lucide-react";
 import { TableZone, RestaurantTable } from "@/types/table";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,12 @@ export const InlineTableAssignment = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isMarkingReserved, setIsMarkingReserved] = useState(false);
+  const [undoData, setUndoData] = useState<{
+    previousDiningStatus: string;
+    previousStatus: string;
+    previousTableIds: string[];
+    previousAssignedTableId: string | null;
+  } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<'all' | TableZone>('all');
   
@@ -224,13 +230,19 @@ export const InlineTableAssignment = ({
   // Mark reservation as completed and free all tables
   const handleComplete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Confirmation dialog to prevent accidental clicks
-    const confirmed = window.confirm('Reservierung abschließen und Tische freigeben?');
-    if (!confirmed) return;
-    
     setIsMarkingReserved(true);
     try {
+      // Save current state for undo
+      const assigned = await getAssignedTables(reservationId);
+      const savedTableIds = assigned.map(a => a.table_id);
+      
+      setUndoData({
+        previousDiningStatus: diningStatus || 'pending',
+        previousStatus: 'confirmed',
+        previousTableIds: savedTableIds,
+        previousAssignedTableId: currentTableId,
+      });
+
       // Update status to completed and dining_status to completed
       const { error } = await supabase
         .from('reservations')
@@ -256,6 +268,47 @@ export const InlineTableAssignment = ({
     } catch (error: any) {
       console.error('Error completing reservation:', error);
       toast.error('Reservierung konnte nicht abgeschlossen werden');
+      setUndoData(null);
+    } finally {
+      setIsMarkingReserved(false);
+    }
+  };
+
+  // Undo a completed reservation
+  const handleUndo = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!undoData) return;
+    setIsMarkingReserved(true);
+    try {
+      // Restore reservation status
+      const { error } = await supabase
+        .from('reservations')
+        .update({
+          dining_status: undoData.previousDiningStatus as any,
+          status: undoData.previousStatus,
+          assigned_table_id: undoData.previousAssignedTableId,
+        })
+        .eq('id', reservationId);
+
+      if (error) throw error;
+
+      // Re-assign tables
+      if (undoData.previousTableIds.length > 0) {
+        const insertData = undoData.previousTableIds.map(tableId => ({
+          reservation_id: reservationId,
+          table_id: tableId,
+        }));
+        await supabase.from('reservation_tables').insert(insertData);
+      }
+
+      toast.success('Änderungen rückgängig gemacht');
+      setUndoData(null);
+      fetchAssignedTablesData();
+      onTableAssigned();
+      onDiningStatusChange?.();
+    } catch (error: any) {
+      console.error('Error undoing:', error);
+      toast.error('Rückgängig fehlgeschlagen');
     } finally {
       setIsMarkingReserved(false);
     }
@@ -648,6 +701,21 @@ export const InlineTableAssignment = ({
               "Fertig"
             )}
           </button>
+          {/* Undo button - appears after Fertig was clicked */}
+          {undoData && (
+            <button
+              className="px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700 dark:hover:bg-amber-800/50"
+              onClick={handleUndo}
+              disabled={isMarkingReserved}
+              title="Rückgängig machen"
+            >
+              {isMarkingReserved ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <span className="flex items-center gap-0.5"><Undo2 className="h-3 w-3" /> Undo</span>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>
