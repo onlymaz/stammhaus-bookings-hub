@@ -183,11 +183,24 @@ export const InlineTableAssignment = ({
     setSearchQuery("");
   };
 
+  // Save state before any status change for undo
+  const saveUndoState = async () => {
+    const assigned = await getAssignedTables(reservationId);
+    const savedTableIds = assigned.map(a => a.table_id);
+    setUndoData({
+      previousDiningStatus: diningStatus || 'pending',
+      previousStatus: 'confirmed',
+      previousTableIds: savedTableIds,
+      previousAssignedTableId: currentTableId,
+    });
+  };
+
   // Mark reservation as Reserved (manual)
   const handleMarkReserved = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMarkingReserved(true);
     try {
+      await saveUndoState();
       const { error } = await supabase
         .from('reservations')
         .update({ dining_status: 'reserved' })
@@ -210,6 +223,7 @@ export const InlineTableAssignment = ({
     e.stopPropagation();
     setIsMarkingReserved(true);
     try {
+      await saveUndoState();
       const { error } = await supabase
         .from('reservations')
         .update({ dining_status: 'seated' })
@@ -232,16 +246,7 @@ export const InlineTableAssignment = ({
     e.stopPropagation();
     setIsMarkingReserved(true);
     try {
-      // Save current state for undo
-      const assigned = await getAssignedTables(reservationId);
-      const savedTableIds = assigned.map(a => a.table_id);
-      
-      setUndoData({
-        previousDiningStatus: diningStatus || 'pending',
-        previousStatus: 'confirmed',
-        previousTableIds: savedTableIds,
-        previousAssignedTableId: currentTableId,
-      });
+      await saveUndoState();
 
       // Update status to completed and dining_status to completed
       const { error } = await supabase
