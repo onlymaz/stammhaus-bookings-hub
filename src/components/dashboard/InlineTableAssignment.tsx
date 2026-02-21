@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,17 @@ import { TableZone, RestaurantTable } from "@/types/table";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMultiTableAssignment } from "@/hooks/useMultiTableAssignment";
+
+// Module-level store for undo data that persists across re-mounts
+const undoStore = new Map<string, {
+  previousDiningStatus: string;
+  previousStatus: string;
+  previousTableIds: string[];
+  previousAssignedTableId: string | null;
+  timestamp: number;
+}>();
+
+const UNDO_TIMEOUT_MS = 15000; // 15 seconds
 
 interface Table {
   id: string;
@@ -49,12 +60,11 @@ export const InlineTableAssignment = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isMarkingReserved, setIsMarkingReserved] = useState(false);
-  const [undoData, setUndoData] = useState<{
-    previousDiningStatus: string;
-    previousStatus: string;
-    previousTableIds: string[];
-    previousAssignedTableId: string | null;
-  } | null>(null);
+  const [undoVisible, setUndoVisible] = useState(() => {
+    const stored = undoStore.get(reservationId);
+    return stored ? Date.now() - stored.timestamp < UNDO_TIMEOUT_MS : false;
+  });
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<'all' | TableZone>('all');
   
@@ -184,15 +194,26 @@ export const InlineTableAssignment = ({
   };
 
   // Save state before any status change for undo
+  const startUndoTimer = () => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoVisible(true);
+    undoTimerRef.current = setTimeout(() => {
+      undoStore.delete(reservationId);
+      setUndoVisible(false);
+    }, UNDO_TIMEOUT_MS);
+  };
+
   const saveUndoState = async () => {
     const assigned = await getAssignedTables(reservationId);
     const savedTableIds = assigned.map(a => a.table_id);
-    setUndoData({
+    undoStore.set(reservationId, {
       previousDiningStatus: diningStatus || 'pending',
       previousStatus: 'confirmed',
       previousTableIds: savedTableIds,
       previousAssignedTableId: currentTableId,
+      timestamp: Date.now(),
     });
+    startUndoTimer();
   };
 
   // Mark reservation as Reserved (manual)
@@ -273,15 +294,17 @@ export const InlineTableAssignment = ({
     } catch (error: any) {
       console.error('Error completing reservation:', error);
       toast.error('Reservierung konnte nicht abgeschlossen werden');
-      setUndoData(null);
+      undoStore.delete(reservationId);
+      setUndoVisible(false);
     } finally {
       setIsMarkingReserved(false);
     }
   };
 
-  // Undo a completed reservation
+  // Undo a status change
   const handleUndo = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const undoData = undoStore.get(reservationId);
     if (!undoData) return;
     setIsMarkingReserved(true);
     try {
@@ -307,7 +330,9 @@ export const InlineTableAssignment = ({
       }
 
       toast.success('Änderungen rückgängig gemacht');
-      setUndoData(null);
+      undoStore.delete(reservationId);
+      setUndoVisible(false);
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
       fetchAssignedTablesData();
       onTableAssigned();
       onDiningStatusChange?.();
@@ -650,7 +675,7 @@ export const InlineTableAssignment = ({
       )}
       
       {/* Manual Reserviert + LIVE buttons - always visible when tables assigned */}
-      {(hasAssignedTables || undoData) && (
+      {(hasAssignedTables || undoVisible) && (
         <div className="ml-auto flex items-center gap-1 flex-shrink-0">
           {/* Reserviert button */}
           <button
@@ -707,7 +732,7 @@ export const InlineTableAssignment = ({
             )}
           </button>
           {/* Undo button - appears after Fertig was clicked */}
-          {undoData && (
+          {undoVisible && (
             <button
               className="px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700 dark:hover:bg-amber-800/50"
               onClick={handleUndo}
