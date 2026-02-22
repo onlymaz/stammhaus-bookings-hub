@@ -687,21 +687,15 @@ export const CalendarView = ({
                       <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] font-medium px-1.5")}>
                         {res.status}
                       </Badge>
-                      <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                        <Clock className="h-3 w-3" />
-                        {res.reservation_time.slice(0, 5)}
-                      </span>
-                      <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                        <Users className="h-3 w-3" />
-                        {res.guests}
-                      </span>
-                      {res.customer?.phone && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {res.customer.phone}
+                      <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+                        <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                          <Clock className="h-3 w-3" />
+                          {res.reservation_time.slice(0, 5)}
                         </span>
-                      )}
-                      <div className="ml-auto flex-shrink-0">
+                        <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                          <Users className="h-3 w-3" />
+                          {res.guests}
+                        </span>
                         <Button
                           variant="ghost"
                           size="icon"
