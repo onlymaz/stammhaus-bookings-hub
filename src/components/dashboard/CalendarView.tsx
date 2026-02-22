@@ -688,11 +688,11 @@ export const CalendarView = ({
                         {res.status}
                       </Badge>
                       <div className="ml-auto flex items-center gap-3 flex-shrink-0">
-                        <span className="flex items-center gap-1.5 text-primary font-bold text-sm">
+                        <span className="flex items-center gap-1.5 text-foreground font-bold text-sm">
                           <Clock className="h-4 w-4" />
                           {res.reservation_time.slice(0, 5)}
                         </span>
-                        <span className="flex items-center gap-1.5 text-primary font-bold text-sm">
+                        <span className="flex items-center gap-1.5 text-foreground font-bold text-sm">
                           <Users className="h-4 w-4" />
                           {res.guests}
                         </span>
