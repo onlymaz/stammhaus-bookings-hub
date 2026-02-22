@@ -664,69 +664,57 @@ export const CalendarView = ({
                           : "border-border/50 bg-gradient-to-br from-card to-secondary/30 hover:border-primary/50"
                     )}
                   >
-                    <div className="flex items-start justify-between mb-1">
-                      <div 
-                        className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => {
-                          setSelectedReservation(res);
-                          setDetailDialogOpen(true);
-                        }}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-base text-foreground group-hover:text-primary transition-colors truncate">
-                            {res.customer?.name || "Gast"}
-                          </span>
-                          {res.dining_status === 'reserved' && (
-                            <Badge className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-                              Reserviert
-                            </Badge>
-                          )}
-                          {slotActive && (
-                            <Badge className="badge-in-progress text-[10px] px-1.5 py-0.5">
-                              LIVE
-                            </Badge>
-                          )}
-                          <Badge className={cn(getStatusBadgeClass(res.status), "text-xs font-medium px-2")}>
-                            {res.status}
-                          </Badge>
-                        </div>
-                        {res.customer?.phone && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                            <Phone className="h-3 w-3" />
-                            {res.customer.phone}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                    <div 
+                      className="flex items-center gap-2 flex-wrap cursor-pointer"
+                      onClick={() => {
+                        setSelectedReservation(res);
+                        setDetailDialogOpen(true);
+                      }}
+                    >
+                      <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                        {res.customer?.name || "Gast"}
+                      </span>
+                      {res.dining_status === 'reserved' && (
+                        <Badge className="text-[10px] px-1.5 py-0 bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+                          Reserviert
+                        </Badge>
+                      )}
+                      {slotActive && (
+                        <Badge className="badge-in-progress text-[10px] px-1.5 py-0">
+                          LIVE
+                        </Badge>
+                      )}
+                      <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] font-medium px-1.5")}>
+                        {res.status}
+                      </Badge>
+                      <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                        <Clock className="h-3 w-3" />
+                        {res.reservation_time.slice(0, 5)}
+                      </span>
+                      <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                        <Users className="h-3 w-3" />
+                        {res.guests}
+                      </span>
+                      {res.customer?.phone && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {res.customer.phone}
+                        </span>
+                      )}
+                      <div className="ml-auto flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10"
                           onClick={(e) => {
                             e.stopPropagation();
                             setReservationToEdit(res);
                             setEditDialogOpen(true);
                           }}
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                    </div>
-                    <div 
-                      className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer"
-                      onClick={() => {
-                        setSelectedReservation(res);
-                        setDetailDialogOpen(true);
-                      }}
-                    >
-                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded text-xs">
-                        <Clock className="h-3 w-3" />
-                        {res.reservation_time.slice(0, 5)}
-                      </span>
-                      <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded text-xs">
-                        <Users className="h-3 w-3" />
-                        {res.guests} Gäste
-                      </span>
                     </div>
 
                     {/* Inline Table Assignment */}
