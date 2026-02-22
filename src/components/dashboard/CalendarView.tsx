@@ -687,13 +687,13 @@ export const CalendarView = ({
                       <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] font-medium px-1.5")}>
                         {res.status}
                       </Badge>
-                      <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-                        <span className="flex items-center gap-1 text-foreground font-semibold text-xs">
-                          <Clock className="h-3.5 w-3.5" />
+                      <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+                        <span className="flex items-center gap-1.5 text-primary font-bold text-sm">
+                          <Clock className="h-4 w-4" />
                           {res.reservation_time.slice(0, 5)}
                         </span>
-                        <span className="flex items-center gap-1 text-foreground font-semibold text-xs">
-                          <Users className="h-3.5 w-3.5" />
+                        <span className="flex items-center gap-1.5 text-primary font-bold text-sm">
+                          <Users className="h-4 w-4" />
                           {res.guests}
                         </span>
                         <Button
