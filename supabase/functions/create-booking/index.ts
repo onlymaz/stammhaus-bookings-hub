@@ -161,6 +161,24 @@ serve(async (req) => {
       console.log("Created new customer:", customerId);
     }
 
+    // Check for duplicate reservation (same customer, date, time)
+    const { data: existingReservation } = await supabase
+      .from("reservations")
+      .select("id")
+      .eq("customer_id", customerId)
+      .eq("reservation_date", body.date)
+      .eq("reservation_time", body.time)
+      .neq("status", "cancelled")
+      .maybeSingle();
+
+    if (existingReservation) {
+      console.log("Duplicate reservation detected for customer:", customerId);
+      return new Response(
+        JSON.stringify({ error: "A reservation already exists for this customer at this date and time" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Create the reservation with source explicitly set to 'website'
     const { data: reservation, error: reservationError } = await supabase
       .from("reservations")
