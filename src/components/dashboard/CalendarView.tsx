@@ -694,7 +694,7 @@ export const CalendarView = ({
                         </span>
                         <span className="flex items-center gap-1.5 text-foreground font-bold text-sm">
                           <Users className="h-4 w-4" />
-                          {res.guests}
+                          {res.guests} P
                         </span>
                         <Button
                           variant="ghost"
