@@ -169,9 +169,36 @@ export const CreateReservationDialog = ({
       return;
     }
 
+    // Prevent double-click submissions
+    if (isLoading) return;
+    
     setIsLoading(true);
 
     try {
+      // Check for duplicate reservation (same customer name, date, time)
+      if (date && time && customerName) {
+        const { data: existingRes } = await supabase
+          .from("reservations")
+          .select("id, customer:customers(name)")
+          .eq("reservation_date", format(date, "yyyy-MM-dd"))
+          .eq("reservation_time", time + ":00")
+          .neq("status", "cancelled");
+
+        const duplicate = existingRes?.find(
+          (r: any) => r.customer?.name?.toLowerCase().trim() === customerName.toLowerCase().trim()
+        );
+
+        if (duplicate) {
+          toast({
+            title: "Doppelte Reservierung",
+            description: `Es existiert bereits eine Reservierung für ${customerName} am ${format(date, "d. MMM")} um ${time}`,
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
       let customerId: string;
 
       // If phone is provided, try to find existing customer
