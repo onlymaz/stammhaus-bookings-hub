@@ -665,16 +665,41 @@ export const CalendarView = ({
                     )}
                   >
                     <div 
-                      className="flex items-center gap-2 cursor-pointer min-w-0"
+                      className="cursor-pointer"
                       onClick={() => {
                         setSelectedReservation(res);
                         setDetailDialogOpen(true);
                       }}
                     >
-                      <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate flex-1 min-w-0">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors leading-tight break-words">
                           {res.customer?.name || "Gast"}
                         </span>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <span className="flex items-center gap-1.5 text-foreground font-bold text-sm whitespace-nowrap">
+                            <Clock className="h-4 w-4" />
+                            {res.reservation_time.slice(0, 5)}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-foreground font-bold text-sm whitespace-nowrap">
+                            <Users className="h-4 w-4" />
+                            {res.guests} P
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReservationToEdit(res);
+                              setEditDialogOpen(true);
+                            }}
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                         {res.dining_status === 'reserved' && (
                           <Badge className="text-[10px] px-1.5 py-0 bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700 flex-shrink-0">
                             Reserviert
@@ -688,28 +713,6 @@ export const CalendarView = ({
                         <Badge className={cn(getStatusBadgeClass(res.status), "text-[10px] font-medium px-1.5 flex-shrink-0")}>
                           {res.status}
                         </Badge>
-                      </div>
-                      <div className="ml-auto flex items-center gap-3 flex-shrink-0">
-                        <span className="flex items-center gap-1.5 text-foreground font-bold text-sm whitespace-nowrap">
-                          <Clock className="h-4 w-4" />
-                          {res.reservation_time.slice(0, 5)}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-foreground font-bold text-sm whitespace-nowrap">
-                          <Users className="h-4 w-4" />
-                          {res.guests} P
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setReservationToEdit(res);
-                            setEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
                       </div>
                     </div>
 
