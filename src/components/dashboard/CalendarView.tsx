@@ -671,8 +671,8 @@ export const CalendarView = ({
                         setDetailDialogOpen(true);
                       }}
                     >
-                      <div className="flex items-center gap-1.5 min-w-0 flex-shrink overflow-hidden">
-                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate min-w-[60px]">
                           {res.customer?.name || "Gast"}
                         </span>
                         {res.dining_status === 'reserved' && (
