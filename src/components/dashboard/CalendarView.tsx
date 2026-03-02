@@ -648,7 +648,7 @@ export const CalendarView = ({
               }
               
               return (
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredReservations.map((res) => {
                   const slotActive = isTimeSlotActive(res);
                   const slotPast = isReservationPast(res);
@@ -665,13 +665,13 @@ export const CalendarView = ({
                     )}
                   >
                     <div 
-                      className="flex items-center gap-1.5 cursor-pointer min-w-0"
+                      className="flex items-center gap-2 cursor-pointer min-w-0"
                       onClick={() => {
                         setSelectedReservation(res);
                         setDetailDialogOpen(true);
                       }}
                     >
-                      <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                         <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate flex-1 min-w-0">
                           {res.customer?.name || "Gast"}
                         </span>
@@ -690,13 +690,13 @@ export const CalendarView = ({
                         </Badge>
                       </div>
 
-                      <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-                        <span className="flex items-center gap-1 text-foreground font-bold text-xs whitespace-nowrap">
-                          <Clock className="h-3.5 w-3.5" />
+                      <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+                        <span className="flex items-center gap-1.5 text-foreground font-bold text-sm whitespace-nowrap">
+                          <Clock className="h-4 w-4" />
                           {res.reservation_time.slice(0, 5)}
                         </span>
-                        <span className="flex items-center gap-1 text-foreground font-bold text-xs whitespace-nowrap">
-                          <Users className="h-3.5 w-3.5" />
+                        <span className="flex items-center gap-1.5 text-foreground font-bold text-sm whitespace-nowrap">
+                          <Users className="h-4 w-4" />
                           {res.guests} P
                         </span>
                         <Button
