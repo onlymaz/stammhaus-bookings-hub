@@ -672,7 +672,7 @@ export const CalendarView = ({
                       }}
                     >
                       <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate min-w-[60px]">
+                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate flex-1 min-w-0">
                           {res.customer?.name || "Gast"}
                         </span>
                         {res.dining_status === 'reserved' && (
