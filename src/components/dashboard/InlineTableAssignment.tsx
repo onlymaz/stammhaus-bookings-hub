@@ -682,7 +682,7 @@ export const InlineTableAssignment = ({
             className={cn(
               "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
               diningStatus === 'reserved' || isSeated
-                ? "bg-green-600 text-white border-green-700"
+                ? "bg-blue-700 text-white border-blue-800"
                 : "bg-green-100 text-green-800 border-green-300 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700 dark:hover:bg-green-800/50"
             )}
             onClick={handleMarkReserved}

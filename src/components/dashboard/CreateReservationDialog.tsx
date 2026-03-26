@@ -18,15 +18,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Users, Phone, Mail, User, Clock } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CalendarIcon, Loader2, Users, Phone, Mail, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TimeWheelPicker } from "@/components/dashboard/TimeWheelPicker";
 
 interface CreateReservationDialogProps {
   open: boolean;
@@ -339,28 +333,13 @@ export const CreateReservationDialog = ({
 
             <div className="space-y-1.5">
               <Label className="text-sm">Zeit *</Label>
-              {loadingSlots ? (
-                <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                  Laden...
-                </div>
-              ) : (
-                <Select value={time} onValueChange={setTime}>
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="Wählen" />
-                  </SelectTrigger>
-                  <SelectContent 
-                    className="max-h-[200px] bg-background border shadow-lg z-[100]"
-                    position="popper"
-                    sideOffset={4}
-                  >
-                    {timeSlots.filter(slot => slot.available).map((slot) => (
-                      <SelectItem key={slot.time} value={slot.time}>
-                        {slot.time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              <TimeWheelPicker
+                value={time}
+                onChange={setTime}
+                timeSlots={timeSlots}
+                loading={loadingSlots}
+                placeholder="Wählen"
+              />
             </div>
 
             <div className="space-y-1.5">

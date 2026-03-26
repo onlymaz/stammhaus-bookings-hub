@@ -29,15 +29,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, Phone, Mail, User, Clock, Trash2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CalendarIcon, Loader2, Phone, Mail, User, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TimeWheelPicker } from "@/components/dashboard/TimeWheelPicker";
 
 interface TimeSlot {
   time: string;
@@ -366,29 +360,13 @@ export const EditReservationDialog = ({
 
             <div className="space-y-2">
               <Label>Zeit *</Label>
-              {loadingSlots ? (
-                <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                  Laden...
-                </div>
-              ) : timeSlots.length === 0 ? (
-                <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                  Geschlossen
-                </div>
-              ) : (
-                <Select value={time} onValueChange={setTime}>
-                  <SelectTrigger className="w-full">
-                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Zeit wählen" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px] z-[100] bg-background" position="popper" sideOffset={4}>
-                    {timeSlots.filter(slot => slot.available).map((slot) => (
-                      <SelectItem key={slot.time} value={slot.time}>
-                        {slot.time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              <TimeWheelPicker
+                value={time}
+                onChange={setTime}
+                timeSlots={timeSlots}
+                loading={loadingSlots}
+                placeholder="Zeit wählen"
+              />
             </div>
           </div>
 
