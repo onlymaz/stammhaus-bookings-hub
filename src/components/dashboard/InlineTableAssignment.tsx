@@ -36,6 +36,7 @@ interface InlineTableAssignmentProps {
   currentTableId: string | null;
   currentTableNumber?: string | null;
   guests: number;
+  reservationStatus: string;
   diningStatus?: string;
   onTableAssigned: () => void;
   onDiningStatusChange?: () => void;
@@ -49,6 +50,7 @@ export const InlineTableAssignment = ({
   currentTableId,
   currentTableNumber,
   guests,
+  reservationStatus,
   diningStatus,
   onTableAssigned,
   onDiningStatusChange,
@@ -208,7 +210,7 @@ export const InlineTableAssignment = ({
     const savedTableIds = assigned.map(a => a.table_id);
     undoStore.set(reservationId, {
       previousDiningStatus: diningStatus || 'pending',
-      previousStatus: 'confirmed',
+      previousStatus: reservationStatus,
       previousTableIds: savedTableIds,
       previousAssignedTableId: currentTableId,
       timestamp: Date.now(),
@@ -308,7 +310,34 @@ export const InlineTableAssignment = ({
     if (!undoData) return;
     setIsMarkingReserved(true);
     try {
-      // Restore reservation status
+      const currentAssignments = await getAssignedTables(reservationId);
+      const currentTableIds = currentAssignments.map(({ table_id }) => table_id).sort();
+      const previousTableIds = [...undoData.previousTableIds].sort();
+      const tableAssignmentsChanged =
+        currentTableIds.length !== previousTableIds.length ||
+        currentTableIds.some((tableId, index) => tableId !== previousTableIds[index]);
+
+      if (tableAssignmentsChanged) {
+        const { error: deleteError } = await supabase
+          .from('reservation_tables')
+          .delete()
+          .eq('reservation_id', reservationId);
+
+        if (deleteError) throw deleteError;
+
+        if (undoData.previousTableIds.length > 0) {
+          const insertData = undoData.previousTableIds.map(tableId => ({
+            reservation_id: reservationId,
+            table_id: tableId,
+          }));
+          const { error: insertError } = await supabase
+            .from('reservation_tables')
+            .insert(insertData);
+
+          if (insertError) throw insertError;
+        }
+      }
+
       const { error } = await supabase
         .from('reservations')
         .update({
@@ -319,15 +348,6 @@ export const InlineTableAssignment = ({
         .eq('id', reservationId);
 
       if (error) throw error;
-
-      // Re-assign tables
-      if (undoData.previousTableIds.length > 0) {
-        const insertData = undoData.previousTableIds.map(tableId => ({
-          reservation_id: reservationId,
-          table_id: tableId,
-        }));
-        await supabase.from('reservation_tables').insert(insertData);
-      }
 
       toast.success('Änderungen rückgängig gemacht');
       undoStore.delete(reservationId);
@@ -632,6 +652,7 @@ export const InlineTableAssignment = ({
 
   // Display mode - show assigned tables
   const hasAssignedTables = assignedTables.length > 0 || currentTableId;
+  const isReserved = diningStatus === 'reserved';
   const isSeated = diningStatus === 'seated';
   
   return (
@@ -681,9 +702,11 @@ export const InlineTableAssignment = ({
           <button
             className={cn(
               "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
-              diningStatus === 'reserved' || isSeated
-                ? "bg-blue-700 text-white border-blue-800"
-                : "bg-green-100 text-green-800 border-green-300 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700 dark:hover:bg-green-800/50"
+              isSeated
+                ? "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700 dark:hover:bg-orange-800/50"
+                : isReserved
+                  ? "bg-blue-700 text-white border-blue-800"
+                  : "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/50"
             )}
             onClick={handleMarkReserved}
             disabled={isMarkingReserved}
@@ -700,7 +723,7 @@ export const InlineTableAssignment = ({
             className={cn(
               "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
               isSeated
-                ? "bg-emerald-600 text-white border-emerald-700"
+                ? "bg-orange-600 text-white border-orange-700"
                 : "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-800/50"
             )}
             onClick={handleMarkLive}
