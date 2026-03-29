@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Clock3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface TimeWheelPickerSlot {
@@ -60,6 +59,8 @@ export const TimeWheelPicker = ({
   const [open, setOpen] = useState(false);
   const [draftHour, setDraftHour] = useState("");
   const [draftMinute, setDraftMinute] = useState("");
+  const selectedHourRef = useRef<HTMLButtonElement | null>(null);
+  const selectedMinuteRef = useRef<HTMLButtonElement | null>(null);
 
   const availableTimes = timeSlots
     .filter((slot) => slot.available)
@@ -79,6 +80,13 @@ export const TimeWheelPicker = ({
     setDraftHour(hour);
     setDraftMinute(minute);
   }, [value, timeSlots]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    selectedHourRef.current?.scrollIntoView({ block: "center" });
+    selectedMinuteRef.current?.scrollIntoView({ block: "center" });
+  }, [open, draftHour, draftMinute]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
@@ -149,11 +157,15 @@ export const TimeWheelPicker = ({
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Stunde
             </p>
-            <ScrollArea className="h-52 pr-2">
+            <div
+              className="h-52 overflow-y-auto overscroll-contain pr-2"
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+            >
               <div className="space-y-1">
                 {hourOptions.map((hour) => (
                   <Button
                     key={hour}
+                    ref={draftHour === hour ? selectedHourRef : null}
                     type="button"
                     variant={draftHour === hour ? "default" : "ghost"}
                     className={cn(
@@ -166,18 +178,22 @@ export const TimeWheelPicker = ({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           <div className="px-3 py-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Minuten
             </p>
-            <ScrollArea className="h-52 pr-2">
+            <div
+              className="h-52 overflow-y-auto overscroll-contain pr-2"
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+            >
               <div className="space-y-1">
                 {minuteOptions.map((minute) => (
                   <Button
                     key={minute}
+                    ref={draftMinute === minute ? selectedMinuteRef : null}
                     type="button"
                     variant={draftMinute === minute ? "default" : "ghost"}
                     className={cn(
@@ -190,7 +206,7 @@ export const TimeWheelPicker = ({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
