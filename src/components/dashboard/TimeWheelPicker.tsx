@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Clock3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -47,6 +48,44 @@ const getDraftSelection = (currentValue: string, times: string[]) => {
   return { hour, minute };
 };
 
+const formatKeyboardTime = (rawValue: string) => {
+  const sanitized = rawValue.replace(/[^\d:]/g, "").slice(0, 5);
+
+  if (sanitized.includes(":")) {
+    const [hour = "", minute = ""] = sanitized.split(":");
+    return `${hour.slice(0, 2)}${sanitized.includes(":") ? ":" : ""}${minute.slice(0, 2)}`;
+  }
+
+  const digits = sanitized.replace(/\D/g, "").slice(0, 4);
+  if (digits.length <= 2) return digits;
+
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+};
+
+const parseKeyboardTime = (rawValue: string) => {
+  const cleaned = rawValue.trim();
+
+  if (!cleaned) return null;
+
+  if (cleaned.includes(":")) {
+    const [hour = "", minute = ""] = cleaned.split(":");
+    if (!hour || minute.length !== 2) return null;
+
+    return `${hour.padStart(2, "0").slice(-2)}:${minute}`;
+  }
+
+  const digits = cleaned.replace(/\D/g, "");
+  if (digits.length === 3) {
+    return `0${digits[0]}:${digits.slice(1)}`;
+  }
+
+  if (digits.length === 4) {
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  }
+
+  return null;
+};
+
 export const TimeWheelPicker = ({
   value,
   onChange,
@@ -59,6 +98,8 @@ export const TimeWheelPicker = ({
   const [open, setOpen] = useState(false);
   const [draftHour, setDraftHour] = useState("");
   const [draftMinute, setDraftMinute] = useState("");
+  const [keyboardValue, setKeyboardValue] = useState("");
+  const [keyboardError, setKeyboardError] = useState("");
   const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
   const pickerRootRef = useRef<HTMLDivElement | null>(null);
   const selectedHourRef = useRef<HTMLButtonElement | null>(null);
@@ -81,6 +122,8 @@ export const TimeWheelPicker = ({
 
     setDraftHour(hour);
     setDraftMinute(minute);
+    setKeyboardValue(hour && minute ? `${hour}:${minute}` : "");
+    setKeyboardError("");
   }, [value, timeSlots]);
 
   useEffect(() => {
@@ -96,12 +139,22 @@ export const TimeWheelPicker = ({
     selectedMinuteRef.current?.scrollIntoView({ block: "center" });
   }, [open, draftHour, draftMinute]);
 
+  const updateDraftTime = (nextTime: string) => {
+    const [hour = "", minute = ""] = nextTime.split(":");
+    setDraftHour(hour);
+    setDraftMinute(minute);
+    setKeyboardValue(nextTime);
+    setKeyboardError("");
+  };
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       const { hour, minute } = getDraftSelection(value, availableTimes);
 
       setDraftHour(hour);
       setDraftMinute(minute);
+      setKeyboardValue(hour && minute ? `${hour}:${minute}` : "");
+      setKeyboardError("");
     }
 
     setOpen(nextOpen);
@@ -109,17 +162,49 @@ export const TimeWheelPicker = ({
 
   const handleHourSelect = (hour: string) => {
     const nextMinutes = getMinutesForHour(availableTimes, hour);
+    const nextMinute = nextMinutes.includes(draftMinute) ? draftMinute : (nextMinutes[0] ?? "");
 
     setDraftHour(hour);
-    setDraftMinute((currentMinute) =>
-      nextMinutes.includes(currentMinute) ? currentMinute : (nextMinutes[0] ?? ""),
-    );
+    setDraftMinute(nextMinute);
+    setKeyboardValue(hour && nextMinute ? `${hour}:${nextMinute}` : hour);
+    setKeyboardError("");
   };
 
   const handleApply = () => {
     if (!draftHour || !draftMinute) return;
 
     onChange(`${draftHour}:${draftMinute}`);
+    setOpen(false);
+  };
+
+  const handleKeyboardChange = (rawValue: string) => {
+    const formattedValue = formatKeyboardTime(rawValue);
+    const parsedTime = parseKeyboardTime(formattedValue);
+
+    setKeyboardValue(formattedValue);
+
+    if (!parsedTime) {
+      setKeyboardError("");
+      return;
+    }
+
+    if (!availableTimes.includes(parsedTime)) {
+      setKeyboardError("Diese Zeit ist nicht verfuegbar.");
+      return;
+    }
+
+    updateDraftTime(parsedTime);
+  };
+
+  const handleKeyboardApply = () => {
+    const parsedTime = parseKeyboardTime(keyboardValue);
+
+    if (!parsedTime || !availableTimes.includes(parsedTime)) {
+      setKeyboardError("Bitte eine verfuegbare Zeit wie 11:15 eingeben.");
+      return;
+    }
+
+    onChange(parsedTime);
     setOpen(false);
   };
 
@@ -155,11 +240,39 @@ export const TimeWheelPicker = ({
         sideOffset={6}
         className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
       >
-        <div className="border-b px-4 py-3">
+        <div className="border-b px-4 py-3 space-y-3">
+          <div>
           <p className="text-sm font-medium">Zeit auswählen</p>
           <p className="text-xs text-muted-foreground">
             Wie beim Handy-Wecker: Stunde und Minuten getrennt wählen.
           </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Mit Tastatur eingeben
+            </p>
+            <Input
+              type="text"
+              inputMode="numeric"
+              placeholder="11:15"
+              value={keyboardValue}
+              onChange={(event) => handleKeyboardChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleKeyboardApply();
+                }
+              }}
+              className="h-10"
+            />
+            <p className={cn(
+              "text-xs",
+              keyboardError ? "text-destructive" : "text-muted-foreground",
+            )}>
+              {keyboardError || "Tipp: 11:15 eingeben und Enter druecken."}
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-2">
