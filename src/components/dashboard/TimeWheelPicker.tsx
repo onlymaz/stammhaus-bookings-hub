@@ -59,6 +59,8 @@ export const TimeWheelPicker = ({
   const [open, setOpen] = useState(false);
   const [draftHour, setDraftHour] = useState("");
   const [draftMinute, setDraftMinute] = useState("");
+  const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
+  const pickerRootRef = useRef<HTMLDivElement | null>(null);
   const selectedHourRef = useRef<HTMLButtonElement | null>(null);
   const selectedMinuteRef = useRef<HTMLButtonElement | null>(null);
 
@@ -80,6 +82,12 @@ export const TimeWheelPicker = ({
     setDraftHour(hour);
     setDraftMinute(minute);
   }, [value, timeSlots]);
+
+  useEffect(() => {
+    setPopoverContainer(
+      pickerRootRef.current?.closest('[role="dialog"]') as HTMLElement | null,
+    );
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -120,7 +128,8 @@ export const TimeWheelPicker = ({
     : value || (hasOptions ? placeholder : emptyLabel);
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <div ref={pickerRootRef}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -141,6 +150,7 @@ export const TimeWheelPicker = ({
       </PopoverTrigger>
 
       <PopoverContent
+        container={popoverContainer}
         align="start"
         sideOffset={6}
         className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
@@ -169,9 +179,10 @@ export const TimeWheelPicker = ({
                     type="button"
                     variant={draftHour === hour ? "default" : "ghost"}
                     className={cn(
-                      "h-11 w-full justify-center text-lg font-semibold",
+                      "h-11 w-full justify-center text-lg font-semibold touch-pan-y",
                       draftHour === hour && "shadow-sm",
                     )}
+                    style={{ touchAction: "pan-y" }}
                     onClick={() => handleHourSelect(hour)}
                   >
                     {hour}
@@ -197,9 +208,10 @@ export const TimeWheelPicker = ({
                     type="button"
                     variant={draftMinute === minute ? "default" : "ghost"}
                     className={cn(
-                      "h-11 w-full justify-center text-lg font-semibold",
+                      "h-11 w-full justify-center text-lg font-semibold touch-pan-y",
                       draftMinute === minute && "shadow-sm",
                     )}
+                    style={{ touchAction: "pan-y" }}
                     onClick={() => setDraftMinute(minute)}
                   >
                     {minute}
@@ -226,5 +238,6 @@ export const TimeWheelPicker = ({
         </div>
       </PopoverContent>
     </Popover>
+    </div>
   );
 };
