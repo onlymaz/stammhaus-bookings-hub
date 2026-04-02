@@ -100,7 +100,6 @@ export const TimeWheelPicker = ({
   const [draftMinute, setDraftMinute] = useState("");
   const [keyboardValue, setKeyboardValue] = useState("");
   const [keyboardError, setKeyboardError] = useState("");
-  const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
   const pickerRootRef = useRef<HTMLDivElement | null>(null);
   const selectedHourRef = useRef<HTMLButtonElement | null>(null);
   const selectedMinuteRef = useRef<HTMLButtonElement | null>(null);
@@ -125,12 +124,6 @@ export const TimeWheelPicker = ({
     setKeyboardValue(hour && minute ? `${hour}:${minute}` : "");
     setKeyboardError("");
   }, [value, timeSlots]);
-
-  useEffect(() => {
-    setPopoverContainer(
-      pickerRootRef.current?.closest('[role="dialog"]') as HTMLElement | null,
-    );
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -235,7 +228,6 @@ export const TimeWheelPicker = ({
       </PopoverTrigger>
 
       <PopoverContent
-        container={popoverContainer}
         align="start"
         sideOffset={6}
         className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
