@@ -79,7 +79,6 @@ export const TimeWheelPicker = ({
     setDraftHour(hour);
     setDraftMinute(minute);
   }, [value, timeSlots]);
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       const { hour, minute } = getDraftSelection(value, availableTimes);
