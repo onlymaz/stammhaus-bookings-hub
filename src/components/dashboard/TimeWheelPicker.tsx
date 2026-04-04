@@ -136,11 +136,49 @@ export const TimeWheelPicker = ({
         sideOffset={6}
         className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
       >
-        <div className="border-b px-4 py-3">
+        <div className="border-b px-4 py-3 space-y-2">
           <p className="text-sm font-medium">Zeit auswählen</p>
-          <p className="text-xs text-muted-foreground">
-            Wie beim Handy-Wecker: Stunde und Minuten getrennt wählen.
-          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="HH:MM"
+              maxLength={5}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-ring"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const val = (e.target as HTMLInputElement).value;
+                  const match = val.match(/^(\d{1,2}):(\d{2})$/);
+                  if (match) {
+                    const typed = `${match[1].padStart(2, "0")}:${match[2]}`;
+                    if (availableTimes.includes(typed)) {
+                      onChange(typed);
+                      setOpen(false);
+                    }
+                  }
+                }
+              }}
+              onChange={(e) => {
+                let v = e.target.value.replace(/[^\d]/g, "");
+                if (v.length > 4) v = v.slice(0, 4);
+                if (v.length >= 3) {
+                  v = v.slice(0, 2) + ":" + v.slice(2);
+                }
+                e.target.value = v;
+
+                const match = v.match(/^(\d{2}):(\d{2})$/);
+                if (match) {
+                  const typed = `${match[1]}:${match[2]}`;
+                  if (availableTimes.includes(typed)) {
+                    const [h, m] = typed.split(":");
+                    setDraftHour(h);
+                    setDraftMinute(m);
+                  }
+                }
+              }}
+            />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">oder wählen:</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2">
