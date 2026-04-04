@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { cn } from "@/lib/utils";
 
 interface TimeWheelPickerSlot {
@@ -186,7 +186,7 @@ export const TimeWheelPicker = ({
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Stunde
             </p>
-            <ScrollArea className="h-52 pr-2">
+            <div className="h-52 overflow-y-auto pr-2 -webkit-overflow-scrolling-touch">
               <div className="space-y-1">
                 {hourOptions.map((hour) => (
                   <Button
@@ -203,14 +203,14 @@ export const TimeWheelPicker = ({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           <div className="px-3 py-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Minuten
             </p>
-            <ScrollArea className="h-52 pr-2">
+            <div className="h-52 overflow-y-auto pr-2 -webkit-overflow-scrolling-touch">
               <div className="space-y-1">
                 {minuteOptions.map((minute) => (
                   <Button
@@ -227,7 +227,7 @@ export const TimeWheelPicker = ({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
