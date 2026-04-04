@@ -135,6 +135,7 @@ export const TimeWheelPicker = ({
         align="start"
         sideOffset={6}
         className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="border-b px-4 py-3 space-y-2">
           <p className="text-sm font-medium">Zeit auswählen</p>
@@ -186,7 +187,7 @@ export const TimeWheelPicker = ({
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Stunde
             </p>
-            <div className="h-52 overflow-y-auto pr-2 -webkit-overflow-scrolling-touch">
+            <div className="h-52 overflow-y-auto overscroll-contain pr-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
               <div className="space-y-1">
                 {hourOptions.map((hour) => (
                   <Button
@@ -210,7 +211,7 @@ export const TimeWheelPicker = ({
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Minuten
             </p>
-            <div className="h-52 overflow-y-auto pr-2 -webkit-overflow-scrolling-touch">
+            <div className="h-52 overflow-y-auto overscroll-contain pr-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
               <div className="space-y-1">
                 {minuteOptions.map((minute) => (
                   <Button
