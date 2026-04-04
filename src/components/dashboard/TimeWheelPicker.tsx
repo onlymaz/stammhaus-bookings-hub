@@ -135,6 +135,7 @@ export const TimeWheelPicker = ({
         align="start"
         sideOffset={6}
         className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="border-b px-4 py-3 space-y-2">
           <p className="text-sm font-medium">Zeit auswählen</p>
