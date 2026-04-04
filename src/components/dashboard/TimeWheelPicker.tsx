@@ -210,7 +210,7 @@ export const TimeWheelPicker = ({
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Minuten
             </p>
-            <ScrollArea className="h-52 pr-2">
+            <div className="h-52 overflow-y-auto pr-2 -webkit-overflow-scrolling-touch">
               <div className="space-y-1">
                 {minuteOptions.map((minute) => (
                   <Button
@@ -227,7 +227,7 @@ export const TimeWheelPicker = ({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
