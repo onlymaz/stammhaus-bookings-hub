@@ -186,7 +186,7 @@ export const TimeWheelPicker = ({
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Stunde
             </p>
-            <ScrollArea className="h-52 pr-2">
+            <div className="h-52 overflow-y-auto pr-2 -webkit-overflow-scrolling-touch">
               <div className="space-y-1">
                 {hourOptions.map((hour) => (
                   <Button
@@ -203,7 +203,7 @@ export const TimeWheelPicker = ({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           <div className="px-3 py-3">
