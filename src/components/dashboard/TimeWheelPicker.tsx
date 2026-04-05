@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Clock3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,48 @@ const getDraftSelection = (currentValue: string, times: string[]) => {
   return { hour, minute };
 };
 
+interface NativeSelectFieldProps {
+  label: string;
+  value: string;
+  options: string[];
+  placeholder: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+const NativeSelectField = ({
+  label,
+  value,
+  options,
+  placeholder,
+  disabled = false,
+  onChange,
+}: NativeSelectFieldProps) => (
+  <label className="space-y-2">
+    <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+      {label}
+    </span>
+
+    <div className="relative">
+      <select
+        value={value}
+        disabled={disabled || !options.length}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-11 w-full appearance-none rounded-md border border-input bg-background px-3 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    </div>
+  </label>
+);
+
 export const TimeWheelPicker = ({
   value,
   onChange,
@@ -60,6 +102,7 @@ export const TimeWheelPicker = ({
   const [open, setOpen] = useState(false);
   const [draftHour, setDraftHour] = useState("");
   const [draftMinute, setDraftMinute] = useState("");
+  const [manualInput, setManualInput] = useState("");
 
   const availableTimes = timeSlots
     .filter((slot) => slot.available)
@@ -78,13 +121,16 @@ export const TimeWheelPicker = ({
 
     setDraftHour(hour);
     setDraftMinute(minute);
+    setManualInput(hour && minute ? `${hour}:${minute}` : "");
   }, [value, timeSlots]);
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       const { hour, minute } = getDraftSelection(value, availableTimes);
 
       setDraftHour(hour);
       setDraftMinute(minute);
+      setManualInput(hour && minute ? `${hour}:${minute}` : "");
     }
 
     setOpen(nextOpen);
@@ -97,6 +143,36 @@ export const TimeWheelPicker = ({
     setDraftMinute((currentMinute) =>
       nextMinutes.includes(currentMinute) ? currentMinute : (nextMinutes[0] ?? ""),
     );
+  };
+
+  const handleManualInputChange = (nextValue: string) => {
+    let formatted = nextValue.replace(/[^\d]/g, "");
+    if (formatted.length > 4) formatted = formatted.slice(0, 4);
+    if (formatted.length >= 3) {
+      formatted = `${formatted.slice(0, 2)}:${formatted.slice(2)}`;
+    }
+
+    setManualInput(formatted);
+
+    const match = formatted.match(/^(\d{2}):(\d{2})$/);
+    if (!match) return;
+
+    const typed = `${match[1]}:${match[2]}`;
+    if (!availableTimes.includes(typed)) return;
+
+    setDraftHour(match[1]);
+    setDraftMinute(match[2]);
+  };
+
+  const handleManualInputSubmit = () => {
+    const match = manualInput.match(/^(\d{2}):(\d{2})$/);
+    if (!match) return;
+
+    const typed = `${match[1]}:${match[2]}`;
+    if (!availableTimes.includes(typed)) return;
+
+    onChange(typed);
+    setOpen(false);
   };
 
   const handleApply = () => {
@@ -142,94 +218,39 @@ export const TimeWheelPicker = ({
           <div className="flex items-center gap-2">
             <input
               type="text"
+              value={manualInput}
               inputMode="numeric"
               placeholder="HH:MM"
               maxLength={5}
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-ring"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  const val = (e.target as HTMLInputElement).value;
-                  const match = val.match(/^(\d{1,2}):(\d{2})$/);
-                  if (match) {
-                    const typed = `${match[1].padStart(2, "0")}:${match[2]}`;
-                    if (availableTimes.includes(typed)) {
-                      onChange(typed);
-                      setOpen(false);
-                    }
-                  }
+                  handleManualInputSubmit();
                 }
               }}
-              onChange={(e) => {
-                let v = e.target.value.replace(/[^\d]/g, "");
-                if (v.length > 4) v = v.slice(0, 4);
-                if (v.length >= 3) {
-                  v = v.slice(0, 2) + ":" + v.slice(2);
-                }
-                e.target.value = v;
-
-                const match = v.match(/^(\d{2}):(\d{2})$/);
-                if (match) {
-                  const typed = `${match[1]}:${match[2]}`;
-                  if (availableTimes.includes(typed)) {
-                    const [h, m] = typed.split(":");
-                    setDraftHour(h);
-                    setDraftMinute(m);
-                  }
-                }
-              }}
+              onChange={(e) => handleManualInputChange(e.target.value)}
             />
             <span className="text-xs text-muted-foreground whitespace-nowrap">oder wählen:</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2">
-          <div className="border-r px-3 py-3">
-            <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Stunde
-            </p>
-            <div className="h-52 overflow-y-auto overscroll-contain pr-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-              <div className="space-y-1">
-                {hourOptions.map((hour) => (
-                  <Button
-                    key={hour}
-                    type="button"
-                    variant={draftHour === hour ? "default" : "ghost"}
-                    className={cn(
-                      "h-11 w-full justify-center text-lg font-semibold",
-                      draftHour === hour && "shadow-sm",
-                    )}
-                    onClick={() => handleHourSelect(hour)}
-                  >
-                    {hour}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-3 px-4 py-4">
+          <NativeSelectField
+            label="Stunde"
+            value={draftHour}
+            options={hourOptions}
+            placeholder="HH"
+            onChange={handleHourSelect}
+          />
 
-          <div className="px-3 py-3">
-            <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Minuten
-            </p>
-            <div className="h-52 overflow-y-auto overscroll-contain pr-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-              <div className="space-y-1">
-                {minuteOptions.map((minute) => (
-                  <Button
-                    key={minute}
-                    type="button"
-                    variant={draftMinute === minute ? "default" : "ghost"}
-                    className={cn(
-                      "h-11 w-full justify-center text-lg font-semibold",
-                      draftMinute === minute && "shadow-sm",
-                    )}
-                    onClick={() => setDraftMinute(minute)}
-                  >
-                    {minute}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <NativeSelectField
+            label="Minuten"
+            value={draftMinute}
+            options={minuteOptions}
+            placeholder="MM"
+            disabled={!draftHour}
+            onChange={setDraftMinute}
+          />
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/30 px-4 py-3">
