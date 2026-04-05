@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Clock3 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 import { cn } from "@/lib/utils";
 
@@ -48,47 +48,55 @@ const getDraftSelection = (currentValue: string, times: string[]) => {
   return { hour, minute };
 };
 
-interface NativeSelectFieldProps {
+interface ScrollListProps {
   label: string;
   value: string;
   options: string[];
-  placeholder: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
+  onSelect: (value: string) => void;
 }
 
-const NativeSelectField = ({
-  label,
-  value,
-  options,
-  placeholder,
-  disabled = false,
-  onChange,
-}: NativeSelectFieldProps) => (
-  <label className="space-y-2">
-    <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-      {label}
-    </span>
+const ScrollList = ({ label, value, options, onSelect }: ScrollListProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLButtonElement>(null);
 
-    <div className="relative">
-      <select
-        value={value}
-        disabled={disabled || !options.length}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full appearance-none rounded-md border border-input bg-background px-3 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  useEffect(() => {
+    if (selectedRef.current && containerRef.current) {
+      selectedRef.current.scrollIntoView({
+        block: "center",
+        behavior: "smooth",
+      });
+    }
+  }, [value, options]);
+
+  return (
+    <div className="flex flex-col min-w-0">
+      <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground px-1 pb-2">
+        {label}
+      </span>
+      <div
+        ref={containerRef}
+        className="h-52 overflow-y-auto rounded-md border border-input bg-background"
       >
-        <option value="">{placeholder}</option>
         {options.map((option) => (
-          <option key={option} value={option}>
+          <button
+            key={option}
+            ref={option === value ? selectedRef : undefined}
+            type="button"
+            onClick={() => onSelect(option)}
+            className={cn(
+              "w-full px-4 py-2.5 text-left text-base font-medium transition-colors",
+              option === value
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-accent hover:text-accent-foreground",
+            )}
+          >
             {option}
-          </option>
+          </button>
         ))}
-      </select>
-
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      </div>
     </div>
-  </label>
-);
+  );
+};
 
 export const TimeWheelPicker = ({
   value,
@@ -187,8 +195,8 @@ export const TimeWheelPicker = ({
     : value || (hasOptions ? placeholder : emptyLabel);
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerTrigger asChild>
         <Button
           type="button"
           variant="outline"
@@ -205,69 +213,63 @@ export const TimeWheelPicker = ({
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Button>
-      </PopoverTrigger>
+      </DrawerTrigger>
 
-      <PopoverContent
-        align="start"
-        sideOffset={6}
-        className="z-[110] w-[320px] max-w-[calc(100vw-2rem)] p-0"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <div className="border-b px-4 py-3 space-y-2">
-          <p className="text-sm font-medium">Zeit auswählen</p>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={manualInput}
-              inputMode="numeric"
-              placeholder="HH:MM"
-              maxLength={5}
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-ring"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleManualInputSubmit();
-                }
-              }}
-              onChange={(e) => handleManualInputChange(e.target.value)}
+      <DrawerContent className="z-[110]">
+        <div className="mx-auto w-full max-w-md px-4 pb-6">
+          <div className="py-3 space-y-2">
+            <p className="text-sm font-medium">Zeit auswählen</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={manualInput}
+                inputMode="numeric"
+                placeholder="HH:MM"
+                maxLength={5}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-ring"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleManualInputSubmit();
+                  }
+                }}
+                onChange={(e) => handleManualInputChange(e.target.value)}
+              />
+              <span className="text-xs text-muted-foreground whitespace-nowrap">oder wählen:</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 py-2">
+            <ScrollList
+              label="Stunde"
+              value={draftHour}
+              options={hourOptions}
+              onSelect={handleHourSelect}
             />
-            <span className="text-xs text-muted-foreground whitespace-nowrap">oder wählen:</span>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3 px-4 py-4">
-          <NativeSelectField
-            label="Stunde"
-            value={draftHour}
-            options={hourOptions}
-            placeholder="HH"
-            onChange={handleHourSelect}
-          />
-
-          <NativeSelectField
-            label="Minuten"
-            value={draftMinute}
-            options={minuteOptions}
-            placeholder="MM"
-            disabled={!draftHour}
-            onChange={setDraftMinute}
-          />
-        </div>
-
-        <div className="flex items-center justify-between border-t bg-muted/30 px-4 py-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              Ausgewählt
-            </p>
-            <p className="text-xl font-semibold">
-              {draftHour && draftMinute ? `${draftHour}:${draftMinute}` : "--:--"}
-            </p>
+            <ScrollList
+              label="Minuten"
+              value={draftMinute}
+              options={minuteOptions}
+              onSelect={setDraftMinute}
+            />
           </div>
 
-          <Button type="button" onClick={handleApply} disabled={!draftHour || !draftMinute}>
-            Zeit übernehmen
-          </Button>
+          <div className="flex items-center justify-between border-t pt-4 mt-2">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Ausgewählt
+              </p>
+              <p className="text-xl font-semibold">
+                {draftHour && draftMinute ? `${draftHour}:${draftMinute}` : "--:--"}
+              </p>
+            </div>
+
+            <Button type="button" onClick={handleApply} disabled={!draftHour || !draftMinute}>
+              Zeit übernehmen
+            </Button>
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      </DrawerContent>
+    </Drawer>
   );
 };
