@@ -676,7 +676,10 @@ export const InlineTableAssignment = ({
           )}
         </div>
       ) : currentTableId && currentTableNumber ? (
-        <Badge className="text-xs font-bold px-2 py-0.5 h-auto bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-sm">
+        <Badge className={cn(
+          "text-xs font-bold px-2 py-0.5 h-auto border-0 shadow-sm",
+          isSeated ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-rose-600 hover:bg-rose-700 text-white"
+        )}>
           {currentTableNumber}
         </Badge>
       ) : (
