@@ -650,20 +650,29 @@ export const InlineTableAssignment = ({
       }}
     >
       <Table2 className={cn(
+        hasAssignedTables && isSeated ? "h-4 w-4 text-emerald-700 dark:text-emerald-400" :
         hasAssignedTables ? "h-4 w-4 text-rose-700 dark:text-rose-400" : "h-3 w-3 text-muted-foreground"
       )} />
+      {isSeated && hasAssignedTables && (
+        <Radio className="h-3 w-3 text-emerald-500 animate-pulse" />
+      )}
       {assignedTables.length > 0 ? (
         <div className="flex items-center gap-1.5 flex-wrap flex-1">
           {assignedTables.slice(0, 4).map(t => (
             <Badge 
               key={t.id} 
-              className="text-xs font-bold px-2 py-0.5 h-auto bg-rose-600 hover:bg-rose-700 text-white border-0 shadow-sm"
+              className={cn(
+                "text-xs font-bold px-2 py-0.5 h-auto border-0 shadow-sm",
+                isSeated
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-rose-600 hover:bg-rose-700 text-white"
+              )}
             >
               {t.table_number}
             </Badge>
           ))}
           {assignedTables.length > 4 && (
-            <span className="text-xs font-medium text-rose-600 dark:text-rose-400">+{assignedTables.length - 4}</span>
+            <span className={cn("text-xs font-medium", isSeated ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>+{assignedTables.length - 4}</span>
           )}
         </div>
       ) : currentTableId && currentTableNumber ? (
