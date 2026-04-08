@@ -639,7 +639,7 @@ export const InlineTableAssignment = ({
       className={cn(
         "mt-1 flex items-center gap-2 cursor-pointer group/table",
         hasAssignedTables && isSeated
-          ? "px-2 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 border-2 border-emerald-400 dark:border-emerald-500 shadow-md shadow-emerald-200/50 dark:shadow-emerald-900/30 animate-pulse-subtle ring-1 ring-emerald-300/50"
+          ? "px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800/40 border-2 border-gray-400 dark:border-gray-500 shadow-md shadow-gray-200/50 dark:shadow-gray-900/30 animate-pulse-subtle ring-1 ring-gray-300/50"
           : hasAssignedTables 
             ? "px-2 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 shadow-sm" 
             : ""
