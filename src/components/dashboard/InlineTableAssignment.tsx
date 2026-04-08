@@ -672,7 +672,7 @@ export const InlineTableAssignment = ({
             </Badge>
           ))}
           {assignedTables.length > 4 && (
-            <span className={cn("text-xs font-medium", isSeated ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>+{assignedTables.length - 4}</span>
+            <span className={cn("text-xs font-medium", isSeated ? "text-gray-600 dark:text-gray-400" : "text-rose-600 dark:text-rose-400")}>+{assignedTables.length - 4}</span>
           )}
         </div>
       ) : currentTableId && currentTableNumber ? (
