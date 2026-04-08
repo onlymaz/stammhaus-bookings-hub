@@ -714,7 +714,7 @@ export const InlineTableAssignment = ({
             className={cn(
               "px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors",
               isSeated
-                ? "bg-emerald-600 text-white border-emerald-700"
+                ? "bg-gray-600 text-white border-gray-700"
                 : "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 dark:hover:bg-emerald-800/50"
             )}
             onClick={handleMarkLive}
