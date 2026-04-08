@@ -650,7 +650,7 @@ export const InlineTableAssignment = ({
       }}
     >
       <Table2 className={cn(
-        hasAssignedTables && isSeated ? "h-4 w-4 text-emerald-700 dark:text-emerald-400" :
+        hasAssignedTables && isSeated ? "h-4 w-4 text-gray-700 dark:text-gray-400" :
         hasAssignedTables ? "h-4 w-4 text-rose-700 dark:text-rose-400" : "h-3 w-3 text-muted-foreground"
       )} />
       {isSeated && hasAssignedTables && (
