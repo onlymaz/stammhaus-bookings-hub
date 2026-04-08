@@ -654,7 +654,7 @@ export const InlineTableAssignment = ({
         hasAssignedTables ? "h-4 w-4 text-rose-700 dark:text-rose-400" : "h-3 w-3 text-muted-foreground"
       )} />
       {isSeated && hasAssignedTables && (
-        <Radio className="h-3 w-3 text-emerald-500 animate-pulse" />
+        <Radio className="h-3 w-3 text-gray-500 animate-pulse" />
       )}
       {assignedTables.length > 0 ? (
         <div className="flex items-center gap-1.5 flex-wrap flex-1">
