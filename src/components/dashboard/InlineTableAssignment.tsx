@@ -80,11 +80,34 @@ export const InlineTableAssignment = ({
     fetchAssignedTablesData();
   }, [fetchAssignedTablesData]);
 
-  // Calculate end time if not provided (default 2 hours)
+  // Calculate end time if not provided (default 3 hours)
   const getEndTime = () => {
     if (reservationEndTime) return reservationEndTime;
     return calculateEndTime(reservationTime);
   };
+
+  // Track current time (ticks every 30s) so the "ending soon" warning updates live
+  const [nowTick, setNowTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick((t) => t + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  // Compute whether the reservation ends within the next 15 minutes (only relevant when LIVE)
+  const isEndingSoon = (() => {
+    if (diningStatus !== 'seated') return false;
+    const endStr = reservationEndTime || calculateEndTime(reservationTime);
+    if (!endStr) return false;
+    const [eh, em] = endStr.split(':').map(Number);
+    const now = new Date();
+    // Only meaningful for today's reservations
+    if (reservationDate !== `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`) return false;
+    const endMinutes = eh * 60 + em;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const diff = endMinutes - nowMinutes;
+    void nowTick;
+    return diff > 0 && diff <= 15;
+  })();
 
   const fetchAvailableTables = async () => {
     setIsLoading(true);
