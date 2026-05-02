@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { RestaurantTable, TableZone, TableConflict, DiningStatus } from "@/types/table";
 import { toast } from "sonner";
 
-// Default reservation duration in minutes
-const DEFAULT_DURATION_MINUTES = 120;
+// Default reservation duration in minutes (3 hours)
+const DEFAULT_DURATION_MINUTES = 180;
 
 export const useTableManagement = () => {
   const [tables, setTables] = useState<RestaurantTable[]>([]);
