@@ -99,7 +99,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
 
   const computeEndTime = (startTime: string, endTime: string | null) => {
     if (endTime) return endTime;
-    return minutesToTimeStr(timeStrToMinutes(startTime) + 120);
+    return minutesToTimeStr(timeStrToMinutes(startTime) + 180);
   };
 
   // Check if table is available at a given time (no overlapping reservations)
