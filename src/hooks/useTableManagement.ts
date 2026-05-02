@@ -28,7 +28,7 @@ export const useTableManagement = () => {
     fetchTables();
   }, [fetchTables]);
 
-  // Add end time helper (2 hours default)
+  // Add end time helper (3 hours default)
   const calculateEndTime = (startTime: string, durationMinutes: number = DEFAULT_DURATION_MINUTES): string => {
     const [hours, minutes] = startTime.split(':').map(Number);
     const totalMinutes = hours * 60 + minutes + durationMinutes;
