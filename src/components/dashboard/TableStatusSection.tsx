@@ -109,7 +109,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const endMinutes = currentMinutes + 120; // 2 hour duration
+    const endMinutes = currentMinutes + 180; // 3 hour duration
 
     // Check for any overlapping reservation
     return !tableInfo.reservations.some(slot => {
