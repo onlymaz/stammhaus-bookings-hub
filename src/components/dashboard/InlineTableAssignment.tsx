@@ -661,11 +661,13 @@ export const InlineTableAssignment = ({
     <div 
       className={cn(
         "mt-1 flex items-center gap-2 cursor-pointer group/table",
-        hasAssignedTables && isSeated
-          ? "px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800/40 border-2 border-gray-400 dark:border-gray-500 shadow-md shadow-gray-200/50 dark:shadow-gray-900/30 animate-pulse-subtle ring-1 ring-gray-300/50"
-          : hasAssignedTables 
-            ? "px-2 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 shadow-sm" 
-            : ""
+        hasAssignedTables && isSeated && isEndingSoon
+          ? "px-2 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 border-2 border-amber-500 dark:border-amber-400 shadow-md shadow-amber-300/60 animate-blink-warning ring-2 ring-amber-400/70"
+          : hasAssignedTables && isSeated
+            ? "px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800/40 border-2 border-gray-400 dark:border-gray-500 shadow-md shadow-gray-200/50 dark:shadow-gray-900/30 animate-pulse-subtle ring-1 ring-gray-300/50"
+            : hasAssignedTables 
+              ? "px-2 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/30 border-2 border-rose-300 dark:border-rose-700 shadow-sm" 
+              : ""
       )}
       onClick={(e) => {
         e.stopPropagation();
@@ -673,11 +675,17 @@ export const InlineTableAssignment = ({
       }}
     >
       <Table2 className={cn(
+        hasAssignedTables && isSeated && isEndingSoon ? "h-4 w-4 text-amber-700 dark:text-amber-300" :
         hasAssignedTables && isSeated ? "h-4 w-4 text-gray-700 dark:text-gray-400" :
         hasAssignedTables ? "h-4 w-4 text-rose-700 dark:text-rose-400" : "h-3 w-3 text-muted-foreground"
       )} />
       {isSeated && hasAssignedTables && (
-        <Radio className="h-3 w-3 text-gray-500 animate-pulse" />
+        <Radio className={cn("h-3 w-3 animate-pulse", isEndingSoon ? "text-amber-600" : "text-gray-500")} />
+      )}
+      {isEndingSoon && hasAssignedTables && (
+        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 animate-pulse uppercase tracking-wide">
+          Endet bald
+        </span>
       )}
       {assignedTables.length > 0 ? (
         <div className="flex items-center gap-1.5 flex-wrap flex-1">
@@ -686,9 +694,11 @@ export const InlineTableAssignment = ({
               key={t.id} 
               className={cn(
                 "text-xs font-bold px-2 py-0.5 h-auto border-0 shadow-sm",
-                isSeated
-                   ? "bg-gray-500 hover:bg-gray-600 text-white"
-                  : "bg-rose-600 hover:bg-rose-700 text-white"
+                isSeated && isEndingSoon
+                  ? "bg-amber-600 hover:bg-amber-700 text-white animate-pulse"
+                  : isSeated
+                    ? "bg-gray-500 hover:bg-gray-600 text-white"
+                    : "bg-rose-600 hover:bg-rose-700 text-white"
               )}
             >
               {t.table_number}
@@ -701,6 +711,7 @@ export const InlineTableAssignment = ({
       ) : currentTableId && currentTableNumber ? (
         <Badge className={cn(
           "text-xs font-bold px-2 py-0.5 h-auto border-0 shadow-sm",
+          isSeated && isEndingSoon ? "bg-amber-600 hover:bg-amber-700 text-white animate-pulse" :
           isSeated ? "bg-gray-500 hover:bg-gray-600 text-white" : "bg-rose-600 hover:bg-rose-700 text-white"
         )}>
           {currentTableNumber}
