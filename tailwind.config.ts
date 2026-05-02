@@ -96,6 +96,18 @@ export default {
           "0%, 100%": { opacity: "1", boxShadow: "0 0 0 0 rgba(16, 185, 129, 0)" },
           "50%": { opacity: "0.92", boxShadow: "0 0 12px 4px rgba(16, 185, 129, 0.25)" },
         },
+        "blink-warning": {
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow: "0 0 0 0 rgba(245, 158, 11, 0.6)",
+            backgroundColor: "rgb(254 243 199)",
+          },
+          "50%": {
+            opacity: "0.75",
+            boxShadow: "0 0 18px 6px rgba(245, 158, 11, 0.65)",
+            backgroundColor: "rgb(253 224 71)",
+          },
+        },
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
@@ -109,6 +121,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
+        "blink-warning": "blink-warning 0.9s ease-in-out infinite",
       },
     },
   },
