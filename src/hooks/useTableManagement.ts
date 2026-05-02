@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { RestaurantTable, TableZone, TableConflict, DiningStatus } from "@/types/table";
 import { toast } from "sonner";
 
-// Default reservation duration in minutes
-const DEFAULT_DURATION_MINUTES = 120;
+// Default reservation duration in minutes (3 hours)
+const DEFAULT_DURATION_MINUTES = 180;
 
 export const useTableManagement = () => {
   const [tables, setTables] = useState<RestaurantTable[]>([]);
@@ -28,7 +28,7 @@ export const useTableManagement = () => {
     fetchTables();
   }, [fetchTables]);
 
-  // Add end time helper (2 hours default)
+  // Add end time helper (3 hours default)
   const calculateEndTime = (startTime: string, durationMinutes: number = DEFAULT_DURATION_MINUTES): string => {
     const [hours, minutes] = startTime.split(':').map(Number);
     const totalMinutes = hours * 60 + minutes + durationMinutes;

@@ -176,7 +176,7 @@ export const CalendarView = ({
       reservationEnd = new Date();
       reservationEnd.setHours(endHours, endMinutes, 0, 0);
     } else {
-      reservationEnd = new Date(reservationStart.getTime() + 120 * 60 * 1000);
+      reservationEnd = new Date(reservationStart.getTime() + 180 * 60 * 1000);
     }
     
     return currentTime >= reservationEnd;

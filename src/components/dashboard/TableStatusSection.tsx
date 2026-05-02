@@ -50,10 +50,10 @@ const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> 
   mezz: { label: 'Empore (M)', icon: Layers },
 };
 
-// Calculate end time (default 2 hours)
+// Calculate end time (default 3 hours)
 const calculateEndTime = (startTime: string): string => {
   const [hours, minutes] = startTime.split(':').map(Number);
-  const totalMinutes = hours * 60 + minutes + 120;
+  const totalMinutes = hours * 60 + minutes + 180;
   const endHours = Math.floor(totalMinutes / 60) % 24;
   const endMins = totalMinutes % 60;
   return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}:00`;
@@ -99,7 +99,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
 
   const computeEndTime = (startTime: string, endTime: string | null) => {
     if (endTime) return endTime;
-    return minutesToTimeStr(timeStrToMinutes(startTime) + 120);
+    return minutesToTimeStr(timeStrToMinutes(startTime) + 180);
   };
 
   // Check if table is available at a given time (no overlapping reservations)
@@ -109,7 +109,7 @@ export const TableStatusSection = ({ selectedDate, refreshTrigger, onRefresh }: 
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const endMinutes = currentMinutes + 120; // 2 hour duration
+    const endMinutes = currentMinutes + 180; // 3 hour duration
 
     // Check for any overlapping reservation
     return !tableInfo.reservations.some(slot => {
