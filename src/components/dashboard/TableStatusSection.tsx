@@ -50,10 +50,10 @@ const zoneLabels: Record<TableZone, { label: string; icon: React.ElementType }> 
   mezz: { label: 'Empore (M)', icon: Layers },
 };
 
-// Calculate end time (default 2 hours)
+// Calculate end time (default 3 hours)
 const calculateEndTime = (startTime: string): string => {
   const [hours, minutes] = startTime.split(':').map(Number);
-  const totalMinutes = hours * 60 + minutes + 120;
+  const totalMinutes = hours * 60 + minutes + 180;
   const endHours = Math.floor(totalMinutes / 60) % 24;
   const endMins = totalMinutes % 60;
   return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}:00`;
