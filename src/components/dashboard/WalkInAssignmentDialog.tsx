@@ -36,7 +36,7 @@ interface WalkInAssignmentDialogProps {
   onSuccess?: () => void;
 }
 
-const DEFAULT_DURATION_MINUTES = 120;
+const DEFAULT_DURATION_MINUTES = 180;
 
 export const WalkInAssignmentDialog = ({
   open,
