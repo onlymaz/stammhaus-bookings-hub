@@ -94,15 +94,16 @@ export const InlineTableAssignment = ({
   }, []);
 
   // Compute whether the reservation ends within the next 15 minutes (only relevant when LIVE)
+  // Always uses a 3-hour window from the reservation start time, regardless of any
+  // legacy 2-hour end time stored in the DB.
   const isEndingSoon = (() => {
     if (diningStatus !== 'seated') return false;
-    const endStr = reservationEndTime || calculateEndTime(reservationTime);
-    if (!endStr) return false;
-    const [eh, em] = endStr.split(':').map(Number);
+    if (!reservationTime) return false;
+    const [sh, sm] = reservationTime.split(':').map(Number);
     const now = new Date();
     // Only meaningful for today's reservations
     if (reservationDate !== `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`) return false;
-    const endMinutes = eh * 60 + em;
+    const endMinutes = sh * 60 + sm + 180; // 3-hour slot
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
     const diff = endMinutes - nowMinutes;
     void nowTick;
